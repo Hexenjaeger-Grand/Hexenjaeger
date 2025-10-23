@@ -6,13 +6,13 @@ class HexenjaegerDB {
 
     init() {
         // Initialisiere Standard-Daten falls nicht vorhanden
-        if (!this.getMembers()) {
+        if (!localStorage.getItem('hexenjaeger_members')) {
             this.saveMembers([]);
         }
-        if (!this.getPayouts()) {
+        if (!localStorage.getItem('hexenjaeger_payouts')) {
             this.savePayouts([]);
         }
-        if (!this.getStats()) {
+        if (!localStorage.getItem('hexenjaeger_stats')) {
             this.saveStats([]);
         }
     }
@@ -76,7 +76,8 @@ class HexenjaegerDB {
             'bizwar_win': 20000, 'bizwar_lose': 10000,
             '40er_win': 40000, '40er_lose': 20000,
             'ekz': 80000, 'hafen': 40000,
-            'giesserei': 10000, 'waffenfabrik': 10000
+            'giesserei': 10000, 'waffenfabrik': 10000,
+            'cayo': 0, 'rp_fabrik': 0
         };
         
         let payout = payouts.find(p => p.memberId === memberId);
@@ -101,7 +102,7 @@ class HexenjaegerDB {
             calculatedAmount = EVENT_PRICES[eventType] * amount;
         }
         
-        payout[eventType] += amount;
+        payout[eventType] += parseInt(amount);
         payout.total += calculatedAmount;
         
         this.savePayouts(payouts);
@@ -135,24 +136,205 @@ class HexenjaegerDB {
     saveStats(stats) {
         localStorage.setItem('hexenjaeger_stats', JSON.stringify(stats));
     }
-
-    // Export/Import für Backup
-    exportData() {
-        return {
-            members: this.getMembers(),
-            payouts: this.getPayouts(),
-            stats: this.getStats(),
-            exportDate: new Date().toISOString()
-        };
-    }
-
-    importData(data) {
-        if (data.members) this.saveMembers(data.members);
-        if (data.payouts) this.savePayouts(data.payouts);
-        if (data.stats) this.saveStats(data.stats);
-        return { success: true };
-    }
 }
 
 // Globale DB Instanz
 const db = new HexenjaegerDB();
+
+// Hilfsfunktionen
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function formatCurrency(amount) {
+    return '$' + parseInt(amount).toLocaleString('de-DE');
+}
+
+// Seiten-spezifische Initialisierung
+document.addEventListener('DOMContentLoaded', function() {
+    // Auszahlungen Seite
+    if (window.location.pathname.includes('auszahlungen.html') || document.title.includes('Auszahlungen')) {
+        loadPayouts();
+    }
+    
+    // Eingabe Seite
+    if (window.location.pathname.includes('eingabe.html') || document.title.includes('Eingabe')) {
+        initEventForm();
+    }
+    
+    // Mitglieder Seite
+    if (window.location.pathname.includes('mitglieder.html') || document.title.includes('Mitglieder')) {
+        initMembersPage();
+    }
+});
+
+// Auszahlungen laden
+function loadPayouts() {
+    const payouts = db.getPayouts();
+    const tbody = document.getElementById('payoutBody');
+    
+    if (!tbody) return;
+    
+    tbody.innerHTML = payouts.map(payout => `
+        <tr>
+            <td>${escapeHtml(payout.memberId)}</td>
+            <td><strong>${escapeHtml(payout.memberName)}</strong></td>
+            <td><strong>${formatCurrency(payout.total)}</strong></td>
+            <td>${payout.bizwar_win}W / ${payout.bizwar_lose}L</td>
+            <td>${payout['40er_win']}W / ${payout['40er_lose']}L</td>
+            <td>${payout.giesserei}</td>
+            <td>${payout.waffenfabrik}</td>
+            <td>${payout.hafen}</td>
+            <td>${payout.cayo}</td>
+            <td>${payout.rp_fabrik}</td>
+            <td>${payout.ekz}</td>
+            <td>
+                <button onclick="completePayout('${payout.memberId}')" class="btn-primary" style="padding: 5px 10px; font-size: 12px;">
+                    Auszahlen
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function completePayout(memberId) {
+    if (confirm('Auszahlung als erledigt markieren?')) {
+        const result = db.completePayout(memberId);
+        if (result.success) {
+            loadPayouts();
+        } else {
+            alert('Fehler: ' + result.error);
+        }
+    }
+}
+
+// Event Formular
+function initEventForm() {
+    const eventType = document.getElementById('eventType');
+    const memberSelect = document.getElementById('memberSelect');
+    const amountInput = document.getElementById('amount');
+    const specialAmountDiv = document.getElementById('specialAmount');
+    const totalAmountInput = document.getElementById('totalAmount');
+    const submitBtn = document.getElementById('submitEvent');
+    
+    if (!eventType) return;
+    
+    // Fülle Mitglieder Select
+    const members = db.getMembers();
+    memberSelect.innerHTML = '<option value="">Mitglied auswählen</option>' +
+        members.map(m => `<option value="${m.id}">${escapeHtml(m.name)} (${m.id})</option>`).join('');
+    
+    // Event Type Change
+    eventType.addEventListener('change', function() {
+        if (this.value === 'cayo' || this.value === 'rp_fabrik') {
+            specialAmountDiv.style.display = 'block';
+        } else {
+            specialAmountDiv.style.display = 'none';
+        }
+    });
+    
+    // Submit Event
+    submitBtn.addEventListener('click', function() {
+        const eventData = {
+            eventType: eventType.value,
+            memberId: memberSelect.value,
+            amount: amountInput.value,
+            totalAmount: totalAmountInput.value || 0
+        };
+        
+        if (!eventData.eventType || !eventData.memberId || !eventData.amount) {
+            alert('Bitte fülle alle Felder aus!');
+            return;
+        }
+        
+        const result = db.addEvent(eventData);
+        if (result.success) {
+            alert(`Event gespeichert! Betrag: ${formatCurrency(result.calculatedAmount)}`);
+            // Formular zurücksetzen
+            eventType.value = '';
+            memberSelect.value = '';
+            amountInput.value = '';
+            totalAmountInput.value = '';
+            specialAmountDiv.style.display = 'none';
+        } else {
+            alert('Fehler: ' + result.error);
+        }
+    });
+}
+
+// Mitglieder Seite
+function initMembersPage() {
+    const memberList = document.getElementById('memberList');
+    const modal = document.getElementById('memberModal');
+    const addMemberBtn = document.getElementById('addMemberBtn');
+    const saveMemberBtn = document.getElementById('saveMember');
+    const cancelBtn = document.getElementById('cancelMember');
+    
+    if (!memberList) return;
+
+    function renderMembers() {
+        const members = db.getMembers();
+        memberList.innerHTML = members.map(member => `
+            <div class="member-item">
+                <div class="member-info">
+                    <strong>${escapeHtml(member.name)}</strong>
+                    <span class="member-id">${escapeHtml(member.id)}</span>
+                </div>
+                <div class="member-actions">
+                    <button class="edit-btn" onclick="editMember('${member.id}')">✏️</button>
+                    <button class="delete-btn" onclick="deleteMember('${member.id}')">🗑️</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    addMemberBtn.addEventListener('click', () => {
+        modal.style.display = 'block';
+    });
+
+    saveMemberBtn.addEventListener('click', () => {
+        const name = document.getElementById('memberName').value;
+        const id = document.getElementById('memberId').value;
+        
+        if (name && id) {
+            const result = db.addMember(name, id);
+            if (result.success) {
+                modal.style.display = 'none';
+                document.getElementById('memberName').value = '';
+                document.getElementById('memberId').value = '';
+                renderMembers();
+            } else {
+                alert(result.error || 'Fehler beim Speichern');
+            }
+        } else {
+            alert('Bitte Name und ID eingeben!');
+        }
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+
+    window.editMember = (id) => {
+        const members = db.getMembers();
+        const member = members.find(m => m.id === id);
+        if (member) {
+            const newName = prompt('Neuen Namen eingeben:', member.name);
+            if (newName && newName.trim()) {
+                db.updateMember(id, newName.trim());
+                renderMembers();
+            }
+        }
+    };
+
+    window.deleteMember = (id) => {
+        if (confirm('Mitglied wirklich löschen?')) {
+            db.deleteMember(id);
+            renderMembers();
+        }
+    };
+
+    renderMembers();
+}
