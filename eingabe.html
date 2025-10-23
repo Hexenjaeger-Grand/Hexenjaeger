@@ -74,7 +74,6 @@
             border-radius: 10px;
             padding: 15px;
             margin-top: 10px;
-            display: none;
         }
         
         .preview-title {
@@ -95,6 +94,13 @@
             margin-top: 8px;
             padding-top: 8px;
             border-top: 2px solid var(--accent-purple);
+        }
+        
+        .preview-empty {
+            color: var(--text-muted);
+            font-style: italic;
+            text-align: center;
+            padding: 10px;
         }
     </style>
 </head>
@@ -139,6 +145,14 @@
                 <label for="amount">Anzahl Kills/Drops</label>
                 <input type="number" id="amount" placeholder="z.B. 5 für 5 Kills">
                 <div class="info-text">Jeder ausgewählte Teilnehmer erhält den Betrag für die angegebene Anzahl</div>
+                
+                <!-- Betrags-Vorschau für normale Events -->
+                <div class="amount-preview" id="normalPreview">
+                    <div class="preview-title">💰 Auszahlung pro Teilnehmer:</div>
+                    <div id="normalPreviewContent" class="preview-empty">
+                        Wähle Mitglieder und gib eine Anzahl ein
+                    </div>
+                </div>
             </div>
 
             <!-- Cayo Perico: Gesamtbetrag und Drops -->
@@ -151,7 +165,9 @@
                 <!-- Betrags-Vorschau für Cayo -->
                 <div class="amount-preview" id="cayoPreview">
                     <div class="preview-title">💰 Auszahlung pro Teilnehmer:</div>
-                    <div id="cayoPreviewContent"></div>
+                    <div id="cayoPreviewContent" class="preview-empty">
+                        Wähle Mitglieder und gib Beträge ein
+                    </div>
                 </div>
                 
                 <div class="info-text">Der Betrag wird gleichmäßig auf alle ausgewählten Mitglieder aufgeteilt</div>
@@ -165,7 +181,9 @@
                 <!-- Betrags-Vorschau für RP Fabrik -->
                 <div class="amount-preview" id="rpPreview">
                     <div class="preview-title">💰 Auszahlung pro Teilnehmer:</div>
-                    <div id="rpPreviewContent"></div>
+                    <div id="rpPreviewContent" class="preview-empty">
+                        Wähle Mitglieder und gib einen Betrag ein
+                    </div>
                 </div>
                 
                 <div class="info-text">Der Betrag wird gleichmäßig auf alle ausgewählten Mitglieder aufgeteilt</div>
@@ -240,8 +258,10 @@
             const normalEvent = document.getElementById('normalEvent');
             const cayoEvent = document.getElementById('cayoEvent');
             const rpEvent = document.getElementById('rpEvent');
+            const normalPreview = document.getElementById('normalPreview');
             const cayoPreview = document.getElementById('cayoPreview');
             const rpPreview = document.getElementById('rpPreview');
+            const normalPreviewContent = document.getElementById('normalPreviewContent');
             const cayoPreviewContent = document.getElementById('cayoPreviewContent');
             const rpPreviewContent = document.getElementById('rpPreviewContent');
             const submitBtn = document.getElementById('submitEvent');
@@ -268,22 +288,23 @@
                 normalEvent.style.display = 'none';
                 cayoEvent.style.display = 'none';
                 rpEvent.style.display = 'none';
-                cayoPreview.style.display = 'none';
-                rpPreview.style.display = 'none';
 
                 // Zeige die richtigen Felder basierend auf Event-Typ
                 switch(this.value) {
                     case 'cayo':
                         cayoEvent.style.display = 'block';
+                        updateAmountPreviews(); // Sofort Vorschau aktualisieren
                         break;
                     case 'rp_fabrik':
                         rpEvent.style.display = 'block';
+                        updateAmountPreviews(); // Sofort Vorschau aktualisieren
                         break;
                     case '':
                         // Nichts anzeigen
                         break;
                     default:
                         normalEvent.style.display = 'block';
+                        updateAmountPreviews(); // Sofort Vorschau aktualisieren
                         break;
                 }
             });
@@ -299,6 +320,7 @@
             });
 
             // Betrags-Änderungen für Vorschau
+            document.getElementById('amount').addEventListener('input', updateAmountPreviews);
             document.getElementById('cayoTotalAmount').addEventListener('input', updateAmountPreviews);
             document.getElementById('rpTotalAmount').addEventListener('input', updateAmountPreviews);
             document.getElementById('cayoDrops').addEventListener('input', updateAmountPreviews);
@@ -306,73 +328,121 @@
             function updateAmountPreviews() {
                 const members = db.getMembers();
                 const selectedCount = selectedMemberIds.length;
+                const eventTypeValue = eventType.value;
+                
+                // Normale Events Vorschau
+                if (eventTypeValue && eventTypeValue !== 'cayo' && eventTypeValue !== 'rp_fabrik') {
+                    const amount = parseInt(document.getElementById('amount').value) || 0;
+                    
+                    if (selectedCount > 0 && amount > 0) {
+                        const EVENT_PRICES = {
+                            'bizwar_win': 20000, 'bizwar_lose': 10000,
+                            '40er_win': 40000, '40er_lose': 20000,
+                            'ekz': 80000, 'hafen': 40000,
+                            'giesserei': 10000, 'waffenfabrik': 10000
+                        };
+                        
+                        const amountPerMember = EVENT_PRICES[eventTypeValue] * amount;
+                        
+                        normalPreviewContent.innerHTML = '';
+                        selectedMemberIds.forEach(memberId => {
+                            const member = members.find(m => m.id === memberId);
+                            if (member) {
+                                const item = document.createElement('div');
+                                item.className = 'preview-item';
+                                item.innerHTML = `
+                                    <span>${escapeHtml(member.name)}</span>
+                                    <span>$${amountPerMember.toLocaleString('de-DE')}</span>
+                                `;
+                                normalPreviewContent.appendChild(item);
+                            }
+                        });
+                        
+                        const total = document.createElement('div');
+                        total.className = 'preview-total';
+                        total.innerHTML = `
+                            <span>Gesamt pro Person (${amount} × $${EVENT_PRICES[eventTypeValue].toLocaleString('de-DE')})</span>
+                            <span>$${amountPerMember.toLocaleString('de-DE')}</span>
+                        `;
+                        normalPreviewContent.appendChild(total);
+                    } else {
+                        normalPreviewContent.innerHTML = '<div class="preview-empty">Wähle Mitglieder und gib eine Anzahl ein</div>';
+                    }
+                }
                 
                 // Cayo Perico Vorschau
-                const cayoTotal = parseInt(document.getElementById('cayoTotalAmount').value) || 0;
-                const cayoDrops = parseInt(document.getElementById('cayoDrops').value) || 0;
-                
-                if (selectedCount > 0 && cayoTotal > 0 && cayoDrops > 0) {
-                    const amountPerMember = Math.round(cayoTotal / selectedCount);
-                    const amountPerDrop = Math.round(amountPerMember / cayoDrops);
+                if (eventTypeValue === 'cayo') {
+                    const cayoTotal = parseInt(document.getElementById('cayoTotalAmount').value) || 0;
+                    const cayoDrops = parseInt(document.getElementById('cayoDrops').value) || 0;
                     
-                    cayoPreviewContent.innerHTML = '';
-                    selectedMemberIds.forEach(memberId => {
-                        const member = members.find(m => m.id === memberId);
-                        if (member) {
-                            const item = document.createElement('div');
-                            item.className = 'preview-item';
-                            item.innerHTML = `
-                                <span>${escapeHtml(member.name)}</span>
-                                <span>$${amountPerMember.toLocaleString('de-DE')}</span>
-                            `;
-                            cayoPreviewContent.appendChild(item);
+                    if (selectedCount > 0 && cayoTotal > 0 && cayoDrops > 0) {
+                        const amountPerMember = Math.round(cayoTotal / selectedCount);
+                        
+                        cayoPreviewContent.innerHTML = '';
+                        selectedMemberIds.forEach(memberId => {
+                            const member = members.find(m => m.id === memberId);
+                            if (member) {
+                                const item = document.createElement('div');
+                                item.className = 'preview-item';
+                                item.innerHTML = `
+                                    <span>${escapeHtml(member.name)}</span>
+                                    <span>$${amountPerMember.toLocaleString('de-DE')}</span>
+                                `;
+                                cayoPreviewContent.appendChild(item);
+                            }
+                        });
+                        
+                        const total = document.createElement('div');
+                        total.className = 'preview-total';
+                        total.innerHTML = `
+                            <span>Gesamt pro Person (${cayoTotal.toLocaleString('de-DE')} / ${selectedCount})</span>
+                            <span>$${amountPerMember.toLocaleString('de-DE')}</span>
+                        `;
+                        cayoPreviewContent.appendChild(total);
+                    } else {
+                        let message = 'Wähle Mitglieder und gib Beträge ein';
+                        if (selectedCount > 0 && (cayoTotal === 0 || cayoDrops === 0)) {
+                            message = 'Gib Gesamtbetrag und Anzahl Drops ein';
                         }
-                    });
-                    
-                    const total = document.createElement('div');
-                    total.className = 'preview-total';
-                    total.innerHTML = `
-                        <span>Gesamt pro Person (${cayoDrops} Drops × $${amountPerDrop.toLocaleString('de-DE')})</span>
-                        <span>$${amountPerMember.toLocaleString('de-DE')}</span>
-                    `;
-                    cayoPreviewContent.appendChild(total);
-                    
-                    cayoPreview.style.display = 'block';
-                } else {
-                    cayoPreview.style.display = 'none';
+                        cayoPreviewContent.innerHTML = `<div class="preview-empty">${message}</div>`;
+                    }
                 }
                 
                 // RP Fabrik Vorschau
-                const rpTotal = parseInt(document.getElementById('rpTotalAmount').value) || 0;
-                
-                if (selectedCount > 0 && rpTotal > 0) {
-                    const amountPerMember = Math.round(rpTotal / selectedCount);
+                if (eventTypeValue === 'rp_fabrik') {
+                    const rpTotal = parseInt(document.getElementById('rpTotalAmount').value) || 0;
                     
-                    rpPreviewContent.innerHTML = '';
-                    selectedMemberIds.forEach(memberId => {
-                        const member = members.find(m => m.id === memberId);
-                        if (member) {
-                            const item = document.createElement('div');
-                            item.className = 'preview-item';
-                            item.innerHTML = `
-                                <span>${escapeHtml(member.name)}</span>
-                                <span>$${amountPerMember.toLocaleString('de-DE')}</span>
-                            `;
-                            rpPreviewContent.appendChild(item);
+                    if (selectedCount > 0 && rpTotal > 0) {
+                        const amountPerMember = Math.round(rpTotal / selectedCount);
+                        
+                        rpPreviewContent.innerHTML = '';
+                        selectedMemberIds.forEach(memberId => {
+                            const member = members.find(m => m.id === memberId);
+                            if (member) {
+                                const item = document.createElement('div');
+                                item.className = 'preview-item';
+                                item.innerHTML = `
+                                    <span>${escapeHtml(member.name)}</span>
+                                    <span>$${amountPerMember.toLocaleString('de-DE')}</span>
+                                `;
+                                rpPreviewContent.appendChild(item);
+                            }
+                        });
+                        
+                        const total = document.createElement('div');
+                        total.className = 'preview-total';
+                        total.innerHTML = `
+                            <span>Gesamt pro Person (${rpTotal.toLocaleString('de-DE')} / ${selectedCount})</span>
+                            <span>$${amountPerMember.toLocaleString('de-DE')}</span>
+                        `;
+                        rpPreviewContent.appendChild(total);
+                    } else {
+                        let message = 'Wähle Mitglieder und gib einen Betrag ein';
+                        if (selectedCount > 0 && rpTotal === 0) {
+                            message = 'Gib den Gesamtbetrag ein';
                         }
-                    });
-                    
-                    const total = document.createElement('div');
-                    total.className = 'preview-total';
-                    total.innerHTML = `
-                        <span>Gesamt pro Person</span>
-                        <span>$${amountPerMember.toLocaleString('de-DE')}</span>
-                    `;
-                    rpPreviewContent.appendChild(total);
-                    
-                    rpPreview.style.display = 'block';
-                } else {
-                    rpPreview.style.display = 'none';
+                        rpPreviewContent.innerHTML = `<div class="preview-empty">${message}</div>`;
+                    }
                 }
             }
 
@@ -478,7 +548,14 @@
                     const amountPerMember = Math.round(eventData.totalAmount / selectedCount);
                     confirmationMessage = `Jeder der ${selectedCount} Teilnehmer erhält $${amountPerMember.toLocaleString('de-DE')}. Fortfahren?`;
                 } else {
-                    confirmationMessage = `Event für ${selectedCount} Teilnehmer speichern?`;
+                    const EVENT_PRICES = {
+                        'bizwar_win': 20000, 'bizwar_lose': 10000,
+                        '40er_win': 40000, '40er_lose': 20000,
+                        'ekz': 80000, 'hafen': 40000,
+                        'giesserei': 10000, 'waffenfabrik': 10000
+                    };
+                    const amountPerMember = EVENT_PRICES[eventTypeValue] * eventData.amount;
+                    confirmationMessage = `Jeder der ${selectedCount} Teilnehmer erhält $${amountPerMember.toLocaleString('de-DE')}. Fortfahren?`;
                 }
                 
                 if (!confirm(confirmationMessage)) {
@@ -547,8 +624,9 @@
                 normalEvent.style.display = 'none';
                 cayoEvent.style.display = 'none';
                 rpEvent.style.display = 'none';
-                cayoPreview.style.display = 'none';
-                rpPreview.style.display = 'none';
+                
+                // Vorschau zurücksetzen
+                updateAmountPreviews();
             }
 
             // Hilfsfunktion
