@@ -215,46 +215,54 @@ tbody tr:hover {
     background: rgba(139, 92, 246, 0.05);
 }
 
-/* Formulare - DUNKLE DROPDOWNS */
+/* FORMULARE - GARANTIERT DUNKLE DROPDOWNS */
 input, select {
     width: 100%;
     padding: 12px 15px;
     border-radius: 8px;
     border: 1px solid var(--border-color);
-    background: rgba(15, 15, 25, 0.9);
-    color: var(--text-light);
+    background: rgba(15, 15, 25, 0.95) !important;
+    color: var(--text-light) !important;
     font-size: 16px;
     transition: all 0.3s ease;
 }
 
-/* Speziell für Select Dropdowns */
+/* SELECT DROPDOWNS - SPEZIELL */
 select {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b5cf6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 16px;
-    padding-right: 40px;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background: rgba(15, 15, 25, 0.95) !important;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b5cf6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 12px center !important;
+    background-size: 16px !important;
+    padding-right: 40px !important;
 }
 
-/* Dropdown Optionen - DUNKEL */
+/* DROPDOWN OPTIONEN - GARANTIERT DUNKEL */
 select option {
-    background: rgba(15, 15, 25, 0.95);
-    color: var(--text-light);
-    padding: 10px;
+    background: rgba(15, 15, 25, 0.98) !important;
+    color: var(--text-light) !important;
+    padding: 12px !important;
+    border: none !important;
 }
 
-/* Für verschiedene Browser */
+/* Für Firefox */
+select:-moz-focusring {
+    color: transparent !important;
+    text-shadow: 0 0 0 var(--text-light) !important;
+}
+
+/* Für Internet Explorer */
 select::-ms-expand {
-    display: none;
+    display: none !important;
 }
 
 select:focus {
-    outline: none;
-    border-color: var(--accent-purple);
-    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+    outline: none !important;
+    border-color: var(--accent-purple) !important;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2) !important;
 }
 
 input:focus {
@@ -269,31 +277,47 @@ input::placeholder {
 
 /* Filter Selects (für Statistik) */
 .filter-select {
-    background: rgba(15, 15, 25, 0.9);
-    border: 1px solid var(--border-color);
-    color: var(--text-light);
-    padding: 10px 15px;
-    border-radius: 8px;
+    background: rgba(15, 15, 25, 0.95) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-light) !important;
+    padding: 10px 15px !important;
+    border-radius: 8px !important;
     min-width: 150px;
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b5cf6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 16px;
-    padding-right: 40px;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b5cf6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 12px center !important;
+    background-size: 16px !important;
+    padding-right: 40px !important;
 }
 
 .filter-select option {
-    background: rgba(15, 15, 25, 0.95);
-    color: var(--text-light);
+    background: rgba(15, 15, 25, 0.98) !important;
+    color: var(--text-light) !important;
 }
 
 .filter-select:focus {
-    outline: none;
-    border-color: var(--accent-purple);
-    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+    outline: none !important;
+    border-color: var(--accent-purple) !important;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2) !important;
+}
+
+/* Event Form spezifisch */
+.event-form select,
+.event-form input {
+    background: rgba(15, 15, 25, 0.95) !important;
+    color: var(--text-light) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.event-form select {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background: rgba(15, 15, 25, 0.95) url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b5cf6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") no-repeat right 12px center / 16px !important;
+    padding-right: 40px !important;
 }
 
 /* Modal */
@@ -505,4 +529,24 @@ input::placeholder {
     .filter-select {
         min-width: 100%;
     }
+}
+
+/* EXTRA GARANTIE FÜR DROPDOWNS */
+#eventType,
+#memberSelect,
+#timeFilter,
+#memberFilter,
+#eventFilter {
+    background: rgba(15, 15, 25, 0.95) !important;
+    color: var(--text-light) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+#eventType option,
+#memberSelect option,
+#timeFilter option,
+#memberFilter option,
+#eventFilter option {
+    background: rgba(15, 15, 25, 0.98) !important;
+    color: var(--text-light) !important;
 }
