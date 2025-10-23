@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistik - Hexenjäger</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 10px 0;
+        }
+        
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-select {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-light);
+            padding: 10px 15px;
+            border-radius: 8px;
+            min-width: 150px;
+        }
+        
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Statistik</h1>
+            <a href="index.html" class="back-btn">← Zurück</a>
+        </header>
+
+        <!-- Export Buttons -->
+        <div class="export-buttons">
+            <button onclick="exportData()" class="btn-primary">📥 Daten exportieren</button>
+            <button onclick="document.getElementById('importFile').click()" class="btn-secondary">📤 Daten importieren</button>
+            <input type="file" id="importFile" accept=".json" style="display: none" onchange="importData(event)">
+        </div>
+
+        <!-- Statistiken Übersicht -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Gesamt ausgezahlt</div>
+                <div class="stat-number" id="totalPaid">$0</div>
+                <div>Alle historischen Auszahlungen</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-label">Aktive Mitglieder</div>
+                <div class="stat-number" id="activeMembers">0</div>
+                <div>Mitglieder mit Auszahlungen</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-label">Top Event</div>
+                <div class="stat-number" id="topEvent">-</div>
+                <div>Meist ausgezahltes Event</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-label">Durchschnitt</div>
+                <div class="stat-number" id="avgPerMember">$0</div>
+                <div>Ø Auszahlung pro Person</div>
+            </div>
+        </div>
+
+        <!-- Filter -->
+        <div class="filters">
+            <select id="timeFilter" class="filter-select" onchange="updateStatistics()">
+                <option value="all">Alle Zeiträume</option>
+                <option value="week">Letzte Woche</option>
+                <option value="month">Letzter Monat</option>
+                <option value="year">Dieses Jahr</option>
+            </select>
+            
+            <select id="memberFilter" class="filter-select" onchange="updateStatistics()">
+                <option value="all">Alle Mitglieder</option>
+            </select>
+        </div>
+
+        <!-- Detaillierte Statistik -->
+        <div class="card">
+            <h3>📈 Auszahlungsstatistik</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mitglied</th>
+                            <th>Bizwar Win</th>
+                            <th>Bizwar Lose</th>
+                            <th>40er Win</th>
+                            <th>40er Lose</th>
+                            <th>Gießerei</th>
+                            <th>Waffenfabrik</th>
+                            <th>Hafen</th>
+                            <th>Cayo</th>
+                            <th>RP Fabrik</th>
+                            <th>EKZ</th>
+                            <th>Gesamt</th>
+                        </tr>
+                    </thead>
+                    <tbody id="statsTableBody">
+                        <!-- Wird mit JavaScript gefüllt -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="noStatsData" class="no-data" style="display: none;">
+                Noch keine Auszahlungsdaten vorhanden
+            </div>
+        </div>
+
+        <!-- Event-Statistiken -->
+        <div class="card">
+            <h3>🎯 Event-Statistiken</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Event Typ</th>
+                            <th>Anzahl</th>
+                            <th>Gesamtbetrag</th>
+                            <th>Durchschnitt</th>
+                        </tr>
+                    </thead>
+                    <tbody id="eventStatsBody">
+                        <!-- Wird mit JavaScript gefüllt -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="noEventData" class="no-data" style="display: none;">
+                Noch keine Event-Daten vorhanden
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Statistik-spezifische Funktionen
+        function updateStatistics() {
+            const stats = db.getStats();
+            const timeFilter = document.getElementById('timeFilter').value;
+            const memberFilter = document.getElementById('memberFilter').value;
+            
+            // Filtere Daten
+            let filteredStats = stats.filter(stat => {
+                let include = true;
+                
+                // Zeitfilter
+                if (timeFilter !== 'all' && stat.paidDate) {
+                    const statDate = new Date(stat.paidDate);
+                    const now = new Date();
+                    let timeDiff;
+                    
+                    switch(timeFilter) {
+                        case 'week': timeDiff = 7 * 24 * 60 * 60 * 1000; break;
+                        case 'month': timeDiff = 30 * 24 * 60 * 60 * 1000; break;
+                        case 'year': timeDiff = 365 * 24 * 60 * 60 * 1000; break;
+                        default: timeDiff = 0;
+                    }
+                    
+                    include = include && (now - statDate) <= timeDiff;
+                }
+                
+                // Mitgliederfilter
+                if (memberFilter !== 'all') {
+                    include = include && stat.memberId === memberFilter;
+                }
+                
+                return include;
+            });
+            
+            updateSummaryStats(filteredStats);
+            updateDetailedStats(filteredStats);
+            updateEventStats(filteredStats);
+        }
+        
+        function updateSummaryStats(stats) {
+            // Gesamt ausgezahlt
+            const totalPaid = stats.reduce((sum, stat) => sum + (stat.total || 0), 0);
+            document.getElementById('totalPaid').textContent = `$${totalPaid.toLocaleString('de-DE')}`;
+            
+            // Aktive Mitglieder
+            const activeMembers = new Set(stats.map(stat => stat.memberId)).size;
+            document.getElementById('activeMembers').textContent = activeMembers;
+            
+            // Top Event
+            const eventTotals = {};
+            stats.forEach(stat => {
+                ['bizwar_win', 'bizwar_lose', '40er_win', '40er_lose', 'giesserei', 'waffenfabrik', 'hafen', 'cayo', 'rp_fabrik', 'ekz'].forEach(key => {
+                    if (stat[key] > 0) {
+                        eventTotals[key] = (eventTotals[key] || 0) + stat[key];
+                    }
+                });
+            });
+            
+            let topEvent = '-';
+            let maxCount = 0;
+            Object.entries(eventTotals).forEach(([event, count]) => {
+                if (count > maxCount) {
+                    maxCount = count;
+                    topEvent = event;
+                }
+            });
+            
+            const eventNames = {
+                'bizwar_win': 'Bizwar Win', 'bizwar_lose': 'Bizwar Lose',
+                '40er_win': '40er Win', '40er_lose': '40er Lose',
+                'giesserei': 'Gießerei', 'waffenfabrik': 'Waffenfabrik',
+                'hafen': 'Hafen', 'cayo': 'Cayo', 'rp_fabrik': 'RP Fabrik', 'ekz': 'EKZ'
+            };
+            
+            document.getElementById('topEvent').textContent = eventNames[topEvent] || '-';
+            
+            // Durchschnitt pro Mitglied
+            const avgPerMember = activeMembers > 0 ? totalPaid / activeMembers : 0;
+            document.getElementById('avgPerMember').textContent = `$${Math.round(avgPerMember).toLocaleString('de-DE')}`;
+        }
+        
+        function updateDetailedStats(stats) {
+            const tbody = document.getElementById('statsTableBody');
+            const noData = document.getElementById('noStatsData');
+            
+            if (stats.length === 0) {
+                tbody.innerHTML = '';
+                noData.style.display = 'block';
+                return;
+            }
+            
+            noData.style.display = 'none';
+            const memberTotals = {};
+            
+            // Sammle Daten pro Mitglied
+            stats.forEach(stat => {
+                if (!memberTotals[stat.memberId]) {
+                    memberTotals[stat.memberId] = {
+                        name: stat.memberName,
+                        bizwar_win: 0, bizwar_lose: 0,
+                        '40er_win': 0, '40er_lose': 0,
+                        giesserei: 0, waffenfabrik: 0,
+                        hafen: 0, cayo: 0, rp_fabrik: 0, ekz: 0,
+                        total: 0
+                    };
+                }
+                
+                // Addiere die Werte
+                memberTotals[stat.memberId].bizwar_win += stat.bizwar_win || 0;
+                memberTotals[stat.memberId].bizwar_lose += stat.bizwar_lose || 0;
+                memberTotals[stat.memberId]['40er_win'] += stat['40er_win'] || 0;
+                memberTotals[stat.memberId]['40er_lose'] += stat['40er_lose'] || 0;
+                memberTotals[stat.memberId].giesserei += stat.giesserei || 0;
+                memberTotals[stat.memberId].waffenfabrik += stat.waffenfabrik || 0;
+                memberTotals[stat.memberId].hafen += stat.hafen || 0;
+                memberTotals[stat.memberId].cayo += stat.cayo || 0;
+                memberTotals[stat.memberId].rp_fabrik += stat.rp_fabrik || 0;
+                memberTotals[stat.memberId].ekz += stat.ekz || 0;
+                memberTotals[stat.memberId].total += stat.total || 0;
+            });
+            
+            // Fülle Tabelle
+            tbody.innerHTML = Object.values(memberTotals).map(member => `
+                <tr>
+                    <td><strong>${escapeHtml(member.name)}</strong></td>
+                    <td>${member.bizwar_win}</td>
+                    <td>${member.bizwar_lose}</td>
+                    <td>${member['40er_win']}</td>
+                    <td>${member['40er_lose']}</td>
+                    <td>${member.giesserei}</td>
+                    <td>${member.waffenfabrik}</td>
+                    <td>${member.hafen}</td>
+                    <td>${member.cayo}</td>
+                    <td>${member.rp_fabrik}</td>
+                    <td>${member.ekz}</td>
+                    <td><strong>$${(member.total || 0).toLocaleString('de-DE')}</strong></td>
+                </tr>
+            `).join('');
+        }
+        
+        function updateEventStats(stats) {
+            const tbody = document.getElementById('eventStatsBody');
+            const noData = document.getElementById('noEventData');
+            
+            if (stats.length === 0) {
+                tbody.innerHTML = '';
+                noData.style.display = 'block';
+                return;
+            }
+            
+            noData.style.display = 'none';
+            const eventTotals = {};
+            
+            // Event-Preise für Berechnungen
+            const EVENT_PRICES = {
+                'bizwar_win': 20000, 'bizwar_lose': 10000,
+                '40er_win': 40000, '40er_lose': 20000,
+                'ekz': 80000, 'hafen': 40000,
+                'giesserei': 10000, 'waffenfabrik': 10000
+            };
+            
+            // Berechne Event-Statistiken
+            stats.forEach(stat => {
+                ['bizwar_win', 'bizwar_lose', '40er_win', '40er_lose', 'giesserei', 'waffenfabrik', 'hafen', 'ekz'].forEach(key => {
+                    if (stat[key] > 0) {
+                        if (!eventTotals[key]) {
+                            eventTotals[key] = { count: 0, amount: 0 };
+                        }
+                        eventTotals[key].count += stat[key];
+                        eventTotals[key].amount += stat[key] * EVENT_PRICES[key];
+                    }
+                });
+                
+                // Spezielle Events
+                if (stat.cayo > 0) {
+                    if (!eventTotals.cayo) eventTotals.cayo = { count: 0, amount: 0 };
+                    eventTotals.cayo.count += stat.cayo;
+                    eventTotals.cayo.amount += (stat.total || 0) * (stat.cayo / Object.values(stat).filter(v => typeof v === 'number').reduce((a, b) => a + b, 0));
+                }
+                
+                if (stat.rp_fabrik > 0) {
+                    if (!eventTotals.rp_fabrik) eventTotals.rp_fabrik = { count: 0, amount: 0 };
+                    eventTotals.rp_fabrik.count += stat.rp_fabrik;
+                    eventTotals.rp_fabrik.amount += (stat.total || 0) * (stat.rp_fabrik / Object.values(stat).filter(v => typeof v === 'number').reduce((a, b) => a + b, 0));
+                }
+            });
+            
+            const eventNames = {
+                'bizwar_win': 'Bizwar Win', 'bizwar_lose': 'Bizwar Lose',
+                '40er_win': '40er Win', '40er_lose': '40er Lose',
+                'giesserei': 'Gießerei', 'waffenfabrik': 'Waffenfabrik',
+                'hafen': 'Hafen', 'cayo': 'Cayo Perico', 'rp_fabrik': 'RP Fabrik', 'ekz': 'EKZ'
+            };
+            
+            tbody.innerHTML = Object.keys(eventTotals).map(eventKey => {
+                const event = eventTotals[eventKey];
+                return `
+                    <tr>
+                        <td>${eventNames[eventKey] || eventKey}</td>
+                        <td>${event.count}</td>
+                        <td>$${Math.round(event.amount).toLocaleString('de-DE')}</td>
+                        <td>$${event.count > 0 ? Math.round(event.amount / event.count).toLocaleString('de-DE') : 0}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        function updateMemberFilter() {
+            const members = db.getMembers();
+            const select = document.getElementById('memberFilter');
+            
+            // Behalte "Alle Mitglieder" Option
+            select.innerHTML = '<option value="all">Alle Mitglieder</option>';
+            
+            members.forEach(member => {
+                const option = document.createElement('option');
+                option.value = member.id;
+                option.textContent = `${member.name} (${member.id})`;
+                select.appendChild(option);
+            });
+        }
+        
+        function exportData() {
+            const data = {
+                members: db.getMembers(),
+                payouts: db.getPayouts(),
+                stats: db.getStats(),
+                exportDate: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `hexenjaeger-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            
+            URL.revokeObjectURL(url);
+        }
+        
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (data.members) db.saveMembers(data.members);
+                    if (data.payouts) db.savePayouts(data.payouts);
+                    if (data.stats) db.saveStats(data.stats);
+                    
+                    alert('Daten erfolgreich importiert!');
+                    updateStatistics();
+                    updateMemberFilter();
+                } catch (error) {
+                    alert('Fehler beim Import: Ungültige Datei');
+                }
+            };
+            reader.readAsText(file);
+            
+            // Reset file input
+            event.target.value = '';
+        }
+        
+        // Initialisierung
+        document.addEventListener('DOMContentLoaded', function() {
+            updateMemberFilter();
+            updateStatistics();
+        });
+    </script>
+</body>
+</html>
