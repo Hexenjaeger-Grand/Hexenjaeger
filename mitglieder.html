@@ -1,37 +1,70 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mitglieder - Hexenjäger</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="container">
-        <header>
-            <h1>👥 Mitgliederverwaltung</h1>
-            <a href="index.html" class="back-btn">← Zurück</a>
-        </header>
+// In mitglieder.html
+if (window.location.pathname.includes('mitglieder.html')) {
+    const memberList = document.getElementById('memberList');
+    const modal = document.getElementById('memberModal');
+    const addMemberBtn = document.getElementById('addMemberBtn');
+    const saveMemberBtn = document.getElementById('saveMember');
+    const cancelBtn = document.getElementById('cancelMember');
 
-        <button id="addMemberBtn" class="btn-primary">➕ Neues Mitglied</button>
-
-        <div id="memberList" class="member-list">
-            <!-- Mitglieder werden hier geladen -->
-        </div>
-
-        <!-- Modal für neues Mitglied -->
-        <div id="memberModal" class="modal">
-            <div class="modal-content">
-                <h3>Neues Mitglied hinzufügen</h3>
-                <input type="text" id="memberName" placeholder="IC-Name">
-                <input type="text" id="memberId" placeholder="ID">
-                <div class="modal-actions">
-                    <button id="saveMember" class="btn-primary">Speichern</button>
-                    <button id="cancelMember" class="btn-secondary">Abbrechen</button>
+    function renderMembers() {
+        const members = db.getMembers();
+        memberList.innerHTML = members.map(member => `
+            <div class="member-item">
+                <div class="member-info">
+                    <strong>${escapeHtml(member.name)}</strong>
+                    <span class="member-id">${escapeHtml(member.id)}</span>
+                </div>
+                <div class="member-actions">
+                    <button class="edit-btn" onclick="editMember('${member.id}')">✏️</button>
+                    <button class="delete-btn" onclick="deleteMember('${member.id}')">🗑️</button>
                 </div>
             </div>
-        </div>
-    </div>
-    <script src="app.js"></script>
-</body>
-</html>
+        `).join('');
+    }
+
+    addMemberBtn.addEventListener('click', () => {
+        modal.style.display = 'block';
+    });
+
+    saveMemberBtn.addEventListener('click', () => {
+        const name = document.getElementById('memberName').value;
+        const id = document.getElementById('memberId').value;
+        
+        if (name && id) {
+            const result = db.addMember(name, id);
+            if (result.success) {
+                modal.style.display = 'none';
+                document.getElementById('memberName').value = '';
+                document.getElementById('memberId').value = '';
+                renderMembers();
+            } else {
+                alert(result.error || 'Fehler beim Speichern');
+            }
+        }
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+
+    window.editMember = (id) => {
+        const members = db.getMembers();
+        const member = members.find(m => m.id === id);
+        if (member) {
+            const newName = prompt('Neuen Namen eingeben:', member.name);
+            if (newName && newName.trim()) {
+                db.updateMember(id, newName.trim());
+                renderMembers();
+            }
+        }
+    };
+
+    window.deleteMember = (id) => {
+        if (confirm('Mitglied wirklich löschen?')) {
+            db.deleteMember(id);
+            renderMembers();
+        }
+    };
+
+    renderMembers();
+}
