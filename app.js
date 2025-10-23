@@ -1,86 +1,158 @@
-const API_URL = 'http://localhost:3000/api';
-
-// Mitglieder Funktionen
-async function loadMembers() {
-    try {
-        const response = await fetch(`${API_URL}/members`);
-        return await response.json();
-    } catch (error) {
-        console.error('Fehler beim Laden der Mitglieder:', error);
-        return [];
-    }
-}
-
-async function saveMember(name, id) {
-    try {
-        const response = await fetch(`${API_URL}/members`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, id })
-        });
-        return await response.json();
-    } catch (error) {
-        console.error('Fehler beim Speichern:', error);
-        return { error: 'Verbindungsfehler' };
-    }
-}
-
-// Event Handling für Mitglieder-Seite
-if (window.location.pathname.includes('mitglieder.html')) {
-    const memberList = document.getElementById('memberList');
-    const modal = document.getElementById('memberModal');
-    const addMemberBtn = document.getElementById('addMemberBtn');
-    const saveMemberBtn = document.getElementById('saveMember');
-    const cancelBtn = document.getElementById('cancelMember');
-
-    async function renderMembers() {
-        const members = await loadMembers();
-        memberList.innerHTML = members.map(member => `
-            <div class="member-item">
-                <div class="member-info">
-                    <strong>${escapeHtml(member.name)}</strong>
-                    <span class="member-id">${escapeHtml(member.id)}</span>
-                </div>
-                <div class="member-actions">
-                    <button class="edit-btn" onclick="editMember('${member.id}')">✏️</button>
-                    <button class="delete-btn" onclick="deleteMember('${member.id}')">🗑️</button>
-                </div>
-            </div>
-        `).join('');
+// Daten Management
+class HexenjaegerDB {
+    constructor() {
+        this.init();
     }
 
-    addMemberBtn.addEventListener('click', () => {
-        modal.style.display = 'block';
-    });
-
-    saveMemberBtn.addEventListener('click', async () => {
-        const name = document.getElementById('memberName').value;
-        const id = document.getElementById('memberId').value;
-        
-        if (name && id) {
-            const result = await saveMember(name, id);
-            if (result.success) {
-                modal.style.display = 'none';
-                document.getElementById('memberName').value = '';
-                document.getElementById('memberId').value = '';
-                renderMembers();
-            } else {
-                alert(result.error || 'Fehler beim Speichern');
-            }
+    init() {
+        // Initialisiere Standard-Daten falls nicht vorhanden
+        if (!this.getMembers()) {
+            this.saveMembers([]);
         }
-    });
+        if (!this.getPayouts()) {
+            this.savePayouts([]);
+        }
+        if (!this.getStats()) {
+            this.saveStats([]);
+        }
+    }
 
-    cancelBtn.addEventListener('click', () => {
-        modal.style.display = 'none';
-    });
+    // Mitglieder
+    getMembers() {
+        return JSON.parse(localStorage.getItem('hexenjaeger_members') || '[]');
+    }
 
-    // Initial laden
-    renderMembers();
+    saveMembers(members) {
+        localStorage.setItem('hexenjaeger_members', JSON.stringify(members));
+    }
+
+    addMember(name, id) {
+        const members = this.getMembers();
+        if (members.find(m => m.id === id)) {
+            return { error: 'Mitglied mit dieser ID existiert bereits' };
+        }
+        members.push({ name, id, joined: new Date().toISOString() });
+        this.saveMembers(members);
+        return { success: true };
+    }
+
+    updateMember(id, newName) {
+        const members = this.getMembers();
+        const member = members.find(m => m.id === id);
+        if (member) {
+            member.name = newName;
+            this.saveMembers(members);
+            return { success: true };
+        }
+        return { error: 'Mitglied nicht gefunden' };
+    }
+
+    deleteMember(id) {
+        let members = this.getMembers();
+        members = members.filter(m => m.id !== id);
+        this.saveMembers(members);
+        return { success: true };
+    }
+
+    // Auszahlungen
+    getPayouts() {
+        return JSON.parse(localStorage.getItem('hexenjaeger_payouts') || '[]');
+    }
+
+    savePayouts(payouts) {
+        localStorage.setItem('hexenjaeger_payouts', JSON.stringify(payouts));
+    }
+
+    addEvent(eventData) {
+        const { eventType, memberId, amount, totalAmount } = eventData;
+        const members = this.getMembers();
+        const payouts = this.getPayouts();
+        
+        const member = members.find(m => m.id === memberId);
+        if (!member) return { error: 'Mitglied nicht gefunden' };
+        
+        // Event-Preise
+        const EVENT_PRICES = {
+            'bizwar_win': 20000, 'bizwar_lose': 10000,
+            '40er_win': 40000, '40er_lose': 20000,
+            'ekz': 80000, 'hafen': 40000,
+            'giesserei': 10000, 'waffenfabrik': 10000
+        };
+        
+        let payout = payouts.find(p => p.memberId === memberId);
+        if (!payout) {
+            payout = {
+                memberId,
+                memberName: member.name,
+                bizwar_win: 0, bizwar_lose: 0,
+                '40er_win': 0, '40er_lose': 0,
+                giesserei: 0, waffenfabrik: 0,
+                hafen: 0, cayo: 0, rp_fabrik: 0, ekz: 0,
+                total: 0
+            };
+            payouts.push(payout);
+        }
+        
+        // Berechne Betrag
+        let calculatedAmount = 0;
+        if (eventType === 'cayo' || eventType === 'rp_fabrik') {
+            calculatedAmount = Math.round(totalAmount / amount);
+        } else {
+            calculatedAmount = EVENT_PRICES[eventType] * amount;
+        }
+        
+        payout[eventType] += amount;
+        payout.total += calculatedAmount;
+        
+        this.savePayouts(payouts);
+        return { success: true, calculatedAmount };
+    }
+
+    completePayout(memberId) {
+        const payouts = this.getPayouts();
+        const stats = this.getStats();
+        
+        const payoutIndex = payouts.findIndex(p => p.memberId === memberId);
+        if (payoutIndex !== -1) {
+            const completedPayout = payouts[payoutIndex];
+            completedPayout.paidDate = new Date().toISOString();
+            
+            stats.push(completedPayout);
+            payouts.splice(payoutIndex, 1);
+            
+            this.savePayouts(payouts);
+            this.saveStats(stats);
+            return { success: true };
+        }
+        return { error: 'Auszahlung nicht gefunden' };
+    }
+
+    // Statistik
+    getStats() {
+        return JSON.parse(localStorage.getItem('hexenjaeger_stats') || '[]');
+    }
+
+    saveStats(stats) {
+        localStorage.setItem('hexenjaeger_stats', JSON.stringify(stats));
+    }
+
+    // Export/Import für Backup
+    exportData() {
+        return {
+            members: this.getMembers(),
+            payouts: this.getPayouts(),
+            stats: this.getStats(),
+            exportDate: new Date().toISOString()
+        };
+    }
+
+    importData(data) {
+        if (data.members) this.saveMembers(data.members);
+        if (data.payouts) this.savePayouts(data.payouts);
+        if (data.stats) this.saveStats(data.stats);
+        return { success: true };
+    }
 }
 
-// Hilfsfunktionen
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
+// Globale DB Instanz
+const db = new HexenjaegerDB();
