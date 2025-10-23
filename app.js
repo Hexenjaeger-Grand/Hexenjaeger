@@ -94,16 +94,17 @@ class HexenjaegerDB {
             payouts.push(payout);
         }
         
-        // Berechne Betrag
+        // Berechne Betrag - WICHTIG: Für Cayo und RP Fabrik wird der aufgeteilte Betrag gespeichert
         let calculatedAmount = 0;
         if (eventType === 'cayo' || eventType === 'rp_fabrik') {
+            // Hier wird der aufgeteilte Betrag gespeichert, nicht der Gesamtbetrag!
             calculatedAmount = Math.round(totalAmount / amount);
         } else {
             calculatedAmount = EVENT_PRICES[eventType] * amount;
         }
         
         payout[eventType] += parseInt(amount);
-        payout.total += calculatedAmount;
+        payout.total += calculatedAmount; // Hier wird der korrekte (aufgeteilte) Betrag addiert
         
         this.savePayouts(payouts);
         return { success: true, calculatedAmount };
