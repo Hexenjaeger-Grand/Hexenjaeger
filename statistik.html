@@ -46,12 +46,20 @@
         }
         
         .filter-select {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-color);
-            color: var(--text-light);
-            padding: 10px 15px;
-            border-radius: 8px;
+            background: rgba(15, 15, 25, 0.95) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-light) !important;
+            padding: 10px 15px !important;
+            border-radius: 8px !important;
             min-width: 150px;
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b5cf6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 12px center !important;
+            background-size: 16px !important;
+            padding-right: 40px !important;
         }
         
         .export-buttons {
@@ -67,6 +75,23 @@
             color: var(--text-muted);
             font-style: italic;
         }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+        }
     </style>
 </head>
 <body>
@@ -76,11 +101,12 @@
             <a href="index.html" class="back-btn">← Zurück</a>
         </header>
 
-        <!-- Export Buttons -->
+        <!-- Export & Reset Buttons -->
         <div class="export-buttons">
             <button onclick="exportData()" class="btn-primary">📥 Daten exportieren</button>
             <button onclick="document.getElementById('importFile').click()" class="btn-secondary">📤 Daten importieren</button>
             <input type="file" id="importFile" accept=".json" style="display: none" onchange="importData(event)">
+            <button onclick="resetStatistics()" class="btn-danger">🗑️ Statistik zurücksetzen</button>
         </div>
 
         <!-- Statistiken Übersicht -->
@@ -179,8 +205,29 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
     <script>
+        // Vereinfachte Datenbank für Statistik
+        class StatistikDB {
+            getStats() {
+                return JSON.parse(localStorage.getItem('hexenjaeger_stats') || '[]');
+            }
+            
+            saveStats(stats) {
+                localStorage.setItem('hexenjaeger_stats', JSON.stringify(stats));
+            }
+            
+            resetStats() {
+                localStorage.setItem('hexenjaeger_stats', JSON.stringify([]));
+                return { success: true };
+            }
+            
+            getMembers() {
+                return JSON.parse(localStorage.getItem('hexenjaeger_members') || '[]');
+            }
+        }
+
+        const db = new StatistikDB();
+
         // Statistik-spezifische Funktionen
         function updateStatistics() {
             const stats = db.getStats();
@@ -358,13 +405,13 @@
                 if (stat.cayo > 0) {
                     if (!eventTotals.cayo) eventTotals.cayo = { count: 0, amount: 0 };
                     eventTotals.cayo.count += stat.cayo;
-                    eventTotals.cayo.amount += (stat.total || 0) * (stat.cayo / Object.values(stat).filter(v => typeof v === 'number').reduce((a, b) => a + b, 0));
+                    eventTotals.cayo.amount += (stat.total || 0) * (stat.cayo / Object.values(stat).filter(v => typeof v === 'number' && v > 0).reduce((a, b) => a + b, 0));
                 }
                 
                 if (stat.rp_fabrik > 0) {
                     if (!eventTotals.rp_fabrik) eventTotals.rp_fabrik = { count: 0, amount: 0 };
                     eventTotals.rp_fabrik.count += stat.rp_fabrik;
-                    eventTotals.rp_fabrik.amount += (stat.total || 0) * (stat.rp_fabrik / Object.values(stat).filter(v => typeof v === 'number').reduce((a, b) => a + b, 0));
+                    eventTotals.rp_fabrik.amount += (stat.total || 0) * (stat.rp_fabrik / Object.values(stat).filter(v => typeof v === 'number' && v > 0).reduce((a, b) => a + b, 0));
                 }
             });
             
@@ -405,8 +452,6 @@
         
         function exportData() {
             const data = {
-                members: db.getMembers(),
-                payouts: db.getPayouts(),
                 stats: db.getStats(),
                 exportDate: new Date().toISOString()
             };
@@ -417,7 +462,7 @@
             
             const a = document.createElement('a');
             a.href = url;
-            a.download = `hexenjaeger-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.download = `hexenjaeger-stats-backup-${new Date().toISOString().split('T')[0]}.json`;
             a.click();
             
             URL.revokeObjectURL(url);
@@ -432,13 +477,13 @@
                 try {
                     const data = JSON.parse(e.target.result);
                     
-                    if (data.members) db.saveMembers(data.members);
-                    if (data.payouts) db.savePayouts(data.payouts);
-                    if (data.stats) db.saveStats(data.stats);
-                    
-                    alert('Daten erfolgreich importiert!');
-                    updateStatistics();
-                    updateMemberFilter();
+                    if (data.stats) {
+                        db.saveStats(data.stats);
+                        alert('Statistik-Daten erfolgreich importiert!');
+                        updateStatistics();
+                    } else {
+                        alert('Keine Statistik-Daten in der Datei gefunden!');
+                    }
                 } catch (error) {
                     alert('Fehler beim Import: Ungültige Datei');
                 }
@@ -447,6 +492,26 @@
             
             // Reset file input
             event.target.value = '';
+        }
+        
+        // NEUE FUNKTION: Statistik zurücksetzen
+        function resetStatistics() {
+            if (confirm('⚠️ STATISTIK wirklich zurücksetzen?\n\nDies löscht ALLE historischen Auszahlungsdaten!\n\nDie aktuellen offenen Auszahlungen bleiben erhalten.')) {
+                const result = db.resetStats();
+                if (result.success) {
+                    alert('Statistik wurde zurückgesetzt!');
+                    updateStatistics();
+                } else {
+                    alert('Fehler beim Zurücksetzen der Statistik!');
+                }
+            }
+        }
+        
+        // Hilfsfunktion
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
         
         // Initialisierung
