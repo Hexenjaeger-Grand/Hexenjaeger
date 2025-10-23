@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mitglieder - Hexenjäger</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>👥 Mitgliederverwaltung</h1>
+            <a href="index.html" class="back-btn">← Zurück</a>
+        </header>
+
+        <button id="addMemberBtn" class="btn-primary">➕ Neues Mitglied</button>
+
+        <div id="memberList" class="member-list">
+            <!-- Mitglieder werden hier geladen -->
+        </div>
+
+        <!-- Modal für neues Mitglied -->
+        <div id="memberModal" class="modal">
+            <div class="modal-content">
+                <h3>Neues Mitglied hinzufügen</h3>
+                <input type="text" id="memberName" placeholder="IC-Name">
+                <input type="text" id="memberId" placeholder="ID">
+                <div class="modal-actions">
+                    <button id="saveMember" class="btn-primary">Speichern</button>
+                    <button id="cancelMember" class="btn-secondary">Abbrechen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
