@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Eingabe - Hexenjäger</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📝 Event Eingabe</h1>
+            <a href="index.html" class="back-btn">← Zurück</a>
+        </header>
+
+        <div class="event-form">
+            <select id="eventType">
+                <option value="">Event auswählen</option>
+                <option value="bizwar_win">Bizwar Win/Kill</option>
+                <option value="bizwar_lose">Bizwar Lose/Kill</option>
+                <option value="40er_win">40er Win/Kill</option>
+                <option value="40er_lose">40er Lose/Kill</option>
+                <option value="ekz">EKZ Win</option>
+                <option value="hafen">Hafen Drop</option>
+                <option value="giesserei">Gießerei Kill</option>
+                <option value="waffenfabrik">Waffenfabrik Kill</option>
+                <option value="cayo">Cayo Perico Drop</option>
+                <option value="rp_fabrik">RP Fabrik Win</option>
+            </select>
+
+            <select id="memberSelect">
+                <option value="">Mitglied auswählen</option>
+            </select>
+
+            <input type="number" id="amount" placeholder="Anzahl (Kills/Drops)">
+            
+            <div id="specialAmount" style="display: none;">
+                <input type="number" id="totalAmount" placeholder="Gesamtbetrag ($)">
+            </div>
+
+            <button id="submitEvent" class="btn-primary">Event speichern</button>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
