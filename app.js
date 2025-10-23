@@ -264,13 +264,15 @@ function initEventForm() {
     });
 }
 
-// Mitglieder Seite
+// Mitglieder Seite - OHNE doppelte Popups
 function initMembersPage() {
     const memberList = document.getElementById('memberList');
     const modal = document.getElementById('memberModal');
     const addMemberBtn = document.getElementById('addMemberBtn');
     const saveMemberBtn = document.getElementById('saveMember');
     const cancelBtn = document.getElementById('cancelMember');
+    const memberNameInput = document.getElementById('memberName');
+    const memberIdInput = document.getElementById('memberId');
     
     if (!memberList) return;
 
@@ -295,46 +297,74 @@ function initMembersPage() {
     });
 
     saveMemberBtn.addEventListener('click', () => {
-        const name = document.getElementById('memberName').value;
-        const id = document.getElementById('memberId').value;
+        const name = memberNameInput.value.trim();
+        const id = memberIdInput.value.trim();
         
-        if (name && id) {
-            const result = db.addMember(name, id);
-            if (result.success) {
-                modal.style.display = 'none';
-                document.getElementById('memberName').value = '';
-                document.getElementById('memberId').value = '';
-                renderMembers();
-            } else {
-                alert(result.error || 'Fehler beim Speichern');
-            }
+        // Validiere Eingabe OHNE alert()
+        if (!name || !id) {
+            // Zeige Fehler im Modal statt Popup
+            if (!name) memberNameInput.style.borderColor = '#ef4444';
+            if (!id) memberIdInput.style.borderColor = '#ef4444';
+            return;
+        }
+        
+        // Reset border colors
+        memberNameInput.style.borderColor = '';
+        memberIdInput.style.borderColor = '';
+        
+        const result = db.addMember(name, id);
+        if (result.success) {
+            modal.style.display = 'none';
+            memberNameInput.value = '';
+            memberIdInput.value = '';
+            renderMembers();
         } else {
-            alert('Bitte Name und ID eingeben!');
+            // Nur bei echten Fehlern alert zeigen
+            alert(result.error);
         }
     });
 
     cancelBtn.addEventListener('click', () => {
         modal.style.display = 'none';
+        // Reset border colors
+        memberNameInput.style.borderColor = '';
+        memberIdInput.style.borderColor = '';
     });
 
-    window.editMember = (id) => {
-        const members = db.getMembers();
-        const member = members.find(m => m.id === id);
-        if (member) {
-            const newName = prompt('Neuen Namen eingeben:', member.name);
-            if (newName && newName.trim()) {
-                db.updateMember(id, newName.trim());
-                renderMembers();
-            }
-        }
-    };
-
-    window.deleteMember = (id) => {
-        if (confirm('Mitglied wirklich löschen?')) {
-            db.deleteMember(id);
-            renderMembers();
-        }
-    };
+    // Enter-Taste im Modal unterstützen
+    memberNameInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') saveMemberBtn.click();
+    });
+    
+    memberIdInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') saveMemberBtn.click();
+    });
 
     renderMembers();
 }
+
+// Globale Funktionen für die Buttons
+window.editMember = (id) => {
+    const members = db.getMembers();
+    const member = members.find(m => m.id === id);
+    if (member) {
+        const newName = prompt('Neuen Namen eingeben:', member.name);
+        if (newName && newName.trim()) {
+            db.updateMember(id, newName.trim());
+            // Mitgliederliste neu rendern
+            if (window.location.pathname.includes('mitglieder.html')) {
+                initMembersPage();
+            }
+        }
+    }
+};
+
+window.deleteMember = (id) => {
+    if (confirm('Mitglied wirklich löschen?')) {
+        db.deleteMember(id);
+        // Mitgliederliste neu rendern
+        if (window.location.pathname.includes('mitglieder.html')) {
+            initMembersPage();
+        }
+    }
+};
