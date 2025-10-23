@@ -57,6 +57,16 @@
             font-size: 12px;
             margin-top: 5px;
         }
+        
+        #memberSelect {
+            height: auto;
+            min-height: 120px;
+        }
+        
+        #memberSelect option {
+            padding: 8px 12px;
+            margin: 2px 0;
+        }
     </style>
 </head>
 <body>
@@ -86,8 +96,8 @@
 
             <div class="multi-select-container">
                 <label for="memberSelect">Teilnehmer (Mehrfachauswahl möglich)</label>
-                <select id="memberSelect" multiple size="4">
-                    <option value="">Mitglieder auswählen</option>
+                <select id="memberSelect" multiple size="5">
+                    <!-- Mitglieder werden hier geladen -->
                 </select>
                 <div class="info-text">Halte Strg/Cmd gedrückt für Mehrfachauswahl</div>
                 <div class="selected-members" id="selectedMembers">
@@ -122,8 +132,62 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
     <script>
+        // Datenbank Funktionen (vereinfacht)
+        class SimpleDB {
+            getMembers() {
+                return JSON.parse(localStorage.getItem('hexenjaeger_members') || '[]');
+            }
+            
+            addEvent(eventData) {
+                const { eventType, memberId, amount, totalAmount } = eventData;
+                const members = this.getMembers();
+                const payouts = JSON.parse(localStorage.getItem('hexenjaeger_payouts') || '[]');
+                
+                const member = members.find(m => m.id === memberId);
+                if (!member) return { error: 'Mitglied nicht gefunden' };
+                
+                // Event-Preise
+                const EVENT_PRICES = {
+                    'bizwar_win': 20000, 'bizwar_lose': 10000,
+                    '40er_win': 40000, '40er_lose': 20000,
+                    'ekz': 80000, 'hafen': 40000,
+                    'giesserei': 10000, 'waffenfabrik': 10000,
+                    'cayo': 0, 'rp_fabrik': 0
+                };
+                
+                let payout = payouts.find(p => p.memberId === memberId);
+                if (!payout) {
+                    payout = {
+                        memberId,
+                        memberName: member.name,
+                        bizwar_win: 0, bizwar_lose: 0,
+                        '40er_win': 0, '40er_lose': 0,
+                        giesserei: 0, waffenfabrik: 0,
+                        hafen: 0, cayo: 0, rp_fabrik: 0, ekz: 0,
+                        total: 0
+                    };
+                    payouts.push(payout);
+                }
+                
+                // Berechne Betrag
+                let calculatedAmount = 0;
+                if (eventType === 'cayo' || eventType === 'rp_fabrik') {
+                    calculatedAmount = Math.round(totalAmount / amount);
+                } else {
+                    calculatedAmount = EVENT_PRICES[eventType] * amount;
+                }
+                
+                payout[eventType] += parseInt(amount);
+                payout.total += calculatedAmount;
+                
+                localStorage.setItem('hexenjaeger_payouts', JSON.stringify(payouts));
+                return { success: true, calculatedAmount };
+            }
+        }
+
+        const db = new SimpleDB();
+
         // Event Formular mit Mehrfachauswahl
         document.addEventListener('DOMContentLoaded', function() {
             const eventType = document.getElementById('eventType');
@@ -140,12 +204,21 @@
             // Fülle Mitglieder Select
             function loadMembers() {
                 const members = db.getMembers();
+                console.log('Geladene Mitglieder:', members); // Debug
+                
+                if (members.length === 0) {
+                    memberSelect.innerHTML = '<option value="">Keine Mitglieder vorhanden - Bitte zuerst Mitglieder anlegen</option>';
+                    return;
+                }
+                
                 memberSelect.innerHTML = '<option value="">Mitglieder auswählen</option>' +
                     members.map(m => `<option value="${m.id}">${escapeHtml(m.name)} (${m.id})</option>`).join('');
             }
 
             // Event Type Change
             eventType.addEventListener('change', function() {
+                console.log('Event geändert zu:', this.value); // Debug
+                
                 // Verstecke alle Event-spezifischen Felder
                 normalEvent.style.display = 'none';
                 cayoEvent.style.display = 'none';
@@ -170,10 +243,13 @@
 
             // Mehrfachauswahl Handling
             memberSelect.addEventListener('change', function() {
+                console.log('Mitglieder auswahl geändert'); // Debug
+                
                 selectedMemberIds = Array.from(this.selectedOptions)
                     .map(option => option.value)
                     .filter(value => value !== ''); // Leere Option ausschließen
 
+                console.log('Ausgewählte IDs:', selectedMemberIds); // Debug
                 updateSelectedMembersDisplay();
             });
 
@@ -340,8 +416,10 @@
                 return div.innerHTML;
             }
 
-            // Initialisierung
+            // Initialisierung - SOFORT beim Laden
+            console.log('Starte Initialisierung...'); // Debug
             loadMembers();
+            console.log('Initialisierung abgeschlossen'); // Debug
         });
     </script>
 </body>
