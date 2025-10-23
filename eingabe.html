@@ -79,4 +79,270 @@
                     <option value="hafen">Hafen Drop</option>
                     <option value="giesserei">Gießerei Kill</option>
                     <option value="waffenfabrik">Waffenfabrik Kill</option>
-                    <option value="c
+                    <option value="cayo">Cayo Perico Drop</option>
+                    <option value="rp_fabrik">RP Fabrik Win</option>
+                </select>
+            </div>
+
+            <div class="multi-select-container">
+                <label for="memberSelect">Teilnehmer (Mehrfachauswahl möglich)</label>
+                <select id="memberSelect" multiple size="4">
+                    <option value="">Mitglieder auswählen</option>
+                </select>
+                <div class="info-text">Halte Strg/Cmd gedrückt für Mehrfachauswahl</div>
+                <div class="selected-members" id="selectedMembers">
+                    <!-- Ausgewählte Mitglieder werden hier angezeigt -->
+                </div>
+            </div>
+
+            <!-- Normale Events: Kills/Drops -->
+            <div id="normalEvent" class="event-specific">
+                <label for="amount">Anzahl Kills/Drops</label>
+                <input type="number" id="amount" placeholder="z.B. 5 für 5 Kills">
+            </div>
+
+            <!-- Cayo Perico: Gesamtbetrag und Drops -->
+            <div id="cayoEvent" class="event-specific">
+                <label for="cayoDrops">Anzahl eingenommene Drops/Zones</label>
+                <input type="number" id="cayoDrops" placeholder="Anzahl Drops">
+                <label for="cayoTotalAmount">Gesamtbetrag ($)</label>
+                <input type="number" id="cayoTotalAmount" placeholder="z.B. 1000000 für 1 Million">
+                <div class="info-text">Der Betrag wird gleichmäßig auf alle ausgewählten Mitglieder aufgeteilt</div>
+            </div>
+
+            <!-- RP Fabrik: Gesamtbetrag -->
+            <div id="rpEvent" class="event-specific">
+                <label for="rpTotalAmount">Gesamtbetrag ($)</label>
+                <input type="number" id="rpTotalAmount" placeholder="z.B. 8000000 für 8 Millionen">
+                <div class="info-text">Der Betrag wird gleichmäßig auf alle ausgewählten Mitglieder aufgeteilt</div>
+            </div>
+
+            <button id="submitEvent" class="btn-primary">Event speichern</button>
+            <div id="statusMessage" style="margin-top: 15px;"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Event Formular mit Mehrfachauswahl
+        document.addEventListener('DOMContentLoaded', function() {
+            const eventType = document.getElementById('eventType');
+            const memberSelect = document.getElementById('memberSelect');
+            const selectedMembers = document.getElementById('selectedMembers');
+            const normalEvent = document.getElementById('normalEvent');
+            const cayoEvent = document.getElementById('cayoEvent');
+            const rpEvent = document.getElementById('rpEvent');
+            const submitBtn = document.getElementById('submitEvent');
+            const statusMessage = document.getElementById('statusMessage');
+
+            let selectedMemberIds = [];
+
+            // Fülle Mitglieder Select
+            function loadMembers() {
+                const members = db.getMembers();
+                memberSelect.innerHTML = '<option value="">Mitglieder auswählen</option>' +
+                    members.map(m => `<option value="${m.id}">${escapeHtml(m.name)} (${m.id})</option>`).join('');
+            }
+
+            // Event Type Change
+            eventType.addEventListener('change', function() {
+                // Verstecke alle Event-spezifischen Felder
+                normalEvent.style.display = 'none';
+                cayoEvent.style.display = 'none';
+                rpEvent.style.display = 'none';
+
+                // Zeige die richtigen Felder basierend auf Event-Typ
+                switch(this.value) {
+                    case 'cayo':
+                        cayoEvent.style.display = 'block';
+                        break;
+                    case 'rp_fabrik':
+                        rpEvent.style.display = 'block';
+                        break;
+                    case '':
+                        // Nichts anzeigen
+                        break;
+                    default:
+                        normalEvent.style.display = 'block';
+                        break;
+                }
+            });
+
+            // Mehrfachauswahl Handling
+            memberSelect.addEventListener('change', function() {
+                selectedMemberIds = Array.from(this.selectedOptions)
+                    .map(option => option.value)
+                    .filter(value => value !== ''); // Leere Option ausschließen
+
+                updateSelectedMembersDisplay();
+            });
+
+            function updateSelectedMembersDisplay() {
+                const members = db.getMembers();
+                selectedMembers.innerHTML = '';
+
+                selectedMemberIds.forEach(memberId => {
+                    const member = members.find(m => m.id === memberId);
+                    if (member) {
+                        const chip = document.createElement('div');
+                        chip.className = 'member-chip';
+                        chip.innerHTML = `
+                            ${escapeHtml(member.name)}
+                            <button class="remove-chip" data-id="${memberId}">×</button>
+                        `;
+                        selectedMembers.appendChild(chip);
+                    }
+                });
+
+                // Entfernen-Buttons Event Listener
+                selectedMembers.querySelectorAll('.remove-chip').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const idToRemove = this.getAttribute('data-id');
+                        selectedMemberIds = selectedMemberIds.filter(id => id !== idToRemove);
+                        
+                        // Entferne auch aus Select
+                        const option = memberSelect.querySelector(`option[value="${idToRemove}"]`);
+                        if (option) option.selected = false;
+                        
+                        updateSelectedMembersDisplay();
+                    });
+                });
+            }
+
+            // Submit Event
+            submitBtn.addEventListener('click', function() {
+                const eventTypeValue = eventType.value;
+                
+                // Validierung
+                if (!eventTypeValue) {
+                    showStatus('Bitte wähle einen Event-Typ aus!', 'error');
+                    return;
+                }
+
+                if (selectedMemberIds.length === 0) {
+                    showStatus('Bitte wähle mindestens ein Mitglied aus!', 'error');
+                    return;
+                }
+
+                // Sammle Event-Daten basierend auf Typ
+                let eventData = {
+                    eventType: eventTypeValue,
+                    memberIds: [...selectedMemberIds] // Kopie des Arrays
+                };
+
+                // Füge typspezifische Daten hinzu
+                switch(eventTypeValue) {
+                    case 'cayo':
+                        const cayoDrops = parseInt(document.getElementById('cayoDrops').value) || 0;
+                        const cayoTotal = parseInt(document.getElementById('cayoTotalAmount').value) || 0;
+                        
+                        if (!cayoDrops || !cayoTotal) {
+                            showStatus('Bitte fülle alle Felder für Cayo Perico aus!', 'error');
+                            return;
+                        }
+                        
+                        eventData.amount = cayoDrops;
+                        eventData.totalAmount = cayoTotal;
+                        break;
+
+                    case 'rp_fabrik':
+                        const rpTotal = parseInt(document.getElementById('rpTotalAmount').value) || 0;
+                        
+                        if (!rpTotal) {
+                            showStatus('Bitte gib den Gesamtbetrag für RP Fabrik ein!', 'error');
+                            return;
+                        }
+                        
+                        eventData.amount = 1; // Immer 1 für RP Fabrik Win
+                        eventData.totalAmount = rpTotal;
+                        break;
+
+                    default:
+                        const amount = parseInt(document.getElementById('amount').value) || 0;
+                        
+                        if (!amount) {
+                            showStatus('Bitte gib die Anzahl Kills/Drops ein!', 'error');
+                            return;
+                        }
+                        
+                        eventData.amount = amount;
+                        break;
+                }
+
+                // Speichere Event für alle ausgewählten Mitglieder
+                let successCount = 0;
+                let errorMessages = [];
+
+                selectedMemberIds.forEach(memberId => {
+                    const singleEventData = {
+                        eventType: eventData.eventType,
+                        memberId: memberId,
+                        amount: eventData.amount,
+                        totalAmount: eventData.totalAmount || 0
+                    };
+
+                    const result = db.addEvent(singleEventData);
+                    if (result.success) {
+                        successCount++;
+                    } else {
+                        errorMessages.push(result.error);
+                    }
+                });
+
+                // Zeige Ergebnis
+                if (successCount > 0) {
+                    let message = `Event erfolgreich für ${successCount} Mitglieder gespeichert!`;
+                    if (errorMessages.length > 0) {
+                        message += ` Fehler: ${errorMessages.join(', ')}`;
+                    }
+                    showStatus(message, 'success');
+                    
+                    // Formular zurücksetzen
+                    resetForm();
+                } else {
+                    showStatus('Fehler: ' + errorMessages.join(', '), 'error');
+                }
+            });
+
+            function showStatus(message, type) {
+                statusMessage.textContent = message;
+                statusMessage.style.color = type === 'success' ? '#10b981' : '#ef4444';
+                statusMessage.style.fontWeight = 'bold';
+
+                // Nach 5 Sekenden ausblenden
+                setTimeout(() => {
+                    statusMessage.textContent = '';
+                }, 5000);
+            }
+
+            function resetForm() {
+                eventType.value = '';
+                memberSelect.selectedIndex = 0;
+                selectedMemberIds = [];
+                updateSelectedMembersDisplay();
+                
+                // Felder zurücksetzen
+                document.getElementById('amount').value = '';
+                document.getElementById('cayoDrops').value = '';
+                document.getElementById('cayoTotalAmount').value = '';
+                document.getElementById('rpTotalAmount').value = '';
+                
+                // Event-spezifische Felder verstecken
+                normalEvent.style.display = 'none';
+                cayoEvent.style.display = 'none';
+                rpEvent.style.display = 'none';
+            }
+
+            // Hilfsfunktion
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            // Initialisierung
+            loadMembers();
+        });
+    </script>
+</body>
+</html>
