@@ -5,6 +5,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Eingabe - Hexenjäger</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        .multi-select-container {
+            position: relative;
+        }
+        
+        .selected-members {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+            min-height: 40px;
+        }
+        
+        .member-chip {
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid var(--accent-purple);
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .remove-chip {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 0;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .remove-chip:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+        
+        .event-specific {
+            display: none;
+        }
+        
+        .info-text {
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-top: 5px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -14,33 +67,16 @@
         </header>
 
         <div class="event-form">
-            <select id="eventType">
-                <option value="">Event auswählen</option>
-                <option value="bizwar_win">Bizwar Win/Kill</option>
-                <option value="bizwar_lose">Bizwar Lose/Kill</option>
-                <option value="40er_win">40er Win/Kill</option>
-                <option value="40er_lose">40er Lose/Kill</option>
-                <option value="ekz">EKZ Win</option>
-                <option value="hafen">Hafen Drop</option>
-                <option value="giesserei">Gießerei Kill</option>
-                <option value="waffenfabrik">Waffenfabrik Kill</option>
-                <option value="cayo">Cayo Perico Drop</option>
-                <option value="rp_fabrik">RP Fabrik Win</option>
-            </select>
-
-            <select id="memberSelect">
-                <option value="">Mitglied auswählen</option>
-            </select>
-
-            <input type="number" id="amount" placeholder="Anzahl (Kills/Drops)">
-            
-            <div id="specialAmount" style="display: none;">
-                <input type="number" id="totalAmount" placeholder="Gesamtbetrag ($)">
-            </div>
-
-            <button id="submitEvent" class="btn-primary">Event speichern</button>
-        </div>
-    </div>
-    <script src="app.js"></script>
-</body>
-</html>
+            <div>
+                <label for="eventType">Event Typ</label>
+                <select id="eventType">
+                    <option value="">Event auswählen</option>
+                    <option value="bizwar_win">Bizwar Win/Kill</option>
+                    <option value="bizwar_lose">Bizwar Lose/Kill</option>
+                    <option value="40er_win">40er Win/Kill</option>
+                    <option value="40er_lose">40er Lose/Kill</option>
+                    <option value="ekz">EKZ Win</option>
+                    <option value="hafen">Hafen Drop</option>
+                    <option value="giesserei">Gießerei Kill</option>
+                    <option value="waffenfabrik">Waffenfabrik Kill</option>
+                    <option value="c
