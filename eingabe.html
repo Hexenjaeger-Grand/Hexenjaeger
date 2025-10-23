@@ -67,6 +67,35 @@
             padding: 8px 12px;
             margin: 2px 0;
         }
+        
+        .amount-preview {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid var(--accent-purple);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .preview-title {
+            font-weight: bold;
+            color: var(--accent-purple);
+            margin-bottom: 8px;
+        }
+        
+        .preview-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+        }
+        
+        .preview-total {
+            font-weight: bold;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 2px solid var(--accent-purple);
+        }
     </style>
 </head>
 <body>
@@ -109,6 +138,7 @@
             <div id="normalEvent" class="event-specific">
                 <label for="amount">Anzahl Kills/Drops</label>
                 <input type="number" id="amount" placeholder="z.B. 5 für 5 Kills">
+                <div class="info-text">Jeder ausgewählte Teilnehmer erhält den Betrag für die angegebene Anzahl</div>
             </div>
 
             <!-- Cayo Perico: Gesamtbetrag und Drops -->
@@ -117,6 +147,13 @@
                 <input type="number" id="cayoDrops" placeholder="Anzahl Drops">
                 <label for="cayoTotalAmount">Gesamtbetrag ($)</label>
                 <input type="number" id="cayoTotalAmount" placeholder="z.B. 1000000 für 1 Million">
+                
+                <!-- Betrags-Vorschau für Cayo -->
+                <div class="amount-preview" id="cayoPreview">
+                    <div class="preview-title">💰 Auszahlung pro Teilnehmer:</div>
+                    <div id="cayoPreviewContent"></div>
+                </div>
+                
                 <div class="info-text">Der Betrag wird gleichmäßig auf alle ausgewählten Mitglieder aufgeteilt</div>
             </div>
 
@@ -124,6 +161,13 @@
             <div id="rpEvent" class="event-specific">
                 <label for="rpTotalAmount">Gesamtbetrag ($)</label>
                 <input type="number" id="rpTotalAmount" placeholder="z.B. 8000000 für 8 Millionen">
+                
+                <!-- Betrags-Vorschau für RP Fabrik -->
+                <div class="amount-preview" id="rpPreview">
+                    <div class="preview-title">💰 Auszahlung pro Teilnehmer:</div>
+                    <div id="rpPreviewContent"></div>
+                </div>
+                
                 <div class="info-text">Der Betrag wird gleichmäßig auf alle ausgewählten Mitglieder aufgeteilt</div>
             </div>
 
@@ -196,6 +240,10 @@
             const normalEvent = document.getElementById('normalEvent');
             const cayoEvent = document.getElementById('cayoEvent');
             const rpEvent = document.getElementById('rpEvent');
+            const cayoPreview = document.getElementById('cayoPreview');
+            const rpPreview = document.getElementById('rpPreview');
+            const cayoPreviewContent = document.getElementById('cayoPreviewContent');
+            const rpPreviewContent = document.getElementById('rpPreviewContent');
             const submitBtn = document.getElementById('submitEvent');
             const statusMessage = document.getElementById('statusMessage');
 
@@ -204,7 +252,6 @@
             // Fülle Mitglieder Select
             function loadMembers() {
                 const members = db.getMembers();
-                console.log('Geladene Mitglieder:', members); // Debug
                 
                 if (members.length === 0) {
                     memberSelect.innerHTML = '<option value="">Keine Mitglieder vorhanden - Bitte zuerst Mitglieder anlegen</option>';
@@ -217,12 +264,12 @@
 
             // Event Type Change
             eventType.addEventListener('change', function() {
-                console.log('Event geändert zu:', this.value); // Debug
-                
                 // Verstecke alle Event-spezifischen Felder
                 normalEvent.style.display = 'none';
                 cayoEvent.style.display = 'none';
                 rpEvent.style.display = 'none';
+                cayoPreview.style.display = 'none';
+                rpPreview.style.display = 'none';
 
                 // Zeige die richtigen Felder basierend auf Event-Typ
                 switch(this.value) {
@@ -243,15 +290,91 @@
 
             // Mehrfachauswahl Handling
             memberSelect.addEventListener('change', function() {
-                console.log('Mitglieder auswahl geändert'); // Debug
-                
                 selectedMemberIds = Array.from(this.selectedOptions)
                     .map(option => option.value)
                     .filter(value => value !== ''); // Leere Option ausschließen
 
-                console.log('Ausgewählte IDs:', selectedMemberIds); // Debug
                 updateSelectedMembersDisplay();
+                updateAmountPreviews(); // Update Vorschau wenn Mitglieder geändert werden
             });
+
+            // Betrags-Änderungen für Vorschau
+            document.getElementById('cayoTotalAmount').addEventListener('input', updateAmountPreviews);
+            document.getElementById('rpTotalAmount').addEventListener('input', updateAmountPreviews);
+            document.getElementById('cayoDrops').addEventListener('input', updateAmountPreviews);
+
+            function updateAmountPreviews() {
+                const members = db.getMembers();
+                const selectedCount = selectedMemberIds.length;
+                
+                // Cayo Perico Vorschau
+                const cayoTotal = parseInt(document.getElementById('cayoTotalAmount').value) || 0;
+                const cayoDrops = parseInt(document.getElementById('cayoDrops').value) || 0;
+                
+                if (selectedCount > 0 && cayoTotal > 0 && cayoDrops > 0) {
+                    const amountPerMember = Math.round(cayoTotal / selectedCount);
+                    const amountPerDrop = Math.round(amountPerMember / cayoDrops);
+                    
+                    cayoPreviewContent.innerHTML = '';
+                    selectedMemberIds.forEach(memberId => {
+                        const member = members.find(m => m.id === memberId);
+                        if (member) {
+                            const item = document.createElement('div');
+                            item.className = 'preview-item';
+                            item.innerHTML = `
+                                <span>${escapeHtml(member.name)}</span>
+                                <span>$${amountPerMember.toLocaleString('de-DE')}</span>
+                            `;
+                            cayoPreviewContent.appendChild(item);
+                        }
+                    });
+                    
+                    const total = document.createElement('div');
+                    total.className = 'preview-total';
+                    total.innerHTML = `
+                        <span>Gesamt pro Person (${cayoDrops} Drops × $${amountPerDrop.toLocaleString('de-DE')})</span>
+                        <span>$${amountPerMember.toLocaleString('de-DE')}</span>
+                    `;
+                    cayoPreviewContent.appendChild(total);
+                    
+                    cayoPreview.style.display = 'block';
+                } else {
+                    cayoPreview.style.display = 'none';
+                }
+                
+                // RP Fabrik Vorschau
+                const rpTotal = parseInt(document.getElementById('rpTotalAmount').value) || 0;
+                
+                if (selectedCount > 0 && rpTotal > 0) {
+                    const amountPerMember = Math.round(rpTotal / selectedCount);
+                    
+                    rpPreviewContent.innerHTML = '';
+                    selectedMemberIds.forEach(memberId => {
+                        const member = members.find(m => m.id === memberId);
+                        if (member) {
+                            const item = document.createElement('div');
+                            item.className = 'preview-item';
+                            item.innerHTML = `
+                                <span>${escapeHtml(member.name)}</span>
+                                <span>$${amountPerMember.toLocaleString('de-DE')}</span>
+                            `;
+                            rpPreviewContent.appendChild(item);
+                        }
+                    });
+                    
+                    const total = document.createElement('div');
+                    total.className = 'preview-total';
+                    total.innerHTML = `
+                        <span>Gesamt pro Person</span>
+                        <span>$${amountPerMember.toLocaleString('de-DE')}</span>
+                    `;
+                    rpPreviewContent.appendChild(total);
+                    
+                    rpPreview.style.display = 'block';
+                } else {
+                    rpPreview.style.display = 'none';
+                }
+            }
 
             function updateSelectedMembersDisplay() {
                 const members = db.getMembers();
@@ -281,6 +404,7 @@
                         if (option) option.selected = false;
                         
                         updateSelectedMembersDisplay();
+                        updateAmountPreviews(); // Update Vorschau
                     });
                 });
             }
@@ -345,6 +469,22 @@
                         break;
                 }
 
+                // Bestätigung mit Beträgen anzeigen
+                const members = db.getMembers();
+                const selectedCount = selectedMemberIds.length;
+                let confirmationMessage = '';
+                
+                if (eventTypeValue === 'cayo' || eventTypeValue === 'rp_fabrik') {
+                    const amountPerMember = Math.round(eventData.totalAmount / selectedCount);
+                    confirmationMessage = `Jeder der ${selectedCount} Teilnehmer erhält $${amountPerMember.toLocaleString('de-DE')}. Fortfahren?`;
+                } else {
+                    confirmationMessage = `Event für ${selectedCount} Teilnehmer speichern?`;
+                }
+                
+                if (!confirm(confirmationMessage)) {
+                    return; // User hat abgebrochen
+                }
+
                 // Speichere Event für alle ausgewählten Mitglieder
                 let successCount = 0;
                 let errorMessages = [];
@@ -407,6 +547,8 @@
                 normalEvent.style.display = 'none';
                 cayoEvent.style.display = 'none';
                 rpEvent.style.display = 'none';
+                cayoPreview.style.display = 'none';
+                rpPreview.style.display = 'none';
             }
 
             // Hilfsfunktion
@@ -417,9 +559,7 @@
             }
 
             // Initialisierung - SOFORT beim Laden
-            console.log('Starte Initialisierung...'); // Debug
             loadMembers();
-            console.log('Initialisierung abgeschlossen'); // Debug
         });
     </script>
 </body>
