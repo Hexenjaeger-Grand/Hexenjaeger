@@ -5,113 +5,174 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Eingabe - Hexenjäger</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        .event-specific { display: none; }
+        .event-specific { 
+            display: none; 
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
         .info-text { 
             color: var(--text-muted); 
-            font-size: 12px; 
-            margin-top: 5px; 
+            font-size: 14px; 
+            margin-top: 8px;
+            font-style: italic;
         }
         
         .amount-preview {
-            background: rgba(139, 92, 246, 0.1);
-            border: 1px solid var(--accent-purple);
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 10px;
+            background: rgba(212, 175, 55, 0.08);
+            border: 2px solid var(--accent-gold);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            animation: slideIn 0.4s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { 
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
         
         .preview-title {
-            font-weight: bold;
-            color: var(--accent-purple);
-            margin-bottom: 8px;
+            font-weight: 700;
+            color: var(--accent-gold);
+            margin-bottom: 12px;
+            font-size: 1.1em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
         .preview-item {
             display: flex;
             justify-content: space-between;
-            padding: 4px 0;
-            border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .preview-item:hover {
+            background: rgba(212, 175, 55, 0.05);
+            padding-left: 10px;
+            padding-right: 10px;
+            border-radius: 5px;
         }
         
         .preview-total {
-            font-weight: bold;
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 2px solid var(--accent-purple);
+            font-weight: 700;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 2px solid var(--accent-gold);
+            color: var(--accent-gold-light);
+            font-size: 1.1em;
         }
         
         .preview-empty {
             color: var(--text-muted);
             font-style: italic;
             text-align: center;
-            padding: 10px;
+            padding: 20px;
+            border: 2px dashed var(--border-color);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .event-type-icon {
+            font-size: 1.2em;
+            margin-right: 8px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>📝 Event Eingabe</h1>
-            <a href="index.html" class="back-btn">← Zurück</a>
+            <div class="hexenjaeger-symbol"></div>
+            <h1>Event Eingabe</h1>
+            <p>Erfasse neue Events und Kills für die Family</p>
+            <a href="index.html" class="back-btn">← Zurück zur Übersicht</a>
         </header>
 
-        <div class="event-form">
-            <div>
-                <label for="eventType">Event Typ</label>
-                <select id="eventType">
-                    <option value="">Event auswählen</option>
-                    <option value="bizwar_win">Bizwar Win/Kill</option>
-                    <option value="bizwar_lose">Bizwar Lose/Kill</option>
-                    <option value="40er_win">40er Win/Kill</option>
-                    <option value="40er_lose">40er Lose/Kill</option>
-                    <option value="ekz">EKZ Win</option>
-                    <option value="hafen">Hafen Drop</option>
-                    <option value="giesserei">Gießerei Kill</option>
-                    <option value="waffenfabrik">Waffenfabrik Kill</option>
-                    <option value="cayo">Cayo Perico Drop</option>
-                    <option value="rp_fabrik">RP Fabrik Win</option>
-                </select>
-            </div>
+        <div class="card">
+            <h2 style="color: var(--accent-gold); text-align: center; margin-bottom: 30px;">🎯 Neues Event Erfassen</h2>
+            
+            <div class="event-form">
+                <div class="form-group">
+                    <label for="eventType">⚔️ Event Typ</label>
+                    <select id="eventType">
+                        <option value="">-- Event auswählen --</option>
+                        <option value="bizwar_win">🏆 Bizwar Win/Kill</option>
+                        <option value="bizwar_lose">⚔️ Bizwar Lose/Kill</option>
+                        <option value="40er_win">🎯 40er Win/Kill</option>
+                        <option value="40er_lose">💀 40er Lose/Kill</option>
+                        <option value="ekz">🏰 EKZ Win</option>
+                        <option value="hafen">⚓ Hafen Drop</option>
+                        <option value="giesserei">🏭 Gießerei Kill</option>
+                        <option value="waffenfabrik">🔫 Waffenfabrik Kill</option>
+                        <option value="cayo">🏝️ Cayo Perico Drop</option>
+                        <option value="rp_fabrik">💎 RP Fabrik Win</option>
+                    </select>
+                </div>
 
-            <div>
-                <label for="memberSelect">Mitglied</label>
-                <select id="memberSelect">
-                    <!-- Mitglieder werden hier geladen -->
-                </select>
-            </div>
+                <div class="form-group">
+                    <label for="memberSelect">👤 Mitglied</label>
+                    <select id="memberSelect">
+                        <!-- Mitglieder werden hier geladen -->
+                    </select>
+                </div>
 
-            <!-- Normale Events: Kills/Drops -->
-            <div id="normalEvent" class="event-specific">
-                <label for="amount">Anzahl Kills/Drops</label>
-                <input type="number" id="amount" placeholder="z.B. 5 für 5 Kills">
-                <div class="info-text">Das ausgewählte Mitglied erhält den Betrag für die angegebene Anzahl</div>
-            </div>
+                <!-- Normale Events: Kills/Drops -->
+                <div id="normalEvent" class="event-specific">
+                    <div class="form-group">
+                        <label for="amount">🎯 Anzahl Kills/Drops</label>
+                        <input type="number" id="amount" placeholder="z.B. 5 für 5 Kills" min="1">
+                    </div>
+                    <div class="info-text">Das ausgewählte Mitglied erhält den Betrag für die angegebene Anzahl</div>
+                </div>
 
-            <!-- Cayo Perico: Gesamtbetrag und Drops -->
-            <div id="cayoEvent" class="event-specific">
-                <label for="cayoDrops">Anzahl eingenommene Drops/Zones</label>
-                <input type="number" id="cayoDrops" placeholder="Anzahl Drops">
-                <label for="cayoTotalAmount">Gesamtbetrag ($)</label>
-                <input type="number" id="cayoTotalAmount" placeholder="z.B. 1000000 für 1 Million">
-                <div class="info-text">Der Betrag wird auf alle Teilnehmer aufgeteilt</div>
-            </div>
+                <!-- Cayo Perico: Gesamtbetrag und Drops -->
+                <div id="cayoEvent" class="event-specific">
+                    <div class="form-group">
+                        <label for="cayoDrops">🏝️ Anzahl eingenommene Drops/Zones</label>
+                        <input type="number" id="cayoDrops" placeholder="Anzahl Drops" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="cayoTotalAmount">💰 Gesamtbetrag ($)</label>
+                        <input type="number" id="cayoTotalAmount" placeholder="z.B. 1000000 für 1 Million" min="1">
+                    </div>
+                    <div class="info-text">Der Betrag wird auf alle Teilnehmer aufgeteilt</div>
+                </div>
 
-            <!-- RP Fabrik: Gesamtbetrag -->
-            <div id="rpEvent" class="event-specific">
-                <label for="rpTotalAmount">Gesamtbetrag ($)</label>
-                <input type="number" id="rpTotalAmount" placeholder="z.B. 8000000 für 8 Millionen">
-                <div class="info-text">Der Betrag wird auf alle Teilnehmer aufgeteilt</div>
-            </div>
+                <!-- RP Fabrik: Gesamtbetrag -->
+                <div id="rpEvent" class="event-specific">
+                    <div class="form-group">
+                        <label for="rpTotalAmount">💎 Gesamtbetrag ($)</label>
+                        <input type="number" id="rpTotalAmount" placeholder="z.B. 8000000 für 8 Millionen" min="1">
+                    </div>
+                    <div class="info-text">Der Betrag wird auf alle Teilnehmer aufgeteilt</div>
+                </div>
 
-            <button id="submitEvent" class="btn-primary">Event speichern</button>
-            <div id="statusMessage" style="margin-top: 15px;"></div>
+                <button id="submitEvent" class="btn-primary" style="margin-top: 20px; padding: 18px 40px; font-size: 1.1em;">
+                    🎯 Event Speichern
+                </button>
+                
+                <div id="statusMessage" style="margin-top: 20px; padding: 15px; border-radius: 10px; text-align: center; font-weight: 600;"></div>
+            </div>
         </div>
     </div>
 
     <script src="app.js"></script>
     <script>
-        // Vereinfachte Event-Eingabe ohne Mehrfachauswahl
+        // Erweiterte Event-Eingabe mit verbessertem Design
         document.addEventListener('DOMContentLoaded', function() {
             const eventType = document.getElementById('eventType');
             const memberSelect = document.getElementById('memberSelect');
@@ -123,53 +184,63 @@
 
             // Fülle Mitglieder Select
             function loadMembers() {
-                const members = JSON.parse(localStorage.getItem('hexenjaeger_members') || '[]');
+                const members = db.getMembers();
                 
                 if (members.length === 0) {
-                    memberSelect.innerHTML = '<option value="">Keine Mitglieder vorhanden</option>';
+                    memberSelect.innerHTML = '<option value="">❌ Keine Mitglieder vorhanden</option>';
                     return;
                 }
                 
-                memberSelect.innerHTML = '<option value="">Mitglied auswählen</option>' +
-                    members.map(m => `<option value="${m.id}">${m.name} (${m.id})</option>`).join('');
+                memberSelect.innerHTML = '<option value="">-- Mitglied auswählen --</option>' +
+                    members.map(m => `<option value="${m.id}">${escapeHtml(m.name)} (${m.id})</option>`).join('');
             }
 
-            // Event Type Change
+            // Event Type Change mit Animation
             eventType.addEventListener('change', function() {
-                // Verstecke alle Event-spezifischen Felder
-                normalEvent.style.display = 'none';
-                cayoEvent.style.display = 'none';
-                rpEvent.style.display = 'none';
+                // Verstecke alle Event-spezifischen Felder mit Animation
+                [normalEvent, cayoEvent, rpEvent].forEach(el => {
+                    if (el.style.display !== 'none') {
+                        el.style.animation = 'fadeOut 0.3s ease-out';
+                        setTimeout(() => {
+                            el.style.display = 'none';
+                            el.style.animation = '';
+                        }, 300);
+                    }
+                });
 
-                // Zeige die richtigen Felder
-                switch(this.value) {
-                    case 'cayo':
-                        cayoEvent.style.display = 'block';
-                        break;
-                    case 'rp_fabrik':
-                        rpEvent.style.display = 'block';
-                        break;
-                    case '':
-                        break;
-                    default:
-                        normalEvent.style.display = 'block';
-                        break;
-                }
+                // Zeige die richtigen Felder mit Verzögerung für Animation
+                setTimeout(() => {
+                    switch(this.value) {
+                        case 'cayo':
+                            cayoEvent.style.display = 'block';
+                            break;
+                        case 'rp_fabrik':
+                            rpEvent.style.display = 'block';
+                            break;
+                        case '':
+                            break;
+                        default:
+                            normalEvent.style.display = 'block';
+                            break;
+                    }
+                }, 50);
             });
 
-            // Submit Event
+            // Submit Event mit erweitertem Feedback
             submitBtn.addEventListener('click', function() {
                 const eventTypeValue = eventType.value;
                 const memberId = memberSelect.value;
                 
                 // Validierung
                 if (!eventTypeValue) {
-                    showStatus('Bitte wähle einen Event-Typ aus!', 'error');
+                    showStatus('❌ Bitte wähle einen Event-Typ aus!', 'error');
+                    eventType.focus();
                     return;
                 }
 
                 if (!memberId) {
-                    showStatus('Bitte wähle ein Mitglied aus!', 'error');
+                    showStatus('❌ Bitte wähle ein Mitglied aus!', 'error');
+                    memberSelect.focus();
                     return;
                 }
 
@@ -180,14 +251,15 @@
                 };
 
                 // Füge typspezifische Daten hinzu
+                let isValid = true;
                 switch(eventTypeValue) {
                     case 'cayo':
                         const cayoDrops = parseInt(document.getElementById('cayoDrops').value) || 0;
                         const cayoTotal = parseInt(document.getElementById('cayoTotalAmount').value) || 0;
                         
                         if (!cayoDrops || !cayoTotal) {
-                            showStatus('Bitte fülle alle Felder für Cayo Perico aus!', 'error');
-                            return;
+                            showStatus('❌ Bitte fülle alle Felder für Cayo Perico aus!', 'error');
+                            isValid = false;
                         }
                         
                         eventData.amount = cayoDrops;
@@ -198,8 +270,8 @@
                         const rpTotal = parseInt(document.getElementById('rpTotalAmount').value) || 0;
                         
                         if (!rpTotal) {
-                            showStatus('Bitte gib den Gesamtbetrag für RP Fabrik ein!', 'error');
-                            return;
+                            showStatus('❌ Bitte gib den Gesamtbetrag für RP Fabrik ein!', 'error');
+                            isValid = false;
                         }
                         
                         eventData.amount = 1;
@@ -210,32 +282,48 @@
                         const amount = parseInt(document.getElementById('amount').value) || 0;
                         
                         if (!amount) {
-                            showStatus('Bitte gib die Anzahl Kills/Drops ein!', 'error');
-                            return;
+                            showStatus('❌ Bitte gib die Anzahl Kills/Drops ein!', 'error');
+                            isValid = false;
                         }
                         
                         eventData.amount = amount;
                         break;
                 }
 
+                if (!isValid) return;
+
+                // Button-Animation
+                submitBtn.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    submitBtn.style.transform = '';
+                }, 150);
+
                 // Nutze die Haupt-DB aus app.js
                 const result = db.addEvent(eventData);
                 
                 if (result.success) {
-                    showStatus(`Event erfolgreich gespeichert! Betrag: ${formatCurrency(result.calculatedAmount)}`, 'success');
-                    resetForm();
+                    showStatus(`✅ Event erfolgreich gespeichert! Betrag: ${formatCurrency(result.calculatedAmount)}`, 'success');
+                    setTimeout(resetForm, 2000);
                 } else {
-                    showStatus('Fehler: ' + result.error, 'error');
+                    showStatus('❌ Fehler: ' + result.error, 'error');
                 }
             });
 
             function showStatus(message, type) {
                 statusMessage.textContent = message;
-                statusMessage.style.color = type === 'success' ? '#10b981' : '#ef4444';
-                statusMessage.style.fontWeight = 'bold';
+                statusMessage.style.background = type === 'success' 
+                    ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(22, 163, 74, 0.1))' 
+                    : 'linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.1))';
+                statusMessage.style.border = type === 'success' 
+                    ? '2px solid rgba(34, 197, 94, 0.3)' 
+                    : '2px solid rgba(239, 68, 68, 0.3)';
+                statusMessage.style.color = type === 'success' ? '#22c55e' : '#ef4444';
 
+                // Auto-hide nach 5 Sekunden
                 setTimeout(() => {
                     statusMessage.textContent = '';
+                    statusMessage.style.background = '';
+                    statusMessage.style.border = '';
                 }, 5000);
             }
 
@@ -247,9 +335,14 @@
                 document.getElementById('cayoTotalAmount').value = '';
                 document.getElementById('rpTotalAmount').value = '';
                 
-                normalEvent.style.display = 'none';
-                cayoEvent.style.display = 'none';
-                rpEvent.style.display = 'none';
+                [normalEvent, cayoEvent, rpEvent].forEach(el => {
+                    el.style.display = 'none';
+                });
+                
+                showStatus('📝 Formular wurde zurückgesetzt', 'info');
+                setTimeout(() => {
+                    statusMessage.textContent = '';
+                }, 3000);
             }
 
             // Initialisierung
