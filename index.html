@@ -5,25 +5,104 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hexenjäger Family</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>⚔️ Hexenjäger</h1>
+            <div class="hexenjaeger-symbol"></div>
+            <h1>Hexenjäger</h1>
             <p>Wo Schatten herrschen, spricht das Gewehr. - Wo Schuld lastet, brennt das Feuer.</p>
         </header>
         
         <nav class="main-nav">
-            <a href="auszahlungen.html" class="nav-btn">💰 Auszahlungen</a>
-            <a href="eingabe.html" class="nav-btn">📝 Event Eingabe</a>
-            <a href="statistik.html" class="nav-btn">📊 Statistik</a>
-            <a href="mitglieder.html" class="nav-btn">👥 Mitglieder</a>
+            <a href="auszahlungen.html" class="nav-btn">
+                <div style="font-size: 2.5em; margin-bottom: 10px;">⚔️</div>
+                <h3>Auszahlungen</h3>
+                <p>Offene Zahlungen verwalten</p>
+            </a>
+            <a href="eingabe.html" class="nav-btn">
+                <div style="font-size: 2.5em; margin-bottom: 10px;">📝</div>
+                <h3>Event Eingabe</h3>
+                <p>Neue Events erfassen</p>
+            </a>
+            <a href="statistik.html" class="nav-btn">
+                <div style="font-size: 2.5em; margin-bottom: 10px;">📊</div>
+                <h3>Statistik</h3>
+                <p>Daten analysieren</p>
+            </a>
+            <a href="mitglieder.html" class="nav-btn">
+                <div style="font-size: 2.5em; margin-bottom: 10px;">👥</div>
+                <h3>Mitglieder</h3>
+                <p>Family verwalten</p>
+            </a>
         </nav>
         
         <div class="info-box">
-            <h3>📅 Nächste Auszahlung: Freitag</h3>
-            <p>Aktuelle Auszahlungen werden jeden Freitag ausgezahlt</p>
+            <h3>⚡ Nächste Auszahlung: Freitag</h3>
+            <p style="font-size: 1.1em; margin-top: 10px;">Aktuelle Auszahlungen werden jeden Freitag ausgezahlt</p>
+            <div style="margin-top: 20px; padding: 15px; background: rgba(212, 175, 55, 0.1); border-radius: 10px; border-left: 4px solid var(--accent-gold);">
+                <strong style="color: var(--accent-gold);">💎 Hexenjäger Codex:</strong>
+                <p style="margin-top: 8px; font-size: 0.9em;">Ehre • Loyalität • Stärke</p>
+            </div>
         </div>
     </div>
+
+    <script>
+        // Add some interactive effects
+        document.addEventListener('DOMContentLoaded', function() {
+            const navButtons = document.querySelectorAll('.nav-btn');
+            
+            navButtons.forEach(button => {
+                button.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-8px) scale(1.02)';
+                });
+                
+                button.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+
+            // Add particle effect on click
+            document.addEventListener('click', function(e) {
+                createParticle(e.clientX, e.clientY);
+            });
+
+            function createParticle(x, y) {
+                const particle = document.createElement('div');
+                particle.style.cssText = `
+                    position: fixed;
+                    width: 6px;
+                    height: 6px;
+                    background: var(--accent-gold);
+                    border-radius: 50%;
+                    pointer-events: none;
+                    z-index: 1000;
+                    left: ${x}px;
+                    top: ${y}px;
+                `;
+                document.body.appendChild(particle);
+
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 2 + Math.random() * 2;
+                const vx = Math.cos(angle) * speed;
+                const vy = Math.sin(angle) * speed;
+
+                let opacity = 1;
+                const animate = () => {
+                    opacity -= 0.02;
+                    particle.style.opacity = opacity;
+                    particle.style.transform = `translate(${vx * (1 - opacity) * 50}px, ${vy * (1 - opacity) * 50}px)`;
+
+                    if (opacity > 0) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        particle.remove();
+                    }
+                };
+                animate();
+            }
+        });
+    </script>
 </body>
 </html>
