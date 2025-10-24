@@ -1,108 +1,161 @@
+[file name]: index.html
+[file content begin]
 <!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hexenjäger Family</title>
+    <title>Hexenjäger - Schattenkodex</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="hexenjaeger-symbol"></div>
-            <h1>Hexenjäger</h1>
-            <p>Wo Schatten herrschen, spricht das Gewehr. - Wo Schuld lastet, brennt das Feuer.</p>
-        </header>
-        
-        <nav class="main-nav">
-            <a href="auszahlungen.html" class="nav-btn">
-                <div style="font-size: 2.5em; margin-bottom: 10px;">⚔️</div>
-                <h3>Auszahlungen</h3>
-                <p>Offene Zahlungen verwalten</p>
-            </a>
-            <a href="eingabe.html" class="nav-btn">
-                <div style="font-size: 2.5em; margin-bottom: 10px;">📝</div>
-                <h3>Event Eingabe</h3>
-                <p>Neue Events erfassen</p>
-            </a>
-            <a href="statistik.html" class="nav-btn">
-                <div style="font-size: 2.5em; margin-bottom: 10px;">📊</div>
-                <h3>Statistik</h3>
-                <p>Daten analysieren</p>
-            </a>
-            <a href="mitglieder.html" class="nav-btn">
-                <div style="font-size: 2.5em; margin-bottom: 10px;">👥</div>
-                <h3>Mitglieder</h3>
-                <p>Family verwalten</p>
-            </a>
-        </nav>
-        
-        <div class="info-box">
-            <h3>⚡ Nächste Auszahlung: Freitag</h3>
-            <p style="font-size: 1.1em; margin-top: 10px;">Aktuelle Auszahlungen werden jeden Freitag ausgezahlt</p>
-            <div style="margin-top: 20px; padding: 15px; background: rgba(212, 175, 55, 0.1); border-radius: 10px; border-left: 4px solid var(--accent-gold);">
-                <strong style="color: var(--accent-gold);">💎 Hexenjäger Codex:</strong>
-                <p style="margin-top: 8px; font-size: 0.9em;">Ehre • Loyalität • Stärke</p>
+    <!-- Mystischer Hintergrund mit Rauch und Runen -->
+    <div class="mystic-bg">
+        <div class="smoke-effect"></div>
+        <div class="floating-runes">ᚠᚢᚦᚬᚱᚴᚼᚾᛁᛅᛋᛏᛒᛘᛚᛦ</div>
+    </div>
+
+    <!-- Hauptcontainer -->
+    <div class="grimoire-container">
+        <!-- Header mit magischem Siegel -->
+        <header class="coven-header">
+            <div class="magic-seal">
+                <div class="seal-ring outer"></div>
+                <div class="seal-ring middle"></div>
+                <div class="seal-core">
+                    <span class="rune">ᛉ</span>
+                </div>
             </div>
-        </div>
+            <h1 class="coven-title">HEXENJÄGER</h1>
+            <p class="coven-motto">"Wo Schatten herrschen, spricht das Gewehr"</p>
+            <div class="ancient-border"></div>
+        </header>
+
+        <!-- Navigations-Tabs wie altes Buch -->
+        <nav class="ancient-tabs">
+            <div class="tab-container">
+                <a href="auszahlungen.html" class="tab-item active" data-tab="payouts">
+                    <span class="tab-icon">💰</span>
+                    <span class="tab-text">Schatzmeister</span>
+                </a>
+                <a href="eingabe.html" class="tab-item" data-tab="input">
+                    <span class="tab-icon">📜</span>
+                    <span class="tab-text">Chronik</span>
+                </a>
+                <a href="statistik.html" class="tab-item" data-tab="stats">
+                    <span class="tab-icon">🔮</span>
+                    <span class="tab-text">Weissagung</span>
+                </a>
+                <a href="mitglieder.html" class="tab-item" data-tab="members">
+                    <span class="tab-icon">👥</span>
+                    <span class="tab-text">Kreis</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Hauptinhalt als aufgeschlagenes Buch -->
+        <main class="grimoire-content">
+            <div class="book-page left">
+                <div class="page-content">
+                    <h2 class="chapter-title">Willkommen, Jäger</h2>
+                    <div class="ancient-text">
+                        <p>Im Schatten lauern die Dämonen, doch unser Kreis steht fest.</p>
+                        <p>Jeder Sieg, jede erlegte Kreatur stärkt unser Bündnis.</p>
+                    </div>
+                    
+                    <div class="magic-stats">
+                        <div class="stat-item">
+                            <div class="stat-rune">ᚠ</div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="activeMembers">12</span>
+                                <span class="stat-label">Aktive Jäger</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-rune">ᚦ</div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="totalPayouts">$2.4M</span>
+                                <span class="stat-label">Gesamtbeute</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-rune">ᚬ</div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="weeklyEvents">47</span>
+                                <span class="stat-label">Diese Woche</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="book-page right">
+                <div class="page-content">
+                    <h2 class="chapter-title">Letzte Taten</h2>
+                    <div class="recent-deeds">
+                        <div class="deed-item">
+                            <span class="deed-icon">⚔️</span>
+                            <span class="deed-text">Malachi besiegte 3 Dämonen im Bizwar</span>
+                            <span class="deed-amount">+$60k</span>
+                        </div>
+                        <div class="deed-item">
+                            <span class="deed-icon">🏰</span>
+                            <span class="deed-text">Raven sicherte das EKZ für den Kreis</span>
+                            <span class="deed-amount">+$80k</span>
+                        </div>
+                        <div class="deed-item">
+                            <span class="deed-icon">🔫</span>
+                            <span class="deed-text">Orion reinigte die Waffenfabrik</span>
+                            <span class="deed-amount">+$10k</span>
+                        </div>
+                    </div>
+
+                    <div class="magic-notice">
+                        <div class="notice-icon">⚠️</div>
+                        <div class="notice-text">
+                            <strong>Nächste Opfergabe:</strong> Freitag bei Mondaufgang
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer mit mystischem Text -->
+        <footer class="coven-footer">
+            <div class="footer-runes">ᛗᛁᛏ ᛖᚻᚱᛖ ᚢᚾᛞ ᚹᚨᚠᚠᛖ • ᛞᚢᚱᚲᚺ ᛞᛁᛖ ᛋᚺᚨᛏᛏᛖᚾ</div>
+        </footer>
     </div>
 
     <script>
-        // Add some interactive effects
+        // Mystische Interaktionen
         document.addEventListener('DOMContentLoaded', function() {
-            const navButtons = document.querySelectorAll('.nav-btn');
-            
-            navButtons.forEach(button => {
-                button.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-8px) scale(1.02)';
+            // Rauch-Effekt bei Mausbewegung
+            document.addEventListener('mousemove', function(e) {
+                const smoke = document.querySelector('.smoke-effect');
+                smoke.style.left = e.clientX + 'px';
+                smoke.style.top = e.clientY + 'px';
+            });
+
+            // Tab-Hover Effekte
+            const tabs = document.querySelectorAll('.tab-item');
+            tabs.forEach(tab => {
+                tab.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px) scale(1.05)';
                 });
                 
-                button.addEventListener('mouseleave', function() {
+                tab.addEventListener('mouseleave', function() {
                     this.style.transform = 'translateY(0) scale(1)';
                 });
             });
 
-            // Add particle effect on click
-            document.addEventListener('click', function(e) {
-                createParticle(e.clientX, e.clientY);
-            });
-
-            function createParticle(x, y) {
-                const particle = document.createElement('div');
-                particle.style.cssText = `
-                    position: fixed;
-                    width: 6px;
-                    height: 6px;
-                    background: var(--accent-gold);
-                    border-radius: 50%;
-                    pointer-events: none;
-                    z-index: 1000;
-                    left: ${x}px;
-                    top: ${y}px;
-                `;
-                document.body.appendChild(particle);
-
-                const angle = Math.random() * Math.PI * 2;
-                const speed = 2 + Math.random() * 2;
-                const vx = Math.cos(angle) * speed;
-                const vy = Math.sin(angle) * speed;
-
-                let opacity = 1;
-                const animate = () => {
-                    opacity -= 0.02;
-                    particle.style.opacity = opacity;
-                    particle.style.transform = `translate(${vx * (1 - opacity) * 50}px, ${vy * (1 - opacity) * 50}px)`;
-
-                    if (opacity > 0) {
-                        requestAnimationFrame(animate);
-                    } else {
-                        particle.remove();
-                    }
-                };
-                animate();
-            }
+            // Siegel-Animation
+            const seal = document.querySelector('.magic-seal');
+            setInterval(() => {
+                seal.style.filter = `hue-rotate(${Math.random() * 360}deg) brightness(${0.8 + Math.random() * 0.4})`;
+            }, 3000);
         });
     </script>
 </body>
 </html>
+[file content end]
