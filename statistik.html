@@ -7,18 +7,74 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Statistik - Hexenjäger</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 35px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-purple);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: var(--accent-purple);
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .stat-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .stat-number {
+            font-size: 2.2em;
+            font-weight: bold;
+            background: linear-gradient(135deg, var(--accent-purple-light), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.95em;
+        }
+
+        .filters {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <div class="hexenjaeger-symbol"></div>
+            <div class="hexenjaeger-symbol">ᛉ</div>
             <h1>Statistik</h1>
             <p>Analyse der Family-Aktivitäten und Auszahlungen</p>
             <a href="index.html" class="back-btn">← Zurück zur Übersicht</a>
         </header>
 
-        <!-- Export & Reset Buttons -->
-        <div style="display: flex; gap: 12px; margin-bottom: 25px; flex-wrap: wrap;">
+        <div class="export-buttons">
             <button onclick="exportData()" class="btn-primary">📥 Daten exportieren</button>
             <button onclick="document.getElementById('importFile').click()" class="btn-secondary">📤 Daten importieren</button>
             <input type="file" id="importFile" accept=".json" style="display: none" onchange="importData(event)">
@@ -27,37 +83,35 @@
             </button>
         </div>
 
-        <!-- Statistiken Übersicht -->
         <div class="stats-grid">
-            <div class="stat-card">
-                <div style="font-size: 2em; margin-bottom: 10px;">💰</div>
-                <div class="stat-label">Gesamt ausgezahlt</div>
+            <div class="stat-card mystic-border">
+                <div class="stat-icon">💰</div>
                 <div class="stat-number" id="totalPaid">$0</div>
+                <div class="stat-label">Gesamt ausgezahlt</div>
             </div>
             
-            <div class="stat-card">
-                <div style="font-size: 2em; margin-bottom: 10px;">👥</div>
-                <div class="stat-label">Aktive Mitglieder</div>
+            <div class="stat-card mystic-border">
+                <div class="stat-icon">👥</div>
                 <div class="stat-number" id="activeMembers">0</div>
+                <div class="stat-label">Aktive Mitglieder</div>
             </div>
             
-            <div class="stat-card">
-                <div style="font-size: 2em; margin-bottom: 10px;">🎯</div>
-                <div class="stat-label">Events diese Woche</div>
+            <div class="stat-card mystic-border">
+                <div class="stat-icon">🎯</div>
                 <div class="stat-number" id="weeklyEvents">0</div>
+                <div class="stat-label">Events diese Woche</div>
             </div>
             
-            <div class="stat-card">
-                <div style="font-size: 2em; margin-bottom: 10px;">📈</div>
-                <div class="stat-label">Durchschnitt pro Person</div>
+            <div class="stat-card mystic-border">
+                <div class="stat-icon">📈</div>
                 <div class="stat-number" id="avgPerMember">$0</div>
+                <div class="stat-label">Durchschnitt pro Person</div>
             </div>
         </div>
 
-        <!-- Filter -->
         <div class="filters">
-            <div>
-                <label style="display: block; color: var(--accent-lilac); margin-bottom: 5px; font-weight: 600;">Zeitraum</label>
+            <div class="form-group">
+                <label style="display: block; color: var(--accent-purple-light); margin-bottom: 8px; font-weight: 600;">Zeitraum</label>
                 <select id="timeFilter" class="filter-select" onchange="updateStatistics()">
                     <option value="all">Alle Zeiträume</option>
                     <option value="week">Letzte Woche</option>
@@ -66,15 +120,15 @@
                 </select>
             </div>
             
-            <div>
-                <label style="display: block; color: var(--accent-lilac); margin-bottom: 5px; font-weight: 600;">Mitglied</label>
+            <div class="form-group">
+                <label style="display: block; color: var(--accent-purple-light); margin-bottom: 8px; font-weight: 600;">Mitglied</label>
                 <select id="memberFilter" class="filter-select" onchange="updateStatistics()">
                     <option value="all">Alle Mitglieder</option>
                 </select>
             </div>
 
-            <div>
-                <label style="display: block; color: var(--accent-lilac); margin-bottom: 5px; font-weight: 600;">Event Typ</label>
+            <div class="form-group">
+                <label style="display: block; color: var(--accent-purple-light); margin-bottom: 8px; font-weight: 600;">Event Typ</label>
                 <select id="eventFilter" class="filter-select" onchange="updateStatistics()">
                     <option value="all">Alle Events</option>
                     <option value="bizwar_win">Bizwar Win</option>
@@ -91,9 +145,8 @@
             </div>
         </div>
 
-        <!-- Detaillierte Statistik -->
-        <div class="card">
-            <h2 style="color: var(--accent-lilac); margin-bottom: 20px; text-align: center;">Auszahlungsstatistik</h2>
+        <div class="card mystic-border">
+            <h2>Auszahlungsstatistik</h2>
             <div class="table-container">
                 <table>
                     <thead>
@@ -120,9 +173,8 @@
             </div>
         </div>
 
-        <!-- Event-Statistiken -->
-        <div class="card">
-            <h2 style="color: var(--accent-lilac); margin-bottom: 20px; text-align: center;">Event-Statistiken</h2>
+        <div class="card mystic-border">
+            <h2>Event-Statistiken</h2>
             <div class="table-container">
                 <table>
                     <thead>
@@ -200,9 +252,8 @@
             // Vereinfachte Wochen-Statistik
             const weeklyEvents = stats.filter(stat => {
                 if (!stat.paidDate) return false;
-                const statDate = new Date(stat.paidDate);
-                const now = new Date();
-                return (now - statDate) <= (7 * 24 * 60 * 60 * 1000);
+                const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+                return new Date(stat.paidDate) > weekAgo;
             }).length;
             document.getElementById('weeklyEvents').textContent = weeklyEvents;
         }
@@ -241,7 +292,7 @@
             
             tbody.innerHTML = Object.values(memberTotals).map(member => `
                 <tr>
-                    <td><strong style="color: var(--accent-lilac);">${escapeHtml(member.name)}</strong></td>
+                    <td><strong style="color: var(--accent-purple-light);">${member.name}</strong></td>
                     <td>${member.bizwar_win} / ${member.bizwar_lose}</td>
                     <td>${member['40er_win']} / ${member['40er_lose']}</td>
                     <td>${member.giesserei}</td>
@@ -392,20 +443,14 @@
             }
         }
 
+        function formatCurrency(amount) {
+            return '$' + parseInt(amount).toLocaleString('de-DE');
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             updateMemberFilter();
             updateStatistics();
         });
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function formatCurrency(amount) {
-            return '$' + parseInt(amount).toLocaleString('de-DE');
-        }
     </script>
 </body>
 </html>
