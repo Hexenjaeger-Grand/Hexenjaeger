@@ -1,5 +1,3 @@
-[file name]: app.js
-[file content begin]
 // Modernes Datenmanagement für Hexenjäger
 class HexenjaegerDB {
     constructor() {
@@ -204,4 +202,3 @@ function showNotification(message, type = 'info') {
         notification.remove();
     }, 4000);
 }
-[file content end]
