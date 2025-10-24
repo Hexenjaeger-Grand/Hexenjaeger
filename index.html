@@ -5,155 +5,389 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hexenjäger - Schattenkodex</title>
+    <title>Hexenjäger Family</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .feature-card:hover {
+            border-color: var(--accent-purple);
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .feature-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .feature-title {
+            color: var(--accent-lilac);
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .feature-desc {
+            color: var(--text-muted);
+            text-align: center;
+            flex-grow: 1;
+            font-size: 0.9em;
+        }
+
+        .feature-stats {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            color: var(--accent-purple);
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .stats-widget {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .widget-title {
+            color: var(--accent-lilac);
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+        }
+
+        .stat-value {
+            color: var(--accent-lilac);
+            font-weight: 600;
+        }
+
+        .recent-activity {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            font-size: 1.2em;
+            width: 30px;
+            text-align: center;
+        }
+
+        .activity-content {
+            flex-grow: 1;
+        }
+
+        .activity-text {
+            font-size: 0.9em;
+            margin-bottom: 2px;
+        }
+
+        .activity-amount {
+            color: var(--accent-purple);
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .quick-btn {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            text-decoration: none;
+            color: var(--text-light);
+            transition: all 0.3s ease;
+        }
+
+        .quick-btn:hover {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: var(--accent-purple);
+        }
+
+        .quick-icon {
+            font-size: 1.5em;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .quick-text {
+            font-size: 0.8em;
+            color: var(--text-muted);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .quick-actions {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .quick-actions {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- Mystischer Hintergrund mit Rauch und Runen -->
-    <div class="mystic-bg">
-        <div class="smoke-effect"></div>
-        <div class="floating-runes">ᚠᚢᚦᚬᚱᚴᚼᚾᛁᛅᛋᛏᛒᛘᛚᛦ</div>
-    </div>
-
-    <!-- Hauptcontainer -->
-    <div class="grimoire-container">
-        <!-- Header mit magischem Siegel -->
-        <header class="coven-header">
-            <div class="magic-seal">
-                <div class="seal-ring outer"></div>
-                <div class="seal-ring middle"></div>
-                <div class="seal-core">
-                    <span class="rune">ᛉ</span>
-                </div>
-            </div>
-            <h1 class="coven-title">HEXENJÄGER</h1>
-            <p class="coven-motto">"Wo Schatten herrschen, spricht das Gewehr"</p>
-            <div class="ancient-border"></div>
+    <div class="container">
+        <header>
+            <div class="hexenjaeger-symbol"></div>
+            <h1>Hexenjäger Family</h1>
+            <p>Management System für Family-Aktivitäten und Auszahlungen</p>
         </header>
 
-        <!-- Navigations-Tabs wie altes Buch -->
-        <nav class="ancient-tabs">
-            <div class="tab-container">
-                <a href="auszahlungen.html" class="tab-item active" data-tab="payouts">
-                    <span class="tab-icon">💰</span>
-                    <span class="tab-text">Schatzmeister</span>
+        <div class="dashboard">
+            <!-- Hauptbereich -->
+            <div class="main-grid">
+                <a href="auszahlungen.html" class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3 class="feature-title">Auszahlungen</h3>
+                    <p class="feature-desc">Verwalte offene Zahlungen und markiere sie als erledigt</p>
+                    <div class="feature-stats" id="payoutsCount">12 ausstehend</div>
                 </a>
-                <a href="eingabe.html" class="tab-item" data-tab="input">
-                    <span class="tab-icon">📜</span>
-                    <span class="tab-text">Chronik</span>
+
+                <a href="eingabe.html" class="feature-card">
+                    <div class="feature-icon">📝</div>
+                    <h3 class="feature-title">Event Eingabe</h3>
+                    <p class="feature-desc">Erfasse neue Events, Kills und Drops für die Family</p>
+                    <div class="feature-stats" id="eventsToday">24 heute</div>
                 </a>
-                <a href="statistik.html" class="tab-item" data-tab="stats">
-                    <span class="tab-icon">🔮</span>
-                    <span class="tab-text">Weissagung</span>
+
+                <a href="statistik.html" class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3 class="feature-title">Statistik</h3>
+                    <p class="feature-desc">Analysiere Daten, exportiere Berichte und verfolge Trends</p>
+                    <div class="feature-stats" id="totalStats">$2.4M Gesamt</div>
                 </a>
-                <a href="mitglieder.html" class="tab-item" data-tab="members">
-                    <span class="tab-icon">👥</span>
-                    <span class="tab-text">Kreis</span>
+
+                <a href="mitglieder.html" class="feature-card">
+                    <div class="feature-icon">👥</div>
+                    <h3 class="feature-title">Mitglieder</h3>
+                    <p class="feature-desc">Verwalte Family-Mitglieder, bearbeite Daten und IDs</p>
+                    <div class="feature-stats" id="membersCount">15 Mitglieder</div>
                 </a>
             </div>
-        </nav>
 
-        <!-- Hauptinhalt als aufgeschlagenes Buch -->
-        <main class="grimoire-content">
-            <div class="book-page left">
-                <div class="page-content">
-                    <h2 class="chapter-title">Willkommen, Jäger</h2>
-                    <div class="ancient-text">
-                        <p>Im Schatten lauern die Dämonen, doch unser Kreis steht fest.</p>
-                        <p>Jeder Sieg, jede erlegte Kreatur stärkt unser Bündnis.</p>
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Schnellstatistiken -->
+                <div class="stats-widget">
+                    <h3 class="widget-title">Schnellübersicht</h3>
+                    <div class="stat-item">
+                        <span class="stat-label">Aktive Mitglieder</span>
+                        <span class="stat-value" id="quickMembers">15</span>
                     </div>
-                    
-                    <div class="magic-stats">
-                        <div class="stat-item">
-                            <div class="stat-rune">ᚠ</div>
-                            <div class="stat-info">
-                                <span class="stat-value" id="activeMembers">12</span>
-                                <span class="stat-label">Aktive Jäger</span>
-                            </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Diese Woche</span>
+                        <span class="stat-value" id="quickWeek">47 Events</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Ausstehend</span>
+                        <span class="stat-value" id="quickPending">$84,000</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Gesamt</span>
+                        <span class="stat-value" id="quickTotal">$2.4M</span>
+                    </div>
+                </div>
+
+                <!-- Letzte Aktivitäten -->
+                <div class="recent-activity">
+                    <h3 class="widget-title">Letzte Aktivitäten</h3>
+                    <div class="activity-item">
+                        <div class="activity-icon">⚔️</div>
+                        <div class="activity-content">
+                            <div class="activity-text">Malachi - 3 Kills Bizwar</div>
+                            <div class="activity-amount">+$60,000</div>
                         </div>
-                        <div class="stat-item">
-                            <div class="stat-rune">ᚦ</div>
-                            <div class="stat-info">
-                                <span class="stat-value" id="totalPayouts">$2.4M</span>
-                                <span class="stat-label">Gesamtbeute</span>
-                            </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">🏰</div>
+                        <div class="activity-content">
+                            <div class="activity-text">Raven - EKZ gesichert</div>
+                            <div class="activity-amount">+$80,000</div>
                         </div>
-                        <div class="stat-item">
-                            <div class="stat-rune">ᚬ</div>
-                            <div class="stat-info">
-                                <span class="stat-value" id="weeklyEvents">47</span>
-                                <span class="stat-label">Diese Woche</span>
-                            </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">🔫</div>
+                        <div class="activity-content">
+                            <div class="activity-text">Orion - Waffenfabrik</div>
+                            <div class="activity-amount">+$10,000</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">⚓</div>
+                        <div class="activity-content">
+                            <div class="activity-text">Luna - Hafen Drop</div>
+                            <div class="activity-amount">+$40,000</div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="book-page right">
-                <div class="page-content">
-                    <h2 class="chapter-title">Letzte Taten</h2>
-                    <div class="recent-deeds">
-                        <div class="deed-item">
-                            <span class="deed-icon">⚔️</span>
-                            <span class="deed-text">Malachi besiegte 3 Dämonen im Bizwar</span>
-                            <span class="deed-amount">+$60k</span>
-                        </div>
-                        <div class="deed-item">
-                            <span class="deed-icon">🏰</span>
-                            <span class="deed-text">Raven sicherte das EKZ für den Kreis</span>
-                            <span class="deed-amount">+$80k</span>
-                        </div>
-                        <div class="deed-item">
-                            <span class="deed-icon">🔫</span>
-                            <span class="deed-text">Orion reinigte die Waffenfabrik</span>
-                            <span class="deed-amount">+$10k</span>
-                        </div>
-                    </div>
+                <!-- Schnellaktionen -->
+                <div class="quick-actions">
+                    <a href="eingabe.html?type=bizwar" class="quick-btn">
+                        <span class="quick-icon">⚔️</span>
+                        <span class="quick-text">Bizwar</span>
+                    </a>
+                    <a href="eingabe.html?type=40er" class="quick-btn">
+                        <span class="quick-icon">🎯</span>
+                        <span class="quick-text">40er</span>
+                    </a>
+                    <a href="eingabe.html?type=ekz" class="quick-btn">
+                        <span class="quick-icon">🏰</span>
+                        <span class="quick-text">EKZ</span>
+                    </a>
+                    <a href="eingabe.html?type=hafen" class="quick-btn">
+                        <span class="quick-icon">⚓</span>
+                        <span class="quick-text">Hafen</span>
+                    </a>
+                </div>
 
-                    <div class="magic-notice">
-                        <div class="notice-icon">⚠️</div>
-                        <div class="notice-text">
-                            <strong>Nächste Opfergabe:</strong> Freitag bei Mondaufgang
-                        </div>
+                <!-- Status -->
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <div style="font-size: 0.9em;">
+                        <strong>Nächste Auszahlung:</strong> Freitag
                     </div>
                 </div>
             </div>
-        </main>
-
-        <!-- Footer mit mystischem Text -->
-        <footer class="coven-footer">
-            <div class="footer-runes">ᛗᛁᛏ ᛖᚻᚱᛖ ᚢᚾᛞ ᚹᚨᚠᚠᛖ • ᛞᚢᚱᚲᚺ ᛞᛁᛖ ᛋᚺᚨᛏᛏᛖᚾ</div>
-        </footer>
+        </div>
     </div>
 
+    <script src="app.js"></script>
     <script>
-        // Mystische Interaktionen
         document.addEventListener('DOMContentLoaded', function() {
-            // Rauch-Effekt bei Mausbewegung
-            document.addEventListener('mousemove', function(e) {
-                const smoke = document.querySelector('.smoke-effect');
-                smoke.style.left = e.clientX + 'px';
-                smoke.style.top = e.clientY + 'px';
-            });
+            // Lade echte Daten
+            const members = db.getMembers();
+            const payouts = db.getPayouts();
+            const stats = db.getStats();
 
-            // Tab-Hover Effekte
-            const tabs = document.querySelectorAll('.tab-item');
-            tabs.forEach(tab => {
-                tab.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-2px) scale(1.05)';
-                });
-                
-                tab.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0) scale(1)';
-                });
-            });
+            // Aktualisiere Statistiken
+            document.getElementById('quickMembers').textContent = members.length;
+            document.getElementById('membersCount').textContent = members.length + ' Mitglieder';
+            
+            const totalPayouts = payouts.reduce((sum, payout) => sum + payout.total, 0);
+            document.getElementById('quickPending').textContent = '$' + totalPayouts.toLocaleString('de-DE');
+            document.getElementById('payoutsCount').textContent = payouts.length + ' ausstehend';
 
-            // Siegel-Animation
-            const seal = document.querySelector('.magic-seal');
-            setInterval(() => {
-                seal.style.filter = `hue-rotate(${Math.random() * 360}deg) brightness(${0.8 + Math.random() * 0.4})`;
-            }, 3000);
+            const totalStats = stats.reduce((sum, stat) => sum + stat.total, 0);
+            document.getElementById('quickTotal').textContent = '$' + totalStats.toLocaleString('de-DE');
+            document.getElementById('totalStats').textContent = '$' + totalStats.toLocaleString('de-DE');
+
+            // Vereinfachte Wochen-Statistik
+            const weeklyEvents = stats.filter(stat => {
+                if (!stat.paidDate) return false;
+                const statDate = new Date(stat.paidDate);
+                const now = new Date();
+                return (now - statDate) <= (7 * 24 * 60 * 60 * 1000);
+            }).length;
+            
+            document.getElementById('quickWeek').textContent = weeklyEvents + ' Events';
+            document.getElementById('eventsToday').textContent = '24 heute'; // Platzhalter
         });
     </script>
 </body>
