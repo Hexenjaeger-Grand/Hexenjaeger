@@ -56,6 +56,34 @@
             padding: 20px;
             margin-top: 15px;
         }
+
+        .individual-inputs {
+            margin-top: 15px;
+        }
+
+        .member-input {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            background: var(--bg-card);
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+
+        .member-input label {
+            min-width: 120px;
+            color: var(--text-light);
+        }
+
+        .member-input input {
+            width: 100px;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-darker);
+            color: var(--text-light);
+        }
     </style>
 </head>
 <body>
@@ -95,7 +123,6 @@
                     <div class="quick-actions">
                         <button type="button" class="quick-btn" onclick="selectAllMembers()">Alle auswählen</button>
                         <button type="button" class="quick-btn" onclick="deselectAllMembers()">Alle abwählen</button>
-                        <button type="button" class="quick-btn" onclick="selectActiveMembers()">Aktive auswählen</button>
                     </div>
                     <div class="selected-count" id="selectedCount">0 Mitglieder ausgewählt</div>
                     <div class="members-grid" id="membersGrid">
@@ -105,15 +132,25 @@
 
                 <!-- Event Details -->
                 <div id="eventDetails" class="event-details">
-                    <div class="form-group">
-                        <label for="amount" id="amountLabel">Anzahl Kills</label>
-                        <input type="number" id="amount" min="1" value="1">
-                    </div>
-                    
-                    <div id="specialAmount" style="display: none;">
+                    <!-- Gemeinsame Eingabe für Cayo, RP Fabrik, EKZ -->
+                    <div id="sharedAmount" style="display: none;">
                         <div class="form-group">
-                            <label for="totalAmount">Gesamtbetrag ($)</label>
-                            <input type="number" id="totalAmount" min="1" placeholder="Gesamtbetrag eingeben">
+                            <label for="sharedAmountInput" id="sharedAmountLabel">Anzahl</label>
+                            <input type="number" id="sharedAmountInput" min="1" value="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="sharedTotalAmount">Gesamtbetrag ($)</label>
+                            <input type="number" id="sharedTotalAmount" min="1" placeholder="Gesamtbetrag eingeben">
+                        </div>
+                    </div>
+
+                    <!-- Individuelle Eingabe für Kills/Drops -->
+                    <div id="individualAmounts" style="display: none;">
+                        <div class="form-group">
+                            <label id="individualAmountLabel">Anzahl pro Mitglied</label>
+                        </div>
+                        <div class="individual-inputs" id="individualInputsContainer">
+                            <!-- Wird via JavaScript gefüllt -->
                         </div>
                     </div>
                 </div>
@@ -127,7 +164,7 @@
                 <!-- Aktionen -->
                 <div style="display: flex; gap: 12px; margin-top: 25px;">
                     <button id="submitEvent" class="btn btn-primary" style="flex: 1;">Event speichern</button>
-                    <button onclick="window.location.href='auszahlungen.html'" class="btn btn-secondary">Zu Auszahlungen</button>
+                    <button type="button" onclick="resetForm()" class="btn btn-secondary">Zurücksetzen</button>
                 </div>
                 
                 <div id="statusMessage" style="margin-top: 15px; text-align: center; display: none;"></div>
@@ -176,6 +213,7 @@
                         }
                         
                         updateSelectedCount();
+                        updateIndividualInputs();
                         updatePreview();
                     });
                 });
@@ -183,22 +221,39 @@
 
             // Event Type Change
             eventType.addEventListener('change', function() {
-                const amountLabel = document.getElementById('amountLabel');
-                const specialAmount = document.getElementById('specialAmount');
+                const sharedAmount = document.getElementById('sharedAmount');
+                const individualAmounts = document.getElementById('individualAmounts');
+                const sharedAmountLabel = document.getElementById('sharedAmountLabel');
+                const individualAmountLabel = document.getElementById('individualAmountLabel');
                 
                 if (this.value) {
                     eventDetails.style.display = 'block';
                     
-                    // Anpassungen für spezielle Events
-                    if (this.value === 'cayo') {
-                        amountLabel.textContent = 'Anzahl Drops';
-                        specialAmount.style.display = 'block';
-                    } else if (this.value === 'rp_fabrik') {
-                        amountLabel.textContent = 'Anzahl Wins';
-                        specialAmount.style.display = 'block';
+                    // Konfiguriere Labels basierend auf Event-Typ
+                    const eventConfig = {
+                        'bizwar_win': { shared: false, label: 'Kills pro Mitglied' },
+                        'bizwar_lose': { shared: false, label: 'Kills pro Mitglied' },
+                        '40er_win': { shared: false, label: 'Kills pro Mitglied' },
+                        '40er_lose': { shared: false, label: 'Kills pro Mitglied' },
+                        'ekz': { shared: true, label: 'Wins' },
+                        'hafen': { shared: false, label: 'Drops pro Mitglied' },
+                        'giesserei': { shared: false, label: 'Kills pro Mitglied' },
+                        'waffenfabrik': { shared: false, label: 'Kills pro Mitglied' },
+                        'cayo': { shared: true, label: 'Drops' },
+                        'rp_fabrik': { shared: true, label: 'Wins' }
+                    };
+
+                    const config = eventConfig[this.value];
+                    
+                    if (config.shared) {
+                        sharedAmount.style.display = 'block';
+                        individualAmounts.style.display = 'none';
+                        sharedAmountLabel.textContent = config.label;
                     } else {
-                        amountLabel.textContent = 'Anzahl Kills';
-                        specialAmount.style.display = 'none';
+                        sharedAmount.style.display = 'none';
+                        individualAmounts.style.display = 'block';
+                        individualAmountLabel.textContent = config.label;
+                        updateIndividualInputs();
                     }
                 } else {
                     eventDetails.style.display = 'none';
@@ -207,9 +262,24 @@
                 updatePreview();
             });
 
-            // Input Listener für Live-Vorschau
-            document.getElementById('amount')?.addEventListener('input', updatePreview);
-            document.getElementById('totalAmount')?.addEventListener('input', updatePreview);
+            // Individuelle Inputs aktualisieren
+            function updateIndividualInputs() {
+                const container = document.getElementById('individualInputsContainer');
+                container.innerHTML = '';
+                
+                selectedMembers.forEach(memberId => {
+                    const member = db.getMembers().find(m => m.id === memberId);
+                    if (member) {
+                        const inputHtml = `
+                            <div class="member-input">
+                                <label>${member.name}:</label>
+                                <input type="number" id="amount_${memberId}" min="1" value="1" oninput="updatePreview()">
+                            </div>
+                        `;
+                        container.innerHTML += inputHtml;
+                    }
+                });
+            }
 
             // Update ausgewählte Anzahl
             function updateSelectedCount() {
@@ -227,17 +297,28 @@
                     return;
                 }
 
-                const amount = parseInt(document.getElementById('amount').value) || 1;
-                const totalAmount = parseInt(document.getElementById('totalAmount').value) || 0;
-                
+                const eventTypeValue = eventType.value;
                 let totalPayout = 0;
                 let description = '';
 
-                if (eventType.value === 'cayo' || eventType.value === 'rp_fabrik') {
+                // Shared Events (Cayo, RP Fabrik, EKZ)
+                if (['cayo', 'rp_fabrik', 'ekz'].includes(eventTypeValue)) {
+                    const amount = parseInt(document.getElementById('sharedAmountInput').value) || 1;
+                    const totalAmount = parseInt(document.getElementById('sharedTotalAmount').value) || 0;
+                    
                     if (totalAmount > 0) {
                         const perMember = Math.round(totalAmount / selectedMembers.length);
                         totalPayout = totalAmount;
-                        description = `${eventType.value === 'cayo' ? 'Cayo Perico' : 'RP Fabrik'} - ${amount} ${eventType.value === 'cayo' ? 'Drops' : 'Wins'}`;
+                        
+                        const eventNames = {
+                            'cayo': 'Cayo Perico',
+                            'rp_fabrik': 'RP Fabrik',
+                            'ekz': 'EKZ'
+                        };
+                        
+                        const unit = eventTypeValue === 'cayo' ? 'Drops' : 'Wins';
+                        description = `${eventNames[eventTypeValue]} - ${amount} ${unit}`;
+                        
                         previewContent.innerHTML = `
                             <div class="preview-item">
                                 <span>${selectedMembers.length} Mitglieder</span>
@@ -249,27 +330,41 @@
                             </div>
                         `;
                     }
-                } else {
-                    const eventPrice = db.getEventPrice(eventType.value, amount);
-                    totalPayout = eventPrice * selectedMembers.length;
-                    const perMember = eventPrice;
-                    
+                } 
+                // Individuelle Events (Bizwar, 40er, Hafen, Gießerei, Waffenfabrik)
+                else {
+                    let individualAmounts = [];
+                    selectedMembers.forEach(memberId => {
+                        const amount = parseInt(document.getElementById(`amount_${memberId}`).value) || 1;
+                        const eventPrice = db.getEventPrice(eventTypeValue, amount);
+                        individualAmounts.push({
+                            memberId: memberId,
+                            amount: amount,
+                            amountValue: eventPrice
+                        });
+                        totalPayout += eventPrice;
+                    });
+
                     const eventNames = {
                         'bizwar_win': 'Bizwar Win', 'bizwar_lose': 'Bizwar Lose',
                         '40er_win': '40er Win', '40er_lose': '40er Lose',
-                        'ekz': 'EKZ', 'hafen': 'Hafen',
-                        'giesserei': 'Gießerei', 'waffenfabrik': 'Waffenfabrik'
+                        'hafen': 'Hafen', 'giesserei': 'Gießerei', 'waffenfabrik': 'Waffenfabrik'
                     };
                     
-                    description = `${eventNames[eventType.value]} - ${amount} Kill(s)`;
-                    previewContent.innerHTML = `
-                        <div class="preview-item">
-                            <span>${selectedMembers.length} Mitglieder</span>
-                            <span>${formatCurrency(perMember)} pro Person</span>
-                        </div>
-                        <div class="preview-item">
-                            <span>Gesamtbetrag</span>
-                            <span><strong>${formatCurrency(totalPayout)}</strong></span>
+                    description = eventNames[eventTypeValue];
+                    
+                    previewContent.innerHTML = individualAmounts.map(item => {
+                        const member = db.getMembers().find(m => m.id === item.memberId);
+                        return `
+                            <div class="preview-item">
+                                <span>${member.name} (${item.amount} ${eventTypeValue.includes('hafen') ? 'Drops' : 'Kills'})</span>
+                                <span>${formatCurrency(item.amountValue)}</span>
+                            </div>
+                        `;
+                    }).join('') + `
+                        <div class="preview-item" style="border-top: 2px solid var(--accent-purple); font-weight: bold; margin-top: 10px;">
+                            <span>Gesamt (${selectedMembers.length} Mitglieder)</span>
+                            <span>${formatCurrency(totalPayout)}</span>
                         </div>
                     `;
                 }
@@ -280,6 +375,10 @@
                     previewSection.style.display = 'none';
                 }
             }
+
+            // Input Listener für Live-Vorschau
+            document.getElementById('sharedAmountInput')?.addEventListener('input', updatePreview);
+            document.getElementById('sharedTotalAmount')?.addEventListener('input', updatePreview);
 
             // Event speichern
             submitBtn.addEventListener('click', function() {
@@ -293,28 +392,62 @@
                     return;
                 }
 
-                const amount = parseInt(document.getElementById('amount').value) || 1;
-                const totalAmount = parseInt(document.getElementById('totalAmount').value) || 0;
+                const eventTypeValue = eventType.value;
+                let eventData = {};
 
-                // Validierung für spezielle Events
-                if ((eventType.value === 'cayo' || eventType.value === 'rp_fabrik') && totalAmount === 0) {
-                    showStatus('Bitte Gesamtbetrag eingeben', 'error');
+                // Shared Events (Cayo, RP Fabrik, EKZ)
+                if (['cayo', 'rp_fabrik', 'ekz'].includes(eventTypeValue)) {
+                    const amount = parseInt(document.getElementById('sharedAmountInput').value) || 1;
+                    const totalAmount = parseInt(document.getElementById('sharedTotalAmount').value) || 0;
+
+                    if (totalAmount === 0) {
+                        showStatus('Bitte Gesamtbetrag eingeben', 'error');
+                        return;
+                    }
+
+                    eventData = {
+                        eventType: eventTypeValue,
+                        memberIds: selectedMembers,
+                        amount: amount,
+                        totalAmount: totalAmount
+                    };
+                } 
+                // Individuelle Events (Bizwar, 40er, Hafen, Gießerei, Waffenfabrik)
+                else {
+                    // Für individuelle Events müssen wir für jedes Mitglied ein separates Event erstellen
+                    let successCount = 0;
+                    let totalCalculated = 0;
+
+                    selectedMembers.forEach(memberId => {
+                        const amount = parseInt(document.getElementById(`amount_${memberId}`).value) || 1;
+                        
+                        const singleEventData = {
+                            eventType: eventTypeValue,
+                            memberIds: [memberId], // Nur dieses Mitglied
+                            amount: amount,
+                            totalAmount: 0
+                        };
+
+                        const result = db.addEvent(singleEventData);
+                        if (result.success) {
+                            successCount++;
+                            totalCalculated += result.calculatedAmount;
+                        }
+                    });
+
+                    if (successCount === selectedMembers.length) {
+                        showStatus(`Event für ${successCount} Mitglieder gespeichert! Gesamt: ${formatCurrency(totalCalculated)}`, 'success');
+                        resetForm();
+                    } else {
+                        showStatus(`Event für ${successCount}/${selectedMembers.length} Mitgliedern gespeichert`, 'warning');
+                    }
                     return;
                 }
-
-                const eventData = {
-                    eventType: eventType.value,
-                    memberIds: selectedMembers,
-                    amount: amount,
-                    totalAmount: totalAmount
-                };
 
                 const result = db.addEvent(eventData);
                 if (result.success) {
                     showStatus(`Event für ${selectedMembers.length} Mitglieder gespeichert! Gesamt: ${formatCurrency(result.calculatedAmount)}`, 'success');
-                    setTimeout(() => {
-                        window.location.href = 'auszahlungen.html';
-                    }, 1500);
+                    resetForm();
                 } else {
                     showStatus('Fehler: ' + result.error, 'error');
                 }
@@ -322,9 +455,24 @@
 
             function showStatus(message, type) {
                 statusMessage.textContent = message;
-                statusMessage.style.color = type === 'success' ? '#10b981' : '#ef4444';
+                statusMessage.style.color = type === 'success' ? '#10b981' : type === 'warning' ? '#f59e0b' : '#ef4444';
                 statusMessage.style.display = 'block';
                 setTimeout(() => statusMessage.style.display = 'none', 4000);
+            }
+
+            function resetForm() {
+                eventType.value = '';
+                selectedMembers = [];
+                document.querySelectorAll('.member-tag').forEach(tag => {
+                    tag.classList.remove('selected');
+                    tag.querySelector('input').checked = false;
+                });
+                document.getElementById('sharedAmountInput').value = '1';
+                document.getElementById('sharedTotalAmount').value = '';
+                updateSelectedCount();
+                updatePreview();
+                eventDetails.style.display = 'none';
+                previewSection.style.display = 'none';
             }
 
             loadMembers();
@@ -341,6 +489,7 @@
             });
             
             updateSelectedCount();
+            updateIndividualInputs();
             updatePreview();
         }
 
@@ -351,27 +500,7 @@
                 tag.querySelector('input').checked = false;
             });
             updateSelectedCount();
-            updatePreview();
-        }
-
-        function selectActiveMembers() {
-            // Hier könntest du Logik für "aktive Mitglieder" implementieren
-            // Für jetzt wählen wir einfach die ersten 10 aus
-            const members = db.getMembers();
-            selectedMembers = members.slice(0, 10).map(m => m.id);
-            
-            document.querySelectorAll('.member-tag').forEach(tag => {
-                const memberId = tag.dataset.id;
-                if (selectedMembers.includes(memberId)) {
-                    tag.classList.add('selected');
-                    tag.querySelector('input').checked = true;
-                } else {
-                    tag.classList.remove('selected');
-                    tag.querySelector('input').checked = false;
-                }
-            });
-            
-            updateSelectedCount();
+            updateIndividualInputs();
             updatePreview();
         }
     </script>
