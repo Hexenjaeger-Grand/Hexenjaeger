@@ -1,5 +1,3 @@
-[file name]: auszahlungen.html
-[file content begin]
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -17,17 +15,15 @@
 
         .summary-card {
             background: var(--bg-card);
-            border: 1px solid var(--border-purple);
-            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
             padding: 20px;
             text-align: center;
-            transition: all 0.3s ease;
+            transition: all 0.2s;
         }
 
         .summary-card:hover {
             border-color: var(--accent-purple);
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-glow);
         }
 
         .summary-number {
@@ -42,10 +38,16 @@
             font-size: 0.9em;
         }
 
+        .bulk-actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
         .payout-actions {
             display: flex;
-            gap: 10px;
-            justify-content: center;
+            gap: 8px;
         }
 
         .btn-small {
@@ -57,49 +59,47 @@
 <body>
     <div class="container">
         <header>
-            <div class="hexenjaeger-symbol">ᛉ</div>
+            <div class="hexenjaeger-symbol">HJ</div>
             <h1>Auszahlungen</h1>
-            <p>Verwalte die offenen Auszahlungen der Family</p>
+            <p>Verwalte offene Auszahlungen</p>
             <a href="index.html" class="back-btn">← Zurück zur Übersicht</a>
         </header>
 
         <div class="summary-cards">
-            <div class="summary-card mystic-border">
+            <div class="summary-card">
                 <div style="font-size: 2em; margin-bottom: 10px;">💰</div>
                 <div class="summary-number" id="totalPayouts">0</div>
                 <div class="summary-label">Offene Auszahlungen</div>
             </div>
-            <div class="summary-card mystic-border">
+            <div class="summary-card">
                 <div style="font-size: 2em; margin-bottom: 10px;">💵</div>
                 <div class="summary-number" id="totalAmount">$0</div>
                 <div class="summary-label">Gesamtbetrag</div>
             </div>
-            <div class="summary-card mystic-border">
+            <div class="summary-card">
                 <div style="font-size: 2em; margin-bottom: 10px;">👥</div>
                 <div class="summary-number" id="totalMembers">0</div>
                 <div class="summary-label">Betroffene Mitglieder</div>
             </div>
         </div>
 
-        <div class="card mystic-border">
+        <div class="bulk-actions">
+            <button onclick="completeAllPayouts()" class="btn btn-primary">Alle Auszahlungen abschließen</button>
+            <button onclick="window.location.href='eingabe.html'" class="btn btn-secondary">Neues Event erfassen</button>
+        </div>
+
+        <div class="card">
             <h2>Offene Auszahlungen</h2>
             
             <div id="payoutTable" class="table-container">
                 <table>
                     <thead>
                         <tr>
-                            <th>ID</th>
                             <th>Mitglied</th>
+                            <th>ID</th>
                             <th>Gesamtbetrag</th>
-                            <th>Bizwar</th>
-                            <th>40er</th>
-                            <th>Gießerei</th>
-                            <th>Waffenfabrik</th>
-                            <th>Hafen</th>
-                            <th>Cayo</th>
-                            <th>RP Fabrik</th>
-                            <th>EKZ</th>
-                            <th>Aktion</th>
+                            <th>Details</th>
+                            <th>Aktionen</th>
                         </tr>
                     </thead>
                     <tbody id="payoutBody">
@@ -109,7 +109,7 @@
             </div>
             
             <div id="noPayouts" class="no-data" style="display: none;">
-                🎉 Keine offenen Auszahlungen vorhanden!
+                Keine offenen Auszahlungen vorhanden
             </div>
         </div>
     </div>
@@ -120,69 +120,77 @@
             const payouts = db.getPayouts();
             const tbody = document.getElementById('payoutBody');
             const noPayouts = document.getElementById('noPayouts');
-            
+
             // Update Summary Cards
             document.getElementById('totalPayouts').textContent = payouts.length;
             document.getElementById('totalMembers').textContent = payouts.length;
             
             const totalAmount = payouts.reduce((sum, payout) => sum + payout.total, 0);
             document.getElementById('totalAmount').textContent = formatCurrency(totalAmount);
-            
+
             if (payouts.length === 0) {
                 tbody.innerHTML = '';
                 noPayouts.style.display = 'block';
                 return;
             }
-            
+
             noPayouts.style.display = 'none';
-            
-            tbody.innerHTML = payouts.map(payout => `
-                <tr>
-                    <td><strong>${payout.memberId}</strong></td>
-                    <td><strong style="color: var(--accent-purple-light);">${payout.memberName}</strong></td>
-                    <td><strong style="color: var(--accent-purple); font-size: 1.1em;">${formatCurrency(payout.total)}</strong></td>
-                    <td>${payout.bizwar_win}W / ${payout.bizwar_lose}L</td>
-                    <td>${payout['40er_win']}W / ${payout['40er_lose']}L</td>
-                    <td>${payout.giesserei}</td>
-                    <td>${payout.waffenfabrik}</td>
-                    <td>${payout.hafen}</td>
-                    <td>${payout.cayo}</td>
-                    <td>${payout.rp_fabrik}</td>
-                    <td>${payout.ekz}</td>
-                    <td>
-                        <div class="payout-actions">
-                            <button onclick="completePayout('${payout.memberId}')" class="btn-primary btn-small">
-                                Auszahlen
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
+
+            tbody.innerHTML = payouts.map(payout => {
+                // Erstelle Details-String
+                const details = [];
+                if (payout.bizwar_win > 0) details.push(`${payout.bizwar_win} Bizwar W`);
+                if (payout.bizwar_lose > 0) details.push(`${payout.bizwar_lose} Bizwar L`);
+                if (payout['40er_win'] > 0) details.push(`${payout['40er_win']} 40er W`);
+                if (payout['40er_lose'] > 0) details.push(`${payout['40er_lose']} 40er L`);
+                if (payout.giesserei > 0) details.push(`${payout.giesserei} Gießerei`);
+                if (payout.waffenfabrik > 0) details.push(`${payout.waffenfabrik} Waffenfabrik`);
+                if (payout.hafen > 0) details.push(`${payout.hafen} Hafen`);
+                if (payout.cayo > 0) details.push(`${payout.cayo} Cayo`);
+                if (payout.rp_fabrik > 0) details.push(`${payout.rp_fabrik} RP Fabrik`);
+                if (payout.ekz > 0) details.push(`${payout.ekz} EKZ`);
+
+                return `
+                    <tr>
+                        <td><strong>${payout.memberName}</strong></td>
+                        <td><code>${payout.memberId}</code></td>
+                        <td><strong style="color: var(--accent-purple);">${formatCurrency(payout.total)}</strong></td>
+                        <td><small style="color: var(--text-muted);">${details.join(', ')}</small></td>
+                        <td>
+                            <div class="payout-actions">
+                                <button onclick="completePayout('${payout.memberId}')" class="btn btn-primary btn-small">
+                                    Auszahlen
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         function completePayout(memberId) {
             if (confirm('Auszahlung als erledigt markieren?')) {
                 const result = db.completePayout(memberId);
                 if (result.success) {
+                    showNotification('Auszahlung erfolgreich abgeschlossen!');
                     loadPayouts();
-                    showNotification('✅ Auszahlung erfolgreich abgeschlossen!', 'success');
                 } else {
-                    showNotification('❌ Fehler: ' + result.error, 'error');
+                    showNotification('Fehler: ' + result.error, 'error');
                 }
             }
         }
 
-        function showNotification(message, type) {
-            // Einfache Notification
-            alert(message);
-        }
-
-        function formatCurrency(amount) {
-            return '$' + parseInt(amount).toLocaleString('de-DE');
+        function completeAllPayouts() {
+            if (confirm(`ALLE Auszahlungen auf einmal abschließen?`)) {
+                const result = db.completeAllPayouts();
+                if (result.success) {
+                    showNotification(`${result.completed} Auszahlungen abgeschlossen!`);
+                    loadPayouts();
+                }
+            }
         }
 
         document.addEventListener('DOMContentLoaded', loadPayouts);
     </script>
 </body>
 </html>
-[file content end]
