@@ -78,9 +78,6 @@
         .event-detail-item {
             padding: 12px;
             border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
 
         .event-detail-item:last-child {
@@ -90,19 +87,18 @@
         .event-date {
             color: var(--text-muted);
             font-size: 0.9em;
-            min-width: 100px;
+            margin-bottom: 4px;
         }
 
         .event-description {
-            flex: 1;
-            margin: 0 15px;
+            color: var(--text-light);
+            font-weight: 500;
         }
 
         .event-amount {
             color: var(--accent-purple-light);
             font-weight: 600;
-            min-width: 100px;
-            text-align: right;
+            margin-top: 4px;
         }
     </style>
 </head>
@@ -208,24 +204,23 @@
             noPayouts.style.display = 'none';
 
             tbody.innerHTML = payouts.map(payout => {
-                // Zähle totale Events für dieses Mitglied
-                const totalEvents = payout.bizwar_win + payout.bizwar_lose + 
-                                  payout['40er_win'] + payout['40er_lose'] +
-                                  payout.giesserei + payout.waffenfabrik +
-                                  payout.hafen + payout.cayo + 
-                                  payout.rp_fabrik + payout.ekz;
+                // Zähle die Anzahl der verschiedenen Event-Typen (nicht die Summe aller Events)
+                const eventTypes = ['bizwar_win', 'bizwar_lose', '40er_win', '40er_lose', 
+                                  'giesserei', 'waffenfabrik', 'hafen', 'cayo', 'rp_fabrik', 'ekz'];
+                const eventCount = eventTypes.filter(type => payout[type] > 0).length;
 
                 return `
                     <tr>
                         <td><strong>${payout.memberName}</strong></td>
                         <td><code>${payout.memberId}</code></td>
                         <td><strong style="color: var(--accent-purple); font-size: 1.1em;">${formatCurrency(payout.total)}</strong></td>
-                        <td>${totalEvents} Events</td>
+                        <td>
+                            <button onclick="showDetails('${payout.memberId}', '${payout.memberName}')" class="btn btn-secondary btn-small">
+                                Details
+                            </button>
+                        </td>
                         <td>
                             <div class="payout-actions">
-                                <button onclick="showDetails('${payout.memberId}', '${payout.memberName}')" class="btn btn-secondary btn-small">
-                                    Details
-                                </button>
                                 <button onclick="completePayout('${payout.memberId}')" class="btn btn-primary btn-small">
                                     Auszahlen
                                 </button>
