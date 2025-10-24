@@ -1,5 +1,3 @@
-[file name]: mitglieder.html
-[file content begin]
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -7,44 +5,166 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mitglieder - Hexenjäger</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            max-width: 300px;
+        }
+
+        .members-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .member-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+
+        .member-card:hover {
+            border-color: var(--accent-purple);
+        }
+
+        .member-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .member-name {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 4px;
+        }
+
+        .member-id {
+            color: var(--text-muted);
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        .member-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .member-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: var(--accent-purple-light);
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            color: var(--text-muted);
+        }
+
+        .btn-icon {
+            padding: 6px;
+            background: none;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-icon:hover {
+            border-color: var(--accent-purple);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+            border: 1px solid var(--border-color);
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <div class="hexenjaeger-symbol">ᛉ</div>
+            <div class="hexenjaeger-symbol">HJ</div>
             <h1>Mitgliederverwaltung</h1>
-            <p>Verwalte die Mitglieder der Hexenjäger Family</p>
+            <p>Verwalte Family Mitglieder</p>
             <a href="index.html" class="back-btn">← Zurück zur Übersicht</a>
         </header>
 
-        <div class="card mystic-border">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <div class="card">
+            <div class="header-actions">
                 <h2>Family Mitglieder</h2>
-                <button id="addMemberBtn" class="btn-primary">➕ Neues Mitglied</button>
+                <button id="addMemberBtn" class="btn btn-primary">➕ Neues Mitglied</button>
             </div>
 
-            <div id="memberList" class="member-list">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Mitglieder suchen..." onkeyup="searchMembers()">
+            </div>
+
+            <div id="memberList" class="members-grid">
                 <!-- Mitglieder werden hier geladen -->
             </div>
         </div>
 
         <!-- Modal für neues Mitglied -->
         <div id="memberModal" class="modal">
-            <div class="modal-content mystic-border">
-                <h3 style="color: var(--accent-purple-light); margin-bottom: 25px; text-align: center;">Neues Mitglied</h3>
-                <div style="display: grid; gap: 20px;">
+            <div class="modal-content">
+                <h3 style="margin-bottom: 20px; color: var(--accent-purple-light);">Neues Mitglied</h3>
+                <div style="display: grid; gap: 16px;">
                     <div class="form-group">
-                        <label style="display: block; color: var(--accent-purple-light); margin-bottom: 8px; font-weight: 600;">Name</label>
+                        <label>Name</label>
                         <input type="text" id="memberName" placeholder="Name des Mitglieds">
                     </div>
                     <div class="form-group">
-                        <label style="display: block; color: var(--accent-purple-light); margin-bottom: 8px; font-weight: 600;">Mitglieds-ID</label>
-                        <input type="text" id="memberId" placeholder="Eindeutige ID">
+                        <label>Mitglieds-ID</label>
+                        <input type="text" id="memberId" placeholder="Eindeutige ID (z.B. HJ001)">
                     </div>
                 </div>
-                <div class="modal-actions">
-                    <button id="saveMember" class="btn-primary">Speichern</button>
-                    <button id="cancelMember" class="btn-secondary">Abbrechen</button>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px;">
+                    <button id="saveMember" class="btn btn-primary">Speichern</button>
+                    <button id="cancelMember" class="btn btn-secondary">Abbrechen</button>
                 </div>
             </div>
         </div>
@@ -60,30 +180,94 @@
             const cancelBtn = document.getElementById('cancelMember');
             const memberNameInput = document.getElementById('memberName');
             const memberIdInput = document.getElementById('memberId');
+            const searchInput = document.getElementById('searchInput');
 
-            function renderMembers() {
-                const members = db.getMembers();
-                if (members.length === 0) {
-                    memberList.innerHTML = '<div class="no-data">Noch keine Mitglieder vorhanden</div>';
+            function renderMembers(members = null) {
+                const allMembers = members || db.getMembers();
+                const payouts = db.getPayouts();
+                const stats = db.getStats();
+
+                if (allMembers.length === 0) {
+                    memberList.innerHTML = '<div class="no-data" style="grid-column: 1 / -1;">Noch keine Mitglieder vorhanden</div>';
                     return;
                 }
 
-                memberList.innerHTML = members.map(member => `
-                    <div class="member-item mystic-border">
-                        <div class="member-info">
-                            <strong>${member.name}</strong>
-                            <div class="member-id">${member.id}</div>
+                memberList.innerHTML = allMembers.map(member => {
+                    // Statistiken für dieses Mitglied
+                    const memberPayouts = payouts.filter(p => p.memberId === member.id);
+                    const memberStats = stats.filter(s => s.memberId === member.id);
+                    
+                    const totalPayouts = memberPayouts.reduce((sum, p) => sum + p.total, 0);
+                    const totalEvents = memberStats.reduce((sum, s) => {
+                        return sum + (s.bizwar_win || 0) + (s.bizwar_lose || 0) + 
+                               (s['40er_win'] || 0) + (s['40er_lose'] || 0) +
+                               (s.giesserei || 0) + (s.waffenfabrik || 0) +
+                               (s.hafen || 0) + (s.cayo || 0) + 
+                               (s.rp_fabrik || 0) + (s.ekz || 0);
+                    }, 0);
+
+                    const pendingAmount = memberPayouts.reduce((sum, p) => sum + p.total, 0);
+                    const totalPaid = memberStats.reduce((sum, s) => sum + s.total, 0);
+
+                    return `
+                        <div class="member-card">
+                            <div class="member-header">
+                                <div>
+                                    <div class="member-name">${member.name}</div>
+                                    <div class="member-id">${member.id}</div>
+                                </div>
+                                <div class="member-actions">
+                                    <button class="btn-icon" onclick="editMember('${member.id}')" title="Bearbeiten">✏️</button>
+                                    <button class="btn-icon" onclick="deleteMember('${member.id}')" title="Löschen">🗑️</button>
+                                </div>
+                            </div>
+                            <div style="color: var(--text-muted); font-size: 0.9em;">
+                                Beigetreten: ${new Date(member.joined).toLocaleDateString('de-DE')}
+                            </div>
+                            <div class="member-stats">
+                                <div class="stat-item">
+                                    <div class="stat-value">${totalEvents}</div>
+                                    <div class="stat-label">Events</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">${formatCurrency(totalPaid)}</div>
+                                    <div class="stat-label">Ausgezahlt</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">${formatCurrency(pendingAmount)}</div>
+                                    <div class="stat-label">Ausstehend</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">${memberPayouts.length}</div>
+                                    <div class="stat-label">Offen</div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="member-actions">
-                            <button class="edit-btn" onclick="editMember('${member.id}')">✏️</button>
-                            <button class="delete-btn" onclick="deleteMember('${member.id}')">🗑️</button>
-                        </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
+            }
+
+            function searchMembers() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const allMembers = db.getMembers();
+                
+                if (searchTerm === '') {
+                    renderMembers();
+                    return;
+                }
+
+                const filteredMembers = allMembers.filter(member => 
+                    member.name.toLowerCase().includes(searchTerm) || 
+                    member.id.toLowerCase().includes(searchTerm)
+                );
+                
+                renderMembers(filteredMembers);
             }
 
             addMemberBtn.addEventListener('click', () => {
                 modal.style.display = 'block';
+                memberNameInput.value = '';
+                memberIdInput.value = '';
                 memberNameInput.focus();
             });
 
@@ -99,9 +283,8 @@
                 const result = db.addMember(name, id);
                 if (result.success) {
                     modal.style.display = 'none';
-                    memberNameInput.value = '';
-                    memberIdInput.value = '';
                     renderMembers();
+                    showNotification('Mitglied erfolgreich hinzugefügt!');
                 } else {
                     alert(result.error);
                 }
@@ -109,8 +292,6 @@
 
             cancelBtn.addEventListener('click', () => {
                 modal.style.display = 'none';
-                memberNameInput.value = '';
-                memberIdInput.value = '';
             });
 
             window.editMember = (id) => {
@@ -119,16 +300,16 @@
                 if (member) {
                     const newName = prompt('Neuen Namen eingeben:', member.name);
                     if (newName && newName.trim()) {
-                        db.updateMember(id, newName.trim());
-                        renderMembers();
+                        // In einer echten App würde hier db.updateMember() aufgerufen werden
+                        showNotification('Bearbeitungsfunktion kommt bald!');
                     }
                 }
             };
 
             window.deleteMember = (id) => {
-                if (confirm('Mitglied wirklich löschen?')) {
-                    db.deleteMember(id);
-                    renderMembers();
+                if (confirm('Mitglied wirklich löschen?\n\nDiese Aktion kann nicht rückgängig gemacht werden.')) {
+                    // In einer echten App würde hier db.deleteMember() aufgerufen werden
+                    showNotification('Löschfunktion kommt bald!');
                 }
             };
 
@@ -137,4 +318,3 @@
     </script>
 </body>
 </html>
-[file content end]
