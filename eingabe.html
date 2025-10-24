@@ -1,5 +1,3 @@
-[file name]: eingabe.html
-[file content begin]
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -9,67 +7,32 @@
     <link rel="stylesheet" href="style.css">
     <style>
         .event-form {
-            display: grid;
-            gap: 30px;
-            max-width: 600px;
+            max-width: 1000px;
             margin: 0 auto;
         }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        .form-section {
+            margin-bottom: 30px;
         }
 
-        .form-group label {
+        .members-selection {
+            margin-top: 15px;
+        }
+
+        .selected-count {
             color: var(--accent-purple-light);
             font-weight: 600;
-            font-size: 15px;
+            margin-bottom: 10px;
         }
 
-        .members-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 12px;
-            max-height: 200px;
-            overflow-y: auto;
-            padding: 20px;
-            background: rgba(26, 26, 46, 0.6);
-            border: 1px solid var(--border-purple);
-            border-radius: 12px;
-        }
-
-        .member-option {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px;
-            background: rgba(139, 92, 246, 0.1);
-            border: 1px solid var(--border-purple);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .member-option:hover {
-            background: rgba(139, 92, 246, 0.2);
-            transform: translateY(-2px);
-        }
-
-        .member-option.selected {
-            background: rgba(139, 92, 246, 0.3);
-            border-color: var(--accent-purple);
-            box-shadow: 0 4px 12px var(--accent-purple-glow);
-        }
-
-        .event-specific {
-            display: none;
+        .quick-actions {
+            margin-bottom: 20px;
         }
 
         .preview-box {
-            background: rgba(139, 92, 246, 0.1);
-            border: 1px solid var(--accent-purple);
-            border-radius: 12px;
+            background: var(--bg-darker);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
             padding: 20px;
             margin-top: 20px;
         }
@@ -78,82 +41,95 @@
             display: flex;
             justify-content: space-between;
             padding: 8px 0;
-            border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+            border-bottom: 1px solid var(--border-color);
         }
 
         .preview-item:last-child {
             border-bottom: none;
+        }
+
+        .event-details {
+            display: none;
+            background: var(--bg-darker);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 15px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <div class="hexenjaeger-symbol">ᛉ</div>
+            <div class="hexenjaeger-symbol">HJ</div>
             <h1>Event Eingabe</h1>
-            <p>Erfasse neue Events und Kills für die Family</p>
+            <p>Schnelle Erfassung für mehrere Mitglieder</p>
             <a href="index.html" class="back-btn">← Zurück zur Übersicht</a>
         </header>
 
-        <div class="card mystic-border">
-            <h2>Neues Event Erfassen</h2>
+        <div class="card">
+            <h2>Neues Event erfassen</h2>
             
             <div class="event-form">
-                <div class="form-group">
+                <!-- Event Typ -->
+                <div class="form-section">
                     <label for="eventType">Event Typ</label>
                     <select id="eventType">
                         <option value="">-- Event auswählen --</option>
-                        <option value="bizwar_win">Bizwar Win/Kill</option>
-                        <option value="bizwar_lose">Bizwar Lose/Kill</option>
-                        <option value="40er_win">40er Win/Kill</option>
-                        <option value="40er_lose">40er Lose/Kill</option>
-                        <option value="ekz">EKZ Win</option>
-                        <option value="hafen">Hafen Drop</option>
-                        <option value="giesserei">Gießerei Kill</option>
-                        <option value="waffenfabrik">Waffenfabrik Kill</option>
-                        <option value="cayo">Cayo Perico Drop</option>
-                        <option value="rp_fabrik">RP Fabrik Win</option>
+                        <option value="bizwar_win">Bizwar Win</option>
+                        <option value="bizwar_lose">Bizwar Lose</option>
+                        <option value="40er_win">40er Win</option>
+                        <option value="40er_lose">40er Lose</option>
+                        <option value="ekz">EKZ</option>
+                        <option value="hafen">Hafen</option>
+                        <option value="giesserei">Gießerei</option>
+                        <option value="waffenfabrik">Waffenfabrik</option>
+                        <option value="cayo">Cayo Perico</option>
+                        <option value="rp_fabrik">RP Fabrik</option>
                     </select>
                 </div>
 
-                <div class="form-group">
-                    <label>Mitglieder</label>
+                <!-- Mitglieder Auswahl -->
+                <div class="form-section">
+                    <label>Mitglieder auswählen</label>
+                    <div class="quick-actions">
+                        <button type="button" class="quick-btn" onclick="selectAllMembers()">Alle auswählen</button>
+                        <button type="button" class="quick-btn" onclick="deselectAllMembers()">Alle abwählen</button>
+                        <button type="button" class="quick-btn" onclick="selectActiveMembers()">Aktive auswählen</button>
+                    </div>
+                    <div class="selected-count" id="selectedCount">0 Mitglieder ausgewählt</div>
                     <div class="members-grid" id="membersGrid">
                         <!-- Wird via JavaScript gefüllt -->
                     </div>
                 </div>
 
-                <div id="normalEvent" class="event-specific">
+                <!-- Event Details -->
+                <div id="eventDetails" class="event-details">
                     <div class="form-group">
-                        <label for="amount">Anzahl Kills/Drops</label>
-                        <input type="number" id="amount" placeholder="z.B. 5 für 5 Kills" min="1">
+                        <label for="amount" id="amountLabel">Anzahl Kills</label>
+                        <input type="number" id="amount" min="1" value="1">
+                    </div>
+                    
+                    <div id="specialAmount" style="display: none;">
+                        <div class="form-group">
+                            <label for="totalAmount">Gesamtbetrag ($)</label>
+                            <input type="number" id="totalAmount" min="1" placeholder="Gesamtbetrag eingeben">
+                        </div>
                     </div>
                 </div>
 
-                <div id="cayoEvent" class="event-specific">
-                    <div class="form-group">
-                        <label for="cayoDrops">Anzahl Drops/Zones</label>
-                        <input type="number" id="cayoDrops" placeholder="Anzahl Drops" min="1">
-                    </div>
-                    <div class="form-group">
-                        <label for="cayoTotalAmount">Gesamtbetrag ($)</label>
-                        <input type="number" id="cayoTotalAmount" placeholder="z.B. 1000000" min="1">
-                    </div>
-                </div>
-
-                <div id="rpEvent" class="event-specific">
-                    <div class="form-group">
-                        <label for="rpTotalAmount">Gesamtbetrag ($)</label>
-                        <input type="number" id="rpTotalAmount" placeholder="z.B. 8000000" min="1">
-                    </div>
-                </div>
-
+                <!-- Vorschau -->
                 <div id="previewSection" class="preview-box" style="display: none;">
-                    <strong style="color: var(--accent-purple-light); display: block; margin-bottom: 15px; text-align: center;">Vorschau der Auszahlungen</strong>
+                    <h3 style="margin-bottom: 15px; color: var(--accent-purple-light);">Vorschau</h3>
                     <div id="previewContent"></div>
                 </div>
 
-                <button id="submitEvent" class="btn-primary" style="width: 100%; padding: 16px; font-size: 16px;">Event für ausgewählte Mitglieder speichern</button>
+                <!-- Aktionen -->
+                <div style="display: flex; gap: 12px; margin-top: 25px;">
+                    <button id="submitEvent" class="btn btn-primary" style="flex: 1;">Event speichern</button>
+                    <button onclick="window.location.href='auszahlungen.html'" class="btn btn-secondary">Zu Auszahlungen</button>
+                </div>
+                
                 <div id="statusMessage" style="margin-top: 15px; text-align: center; display: none;"></div>
             </div>
         </div>
@@ -161,38 +137,45 @@
 
     <script src="app.js"></script>
     <script>
+        let selectedMembers = [];
+
         document.addEventListener('DOMContentLoaded', function() {
             const eventType = document.getElementById('eventType');
             const membersGrid = document.getElementById('membersGrid');
+            const eventDetails = document.getElementById('eventDetails');
             const submitBtn = document.getElementById('submitEvent');
             const statusMessage = document.getElementById('statusMessage');
-
-            let selectedMembers = [];
 
             // Lade Mitglieder
             function loadMembers() {
                 const members = db.getMembers();
                 membersGrid.innerHTML = members.map(member => `
-                    <div class="member-option" data-id="${member.id}" data-name="${member.name}">
-                        <input type="checkbox" id="member_${member.id}">
-                        <label for="member_${member.id}">${member.name}</label>
+                    <div class="member-tag" data-id="${member.id}" data-name="${member.name}">
+                        <input type="checkbox" id="member_${member.id}" style="display: none;">
+                        <span>${member.name}</span>
+                        <small style="color: var(--text-muted);">(${member.id})</small>
                     </div>
                 `).join('');
 
-                // Event Listener für Checkboxen
-                membersGrid.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                    checkbox.addEventListener('change', function() {
-                        const memberOption = this.closest('.member-option');
-                        if (this.checked) {
-                            memberOption.classList.add('selected');
-                            selectedMembers.push({
-                                id: memberOption.dataset.id,
-                                name: memberOption.dataset.name
-                            });
+                // Event Listener für Member Tags
+                membersGrid.querySelectorAll('.member-tag').forEach(tag => {
+                    tag.addEventListener('click', function() {
+                        const memberId = this.dataset.id;
+                        const checkbox = this.querySelector('input');
+                        
+                        if (checkbox.checked) {
+                            // Abwählen
+                            checkbox.checked = false;
+                            this.classList.remove('selected');
+                            selectedMembers = selectedMembers.filter(id => id !== memberId);
                         } else {
-                            memberOption.classList.remove('selected');
-                            selectedMembers = selectedMembers.filter(m => m.id !== memberOption.dataset.id);
+                            // Auswählen
+                            checkbox.checked = true;
+                            this.classList.add('selected');
+                            selectedMembers.push(memberId);
                         }
+                        
+                        updateSelectedCount();
                         updatePreview();
                     });
                 });
@@ -200,23 +183,39 @@
 
             // Event Type Change
             eventType.addEventListener('change', function() {
-                document.querySelectorAll('.event-specific').forEach(el => el.style.display = 'none');
+                const amountLabel = document.getElementById('amountLabel');
+                const specialAmount = document.getElementById('specialAmount');
                 
-                switch(this.value) {
-                    case 'cayo':
-                        document.getElementById('cayoEvent').style.display = 'block';
-                        break;
-                    case 'rp_fabrik':
-                        document.getElementById('rpEvent').style.display = 'block';
-                        break;
-                    case '':
-                        break;
-                    default:
-                        document.getElementById('normalEvent').style.display = 'block';
-                        break;
+                if (this.value) {
+                    eventDetails.style.display = 'block';
+                    
+                    // Anpassungen für spezielle Events
+                    if (this.value === 'cayo') {
+                        amountLabel.textContent = 'Anzahl Drops';
+                        specialAmount.style.display = 'block';
+                    } else if (this.value === 'rp_fabrik') {
+                        amountLabel.textContent = 'Anzahl Wins';
+                        specialAmount.style.display = 'block';
+                    } else {
+                        amountLabel.textContent = 'Anzahl Kills';
+                        specialAmount.style.display = 'none';
+                    }
+                } else {
+                    eventDetails.style.display = 'none';
                 }
+                
                 updatePreview();
             });
+
+            // Input Listener für Live-Vorschau
+            document.getElementById('amount')?.addEventListener('input', updatePreview);
+            document.getElementById('totalAmount')?.addEventListener('input', updatePreview);
+
+            // Update ausgewählte Anzahl
+            function updateSelectedCount() {
+                const count = selectedMembers.length;
+                document.getElementById('selectedCount').textContent = `${count} Mitglieder ausgewählt`;
+            }
 
             // Update Vorschau
             function updatePreview() {
@@ -228,149 +227,153 @@
                     return;
                 }
 
-                const EVENT_PRICES = {
-                    'bizwar_win': 20000, 'bizwar_lose': 10000,
-                    '40er_win': 40000, '40er_lose': 20000,
-                    'ekz': 80000, 'hafen': 40000,
-                    'giesserei': 10000, 'waffenfabrik': 10000
-                };
-
-                let totalAmount = 0;
-                let individualAmount = 0;
+                const amount = parseInt(document.getElementById('amount').value) || 1;
+                const totalAmount = parseInt(document.getElementById('totalAmount').value) || 0;
+                
+                let totalPayout = 0;
                 let description = '';
 
-                if (eventType.value === 'cayo') {
-                    const drops = parseInt(document.getElementById('cayoDrops').value) || 0;
-                    const total = parseInt(document.getElementById('cayoTotalAmount').value) || 0;
-                    if (drops > 0 && total > 0) {
-                        totalAmount = total;
-                        individualAmount = Math.round(total / selectedMembers.length);
-                        description = `Cayo Perico - ${drops} Drops`;
-                    }
-                } else if (eventType.value === 'rp_fabrik') {
-                    const total = parseInt(document.getElementById('rpTotalAmount').value) || 0;
-                    if (total > 0) {
-                        totalAmount = total;
-                        individualAmount = Math.round(total / selectedMembers.length);
-                        description = 'RP Fabrik Win';
+                if (eventType.value === 'cayo' || eventType.value === 'rp_fabrik') {
+                    if (totalAmount > 0) {
+                        const perMember = Math.round(totalAmount / selectedMembers.length);
+                        totalPayout = totalAmount;
+                        description = `${eventType.value === 'cayo' ? 'Cayo Perico' : 'RP Fabrik'} - ${amount} ${eventType.value === 'cayo' ? 'Drops' : 'Wins'}`;
+                        previewContent.innerHTML = `
+                            <div class="preview-item">
+                                <span>${selectedMembers.length} Mitglieder</span>
+                                <span>${formatCurrency(perMember)} pro Person</span>
+                            </div>
+                            <div class="preview-item">
+                                <span>Gesamtbetrag</span>
+                                <span><strong>${formatCurrency(totalPayout)}</strong></span>
+                            </div>
+                        `;
                     }
                 } else {
-                    const amount = parseInt(document.getElementById('amount').value) || 0;
-                    if (amount > 0 && EVENT_PRICES[eventType.value]) {
-                        individualAmount = EVENT_PRICES[eventType.value] * amount;
-                        totalAmount = individualAmount * selectedMembers.length;
-                        description = `${eventType.value.replace('_', ' ')} - ${amount} Kill(s)`;
-                    }
-                }
-
-                if (totalAmount > 0 && individualAmount > 0) {
+                    const eventPrice = db.getEventPrice(eventType.value, amount);
+                    totalPayout = eventPrice * selectedMembers.length;
+                    const perMember = eventPrice;
+                    
+                    const eventNames = {
+                        'bizwar_win': 'Bizwar Win', 'bizwar_lose': 'Bizwar Lose',
+                        '40er_win': '40er Win', '40er_lose': '40er Lose',
+                        'ekz': 'EKZ', 'hafen': 'Hafen',
+                        'giesserei': 'Gießerei', 'waffenfabrik': 'Waffenfabrik'
+                    };
+                    
+                    description = `${eventNames[eventType.value]} - ${amount} Kill(s)`;
                     previewContent.innerHTML = `
-                        ${selectedMembers.map(member => `
-                            <div class="preview-item">
-                                <span>${member.name}</span>
-                                <span>${formatCurrency(individualAmount)}</span>
-                            </div>
-                        `).join('')}
-                        <div class="preview-item" style="border-top: 2px solid var(--accent-purple); font-weight: bold; margin-top: 10px;">
-                            <span>Gesamt (${selectedMembers.length} Mitglieder)</span>
-                            <span>${formatCurrency(totalAmount)}</span>
+                        <div class="preview-item">
+                            <span>${selectedMembers.length} Mitglieder</span>
+                            <span>${formatCurrency(perMember)} pro Person</span>
+                        </div>
+                        <div class="preview-item">
+                            <span>Gesamtbetrag</span>
+                            <span><strong>${formatCurrency(totalPayout)}</strong></span>
                         </div>
                     `;
+                }
+
+                if (totalPayout > 0) {
                     previewSection.style.display = 'block';
                 } else {
                     previewSection.style.display = 'none';
                 }
             }
 
-            // Input Listener für Vorschau
-            document.getElementById('amount')?.addEventListener('input', updatePreview);
-            document.getElementById('cayoDrops')?.addEventListener('input', updatePreview);
-            document.getElementById('cayoTotalAmount')?.addEventListener('input', updatePreview);
-            document.getElementById('rpTotalAmount')?.addEventListener('input', updatePreview);
-
-            // Submit Event
+            // Event speichern
             submitBtn.addEventListener('click', function() {
                 if (!eventType.value) {
-                    showStatus('❌ Bitte Event-Typ auswählen!', 'error');
+                    showStatus('Bitte Event-Typ auswählen', 'error');
                     return;
                 }
 
                 if (selectedMembers.length === 0) {
-                    showStatus('❌ Bitte Mitglieder auswählen!', 'error');
+                    showStatus('Bitte Mitglieder auswählen', 'error');
                     return;
                 }
 
-                let isValid = true;
-                let eventData = {};
+                const amount = parseInt(document.getElementById('amount').value) || 1;
+                const totalAmount = parseInt(document.getElementById('totalAmount').value) || 0;
 
-                switch(eventType.value) {
-                    case 'cayo':
-                        eventData.amount = parseInt(document.getElementById('cayoDrops').value) || 0;
-                        eventData.totalAmount = parseInt(document.getElementById('cayoTotalAmount').value) || 0;
-                        if (!eventData.amount || !eventData.totalAmount) {
-                            showStatus('❌ Bitte alle Felder für Cayo Perico ausfüllen!', 'error');
-                            isValid = false;
-                        }
-                        break;
-                    case 'rp_fabrik':
-                        eventData.totalAmount = parseInt(document.getElementById('rpTotalAmount').value) || 0;
-                        eventData.amount = 1;
-                        if (!eventData.totalAmount) {
-                            showStatus('❌ Bitte Gesamtbetrag für RP Fabrik eingeben!', 'error');
-                            isValid = false;
-                        }
-                        break;
-                    default:
-                        eventData.amount = parseInt(document.getElementById('amount').value) || 0;
-                        if (!eventData.amount) {
-                            showStatus('❌ Bitte Anzahl Kills/Drops eingeben!', 'error');
-                            isValid = false;
-                        }
-                        break;
+                // Validierung für spezielle Events
+                if ((eventType.value === 'cayo' || eventType.value === 'rp_fabrik') && totalAmount === 0) {
+                    showStatus('Bitte Gesamtbetrag eingeben', 'error');
+                    return;
                 }
 
-                if (!isValid) return;
+                const eventData = {
+                    eventType: eventType.value,
+                    memberIds: selectedMembers,
+                    amount: amount,
+                    totalAmount: totalAmount
+                };
 
-                // Für jedes Mitglied speichern
-                let successCount = 0;
-                let totalCalculated = 0;
-
-                selectedMembers.forEach(member => {
-                    const result = db.addEvent({
-                        eventType: eventType.value,
-                        memberId: member.id,
-                        amount: eventData.amount,
-                        totalAmount: eventData.totalAmount
-                    });
-                    
-                    if (result.success) {
-                        successCount++;
-                        totalCalculated += result.calculatedAmount;
-                    }
-                });
-
-                if (successCount === selectedMembers.length) {
-                    showStatus(`✅ Event erfolgreich für ${successCount} Mitglieder gespeichert! Gesamt: ${formatCurrency(totalCalculated)}`, 'success');
-                    setTimeout(() => window.location.href = 'auszahlungen.html', 2000);
+                const result = db.addEvent(eventData);
+                if (result.success) {
+                    showStatus(`Event für ${selectedMembers.length} Mitglieder gespeichert! Gesamt: ${formatCurrency(result.calculatedAmount)}`, 'success');
+                    setTimeout(() => {
+                        window.location.href = 'auszahlungen.html';
+                    }, 1500);
                 } else {
-                    showStatus(`⚠️ Event für ${successCount}/${selectedMembers.length} Mitgliedern gespeichert`, 'warning');
+                    showStatus('Fehler: ' + result.error, 'error');
                 }
             });
 
             function showStatus(message, type) {
                 statusMessage.textContent = message;
-                statusMessage.style.color = type === 'success' ? '#22c55e' : type === 'warning' ? '#f59e0b' : '#ef4444';
+                statusMessage.style.color = type === 'success' ? '#10b981' : '#ef4444';
                 statusMessage.style.display = 'block';
-                setTimeout(() => statusMessage.style.display = 'none', 5000);
-            }
-
-            function formatCurrency(amount) {
-                return '$' + parseInt(amount).toLocaleString('de-DE');
+                setTimeout(() => statusMessage.style.display = 'none', 4000);
             }
 
             loadMembers();
         });
+
+        // Globale Funktionen für Quick Actions
+        function selectAllMembers() {
+            const members = db.getMembers();
+            selectedMembers = members.map(m => m.id);
+            
+            document.querySelectorAll('.member-tag').forEach(tag => {
+                tag.classList.add('selected');
+                tag.querySelector('input').checked = true;
+            });
+            
+            updateSelectedCount();
+            updatePreview();
+        }
+
+        function deselectAllMembers() {
+            selectedMembers = [];
+            document.querySelectorAll('.member-tag').forEach(tag => {
+                tag.classList.remove('selected');
+                tag.querySelector('input').checked = false;
+            });
+            updateSelectedCount();
+            updatePreview();
+        }
+
+        function selectActiveMembers() {
+            // Hier könntest du Logik für "aktive Mitglieder" implementieren
+            // Für jetzt wählen wir einfach die ersten 10 aus
+            const members = db.getMembers();
+            selectedMembers = members.slice(0, 10).map(m => m.id);
+            
+            document.querySelectorAll('.member-tag').forEach(tag => {
+                const memberId = tag.dataset.id;
+                if (selectedMembers.includes(memberId)) {
+                    tag.classList.add('selected');
+                    tag.querySelector('input').checked = true;
+                } else {
+                    tag.classList.remove('selected');
+                    tag.querySelector('input').checked = false;
+                }
+            });
+            
+            updateSelectedCount();
+            updatePreview();
+        }
     </script>
 </body>
 </html>
-[file content end]
