@@ -149,6 +149,22 @@ function formatCurrency(amount) {
     return '$' + parseInt(amount).toLocaleString('de-DE');
 }
 
+// Einfache Mitglieder-Ladefunktion für eingabe.html
+function loadMembersSimple() {
+    const members = db.getMembers();
+    const select = document.getElementById('memberSelect');
+    
+    if (!select) return;
+    
+    if (members.length === 0) {
+        select.innerHTML = '<option value="">Keine Mitglieder vorhanden</option>';
+        return;
+    }
+    
+    select.innerHTML = '<option value="">Mitglied auswählen</option>' +
+        members.map(m => `<option value="${m.id}">${escapeHtml(m.name)} (${m.id})</option>`).join('');
+}
+
 // Seiten-spezifische Initialisierung
 document.addEventListener('DOMContentLoaded', function() {
     if (window.location.pathname.includes('auszahlungen.html') || document.title.includes('Auszahlungen')) {
@@ -350,19 +366,4 @@ window.deleteMember = (id) => {
             initMembersPage();
         }
     }
-    // Einfache Mitglieder-Ladefunktion für eingabe.html
-function loadMembersSimple() {
-    const members = db.getMembers();
-    const select = document.getElementById('memberSelect');
-    
-    if (!select) return;
-    
-    if (members.length === 0) {
-        select.innerHTML = '<option value="">Keine Mitglieder vorhanden</option>';
-        return;
-    }
-    
-    select.innerHTML = '<option value="">Mitglied auswählen</option>' +
-        members.map(m => `<option value="${m.id}">${escapeHtml(m.name)} (${m.id})</option>`).join('');
-}
 };
