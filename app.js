@@ -5,7 +5,6 @@ class HexenjaegerDB {
     }
 
     init() {
-        // Initialisiere Standard-Daten falls nicht vorhanden
         if (!localStorage.getItem('hexenjaeger_members')) {
             this.saveMembers([]);
         }
@@ -71,7 +70,6 @@ class HexenjaegerDB {
         const member = members.find(m => m.id === memberId);
         if (!member) return { error: 'Mitglied nicht gefunden' };
         
-        // Event-Preise
         const EVENT_PRICES = {
             'bizwar_win': 20000, 'bizwar_lose': 10000,
             '40er_win': 40000, '40er_lose': 20000,
@@ -94,7 +92,6 @@ class HexenjaegerDB {
             payouts.push(payout);
         }
         
-        // Berechne Betrag
         let calculatedAmount = 0;
         if (eventType === 'cayo' || eventType === 'rp_fabrik') {
             calculatedAmount = Math.round(totalAmount / amount);
@@ -154,17 +151,14 @@ function formatCurrency(amount) {
 
 // Seiten-spezifische Initialisierung
 document.addEventListener('DOMContentLoaded', function() {
-    // Auszahlungen Seite
     if (window.location.pathname.includes('auszahlungen.html') || document.title.includes('Auszahlungen')) {
         loadPayouts();
     }
     
-    // Eingabe Seite
     if (window.location.pathname.includes('eingabe.html') || document.title.includes('Eingabe')) {
         initEventForm();
     }
     
-    // Mitglieder Seite
     if (window.location.pathname.includes('mitglieder.html') || document.title.includes('Mitglieder')) {
         initMembersPage();
     }
@@ -191,7 +185,7 @@ function loadPayouts() {
             <td>${payout.rp_fabrik}</td>
             <td>${payout.ekz}</td>
             <td>
-                <button onclick="completePayout('${payout.memberId}')" class="btn-primary" style="padding: 5px 10px; font-size: 12px;">
+                <button onclick="completePayout('${payout.memberId}')" class="btn-primary">
                     Auszahlen
                 </button>
             </td>
@@ -221,12 +215,10 @@ function initEventForm() {
     
     if (!eventType) return;
     
-    // Fülle Mitglieder Select
     const members = db.getMembers();
     memberSelect.innerHTML = '<option value="">Mitglied auswählen</option>' +
         members.map(m => `<option value="${m.id}">${escapeHtml(m.name)} (${m.id})</option>`).join('');
     
-    // Event Type Change
     eventType.addEventListener('change', function() {
         if (this.value === 'cayo' || this.value === 'rp_fabrik') {
             specialAmountDiv.style.display = 'block';
@@ -235,7 +227,6 @@ function initEventForm() {
         }
     });
     
-    // Submit Event
     submitBtn.addEventListener('click', function() {
         const eventData = {
             eventType: eventType.value,
@@ -252,7 +243,6 @@ function initEventForm() {
         const result = db.addEvent(eventData);
         if (result.success) {
             alert(`Event gespeichert! Betrag: ${formatCurrency(result.calculatedAmount)}`);
-            // Formular zurücksetzen
             eventType.value = '';
             memberSelect.value = '';
             amountInput.value = '';
@@ -264,7 +254,7 @@ function initEventForm() {
     });
 }
 
-// Mitglieder Seite - OHNE doppelte Popups
+// Mitglieder Seite
 function initMembersPage() {
     const memberList = document.getElementById('memberList');
     const modal = document.getElementById('memberModal');
@@ -294,21 +284,19 @@ function initMembersPage() {
 
     addMemberBtn.addEventListener('click', () => {
         modal.style.display = 'block';
+        memberNameInput.focus();
     });
 
     saveMemberBtn.addEventListener('click', () => {
         const name = memberNameInput.value.trim();
         const id = memberIdInput.value.trim();
         
-        // Validiere Eingabe OHNE alert()
         if (!name || !id) {
-            // Zeige Fehler im Modal statt Popup
             if (!name) memberNameInput.style.borderColor = '#ef4444';
             if (!id) memberIdInput.style.borderColor = '#ef4444';
             return;
         }
         
-        // Reset border colors
         memberNameInput.style.borderColor = '';
         memberIdInput.style.borderColor = '';
         
@@ -319,19 +307,16 @@ function initMembersPage() {
             memberIdInput.value = '';
             renderMembers();
         } else {
-            // Nur bei echten Fehlern alert zeigen
             alert(result.error);
         }
     });
 
     cancelBtn.addEventListener('click', () => {
         modal.style.display = 'none';
-        // Reset border colors
         memberNameInput.style.borderColor = '';
         memberIdInput.style.borderColor = '';
     });
 
-    // Enter-Taste im Modal unterstützen
     memberNameInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') saveMemberBtn.click();
     });
@@ -351,7 +336,6 @@ window.editMember = (id) => {
         const newName = prompt('Neuen Namen eingeben:', member.name);
         if (newName && newName.trim()) {
             db.updateMember(id, newName.trim());
-            // Mitgliederliste neu rendern
             if (window.location.pathname.includes('mitglieder.html')) {
                 initMembersPage();
             }
@@ -362,7 +346,6 @@ window.editMember = (id) => {
 window.deleteMember = (id) => {
     if (confirm('Mitglied wirklich löschen?')) {
         db.deleteMember(id);
-        // Mitgliederliste neu rendern
         if (window.location.pathname.includes('mitglieder.html')) {
             initMembersPage();
         }
