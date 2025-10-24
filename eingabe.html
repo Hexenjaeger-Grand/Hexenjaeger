@@ -1,3 +1,5 @@
+[file name]: eingabe.html
+[file content begin]
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -5,344 +7,617 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Eingabe - Hexenjäger</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        .event-specific { 
-            display: none; 
-            animation: fadeIn 0.5s ease-in;
+        .event-container {
+            max-width: 800px;
+            margin: 0 auto;
         }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+
+        .event-scroll {
+            background: linear-gradient(135deg, var(--aged-paper), var(--ancient-parchment));
+            border: 2px solid var(--magic-purple);
+            border-radius: 10px;
+            padding: 30px;
+            position: relative;
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.4);
         }
-        
-        .info-text { 
-            color: var(--text-muted); 
-            font-size: 14px; 
-            margin-top: 8px;
+
+        .event-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .event-title {
+            font-family: 'Cinzel', serif;
+            color: var(--gold-leaf);
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+
+        .event-subtitle {
+            color: var(--silver-dust);
             font-style: italic;
         }
-        
-        .amount-preview {
-            background: rgba(212, 175, 55, 0.08);
-            border: 2px solid var(--accent-gold);
-            border-radius: 15px;
+
+        .event-form {
+            display: grid;
+            gap: 20px;
+        }
+
+        .form-section {
+            background: rgba(106, 13, 173, 0.05);
+            border: 1px solid var(--magic-purple);
+            border-radius: 8px;
             padding: 20px;
-            margin-top: 20px;
-            animation: slideIn 0.4s ease-out;
         }
-        
-        @keyframes slideIn {
-            from { 
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to { 
-                opacity: 1;
-                transform: translateX(0);
-            }
+
+        .section-title {
+            font-family: 'Cinzel', serif;
+            color: var(--gold-leaf);
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        
+
+        .event-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .event-option {
+            background: rgba(26, 18, 11, 0.8);
+            border: 2px solid var(--magic-purple);
+            border-radius: 6px;
+            padding: 15px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .event-option:hover {
+            border-color: var(--gold-leaf);
+            transform: translateY(-2px);
+        }
+
+        .event-option.selected {
+            border-color: var(--gold-leaf);
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .event-icon {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .event-name {
+            font-size: 0.9em;
+            color: var(--silver-dust);
+        }
+
+        .members-section {
+            margin-top: 10px;
+        }
+
+        .members-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+            padding: 10px;
+            background: rgba(26, 18, 11, 0.6);
+            border: 1px solid var(--magic-purple);
+            border-radius: 5px;
+        }
+
+        .member-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: rgba(106, 13, 173, 0.1);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .member-checkbox:hover {
+            background: rgba(106, 13, 173, 0.2);
+        }
+
+        .member-checkbox.selected {
+            background: rgba(212, 175, 55, 0.2);
+            border: 1px solid var(--gold-leaf);
+        }
+
+        .member-checkbox input {
+            margin: 0;
+        }
+
+        .details-section {
+            display: none;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            color: var(--gold-leaf);
+            margin-bottom: 5px;
+            font-family: 'Cinzel', serif;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            background: rgba(26, 18, 11, 0.8);
+            border: 1px solid var(--magic-purple);
+            border-radius: 4px;
+            color: var(--silver-dust);
+            font-family: inherit;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--gold-leaf);
+        }
+
+        .preview-section {
+            background: rgba(139, 0, 0, 0.1);
+            border: 1px solid var(--blood-ink);
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
         .preview-title {
-            font-weight: 700;
-            color: var(--accent-gold);
-            margin-bottom: 12px;
-            font-size: 1.1em;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            color: var(--gold-leaf);
+            font-family: 'Cinzel', serif;
+            margin-bottom: 10px;
         }
-        
+
         .preview-item {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
-            transition: all 0.3s ease;
-        }
-        
-        .preview-item:hover {
-            background: rgba(212, 175, 55, 0.05);
-            padding-left: 10px;
-            padding-right: 10px;
-            border-radius: 5px;
-        }
-        
-        .preview-total {
-            font-weight: 700;
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 2px solid var(--accent-gold);
-            color: var(--accent-gold-light);
-            font-size: 1.1em;
-        }
-        
-        .preview-empty {
-            color: var(--text-muted);
-            font-style: italic;
-            text-align: center;
-            padding: 20px;
-            border: 2px dashed var(--border-color);
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.02);
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(139, 0, 0, 0.3);
         }
 
-        .event-type-icon {
-            font-size: 1.2em;
-            margin-right: 8px;
+        .submit-section {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, var(--magic-purple), var(--blood-ink));
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 6px;
+            font-family: 'Cinzel', serif;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(106, 13, 173, 0.4);
+        }
+
+        .info-text {
+            color: var(--silver-dust);
+            font-size: 0.9em;
+            margin-top: 5px;
+            font-style: italic;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="hexenjaeger-symbol"></div>
-            <h1>Event Eingabe</h1>
-            <p>Erfasse neue Events und Kills für die Family</p>
+    <div class="mystic-bg">
+        <div class="smoke-effect"></div>
+        <div class="floating-runes">ᚠᚢᚦᚬᚱᚴᚼᚾᛁᛅᛋᛏᛒᛘᛚᛦ</div>
+    </div>
+
+    <div class="grimoire-container">
+        <header class="coven-header">
+            <div class="magic-seal">
+                <div class="seal-ring outer"></div>
+                <div class="seal-ring middle"></div>
+                <div class="seal-core">
+                    <span class="rune">ᛉ</span>
+                </div>
+            </div>
+            <h1 class="coven-title">HEXENJÄGER</h1>
+            <p class="coven-motto">Event Eingabe</p>
             <a href="index.html" class="back-btn">← Zurück zur Übersicht</a>
+            <div class="ancient-border"></div>
         </header>
 
-        <div class="card">
-            <h2 style="color: var(--accent-gold); text-align: center; margin-bottom: 30px;">🎯 Neues Event Erfassen</h2>
-            
-            <div class="event-form">
-                <div class="form-group">
-                    <label for="eventType">⚔️ Event Typ</label>
-                    <select id="eventType">
-                        <option value="">-- Event auswählen --</option>
-                        <option value="bizwar_win">🏆 Bizwar Win/Kill</option>
-                        <option value="bizwar_lose">⚔️ Bizwar Lose/Kill</option>
-                        <option value="40er_win">🎯 40er Win/Kill</option>
-                        <option value="40er_lose">💀 40er Lose/Kill</option>
-                        <option value="ekz">🏰 EKZ Win</option>
-                        <option value="hafen">⚓ Hafen Drop</option>
-                        <option value="giesserei">🏭 Gießerei Kill</option>
-                        <option value="waffenfabrik">🔫 Waffenfabrik Kill</option>
-                        <option value="cayo">🏝️ Cayo Perico Drop</option>
-                        <option value="rp_fabrik">💎 RP Fabrik Win</option>
-                    </select>
+        <div class="event-container">
+            <div class="event-scroll">
+                <div class="event-header">
+                    <h2 class="event-title">Neues Event Erfassen</h2>
+                    <p class="event-subtitle">Erfasse Kills, Drops und Events für die Family</p>
                 </div>
 
-                <div class="form-group">
-                    <label for="memberSelect">👤 Mitglied</label>
-                    <select id="memberSelect">
-                        <!-- Mitglieder werden hier geladen -->
-                    </select>
-                </div>
-
-                <!-- Normale Events: Kills/Drops -->
-                <div id="normalEvent" class="event-specific">
-                    <div class="form-group">
-                        <label for="amount">🎯 Anzahl Kills/Drops</label>
-                        <input type="number" id="amount" placeholder="z.B. 5 für 5 Kills" min="1">
+                <div class="event-form">
+                    <!-- Event Typ Auswahl -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <span>⚔️ Event Typ</span>
+                        </div>
+                        <div class="event-grid" id="eventTypeGrid">
+                            <div class="event-option" data-type="bizwar_win">
+                                <span class="event-icon">🏆</span>
+                                <span class="event-name">Bizwar Win</span>
+                            </div>
+                            <div class="event-option" data-type="bizwar_lose">
+                                <span class="event-icon">⚔️</span>
+                                <span class="event-name">Bizwar Lose</span>
+                            </div>
+                            <div class="event-option" data-type="40er_win">
+                                <span class="event-icon">🎯</span>
+                                <span class="event-name">40er Win</span>
+                            </div>
+                            <div class="event-option" data-type="40er_lose">
+                                <span class="event-icon">💀</span>
+                                <span class="event-name">40er Lose</span>
+                            </div>
+                            <div class="event-option" data-type="ekz">
+                                <span class="event-icon">🏰</span>
+                                <span class="event-name">EKZ</span>
+                            </div>
+                            <div class="event-option" data-type="hafen">
+                                <span class="event-icon">⚓</span>
+                                <span class="event-name">Hafen</span>
+                            </div>
+                            <div class="event-option" data-type="giesserei">
+                                <span class="event-icon">🏭</span>
+                                <span class="event-name">Gießerei</span>
+                            </div>
+                            <div class="event-option" data-type="waffenfabrik">
+                                <span class="event-icon">🔫</span>
+                                <span class="event-name">Waffenfabrik</span>
+                            </div>
+                            <div class="event-option" data-type="cayo">
+                                <span class="event-icon">🏝️</span>
+                                <span class="event-name">Cayo Perico</span>
+                            </div>
+                            <div class="event-option" data-type="rp_fabrik">
+                                <span class="event-icon">💎</span>
+                                <span class="event-name">RP Fabrik</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="info-text">Das ausgewählte Mitglied erhält den Betrag für die angegebene Anzahl</div>
-                </div>
 
-                <!-- Cayo Perico: Gesamtbetrag und Drops -->
-                <div id="cayoEvent" class="event-specific">
-                    <div class="form-group">
-                        <label for="cayoDrops">🏝️ Anzahl eingenommene Drops/Zones</label>
-                        <input type="number" id="cayoDrops" placeholder="Anzahl Drops" min="1">
+                    <!-- Mitglieder Auswahl -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <span>👤 Mitglieder</span>
+                        </div>
+                        <div class="members-section">
+                            <div class="members-grid" id="membersGrid">
+                                <!-- Mitglieder werden via JavaScript geladen -->
+                            </div>
+                            <div class="info-text">Wähle ein oder mehrere Mitglieder aus</div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="cayoTotalAmount">💰 Gesamtbetrag ($)</label>
-                        <input type="number" id="cayoTotalAmount" placeholder="z.B. 1000000 für 1 Million" min="1">
-                    </div>
-                    <div class="info-text">Der Betrag wird auf alle Teilnehmer aufgeteilt</div>
-                </div>
 
-                <!-- RP Fabrik: Gesamtbetrag -->
-                <div id="rpEvent" class="event-specific">
-                    <div class="form-group">
-                        <label for="rpTotalAmount">💎 Gesamtbetrag ($)</label>
-                        <input type="number" id="rpTotalAmount" placeholder="z.B. 8000000 für 8 Millionen" min="1">
+                    <!-- Event Details -->
+                    <div class="form-section details-section" id="normalEvent">
+                        <div class="section-title">
+                            <span>📊 Event Details</span>
+                        </div>
+                        <div class="input-group">
+                            <label for="amount">Anzahl Kills/Drops</label>
+                            <input type="number" id="amount" min="1" placeholder="z.B. 5">
+                        </div>
+                        <div class="info-text">Das ausgewählte Mitglied erhält den Betrag für die angegebene Anzahl</div>
                     </div>
-                    <div class="info-text">Der Betrag wird auf alle Teilnehmer aufgeteilt</div>
-                </div>
 
-                <button id="submitEvent" class="btn-primary" style="margin-top: 20px; padding: 18px 40px; font-size: 1.1em;">
-                    🎯 Event Speichern
-                </button>
-                
-                <div id="statusMessage" style="margin-top: 20px; padding: 15px; border-radius: 10px; text-align: center; font-weight: 600;"></div>
+                    <div class="form-section details-section" id="cayoEvent">
+                        <div class="section-title">
+                            <span>🏝️ Cayo Perico Details</span>
+                        </div>
+                        <div class="input-group">
+                            <label for="cayoDrops">Anzahl Drops/Zones</label>
+                            <input type="number" id="cayoDrops" min="1" placeholder="Anzahl Drops">
+                        </div>
+                        <div class="input-group">
+                            <label for="cayoTotalAmount">Gesamtbetrag ($)</label>
+                            <input type="number" id="cayoTotalAmount" min="1" placeholder="z.B. 1000000">
+                        </div>
+                        <div class="info-text">Der Betrag wird auf alle teilnehmenden Mitglieder aufgeteilt</div>
+                    </div>
+
+                    <div class="form-section details-section" id="rpEvent">
+                        <div class="section-title">
+                            <span>💎 RP Fabrik Details</span>
+                        </div>
+                        <div class="input-group">
+                            <label for="rpTotalAmount">Gesamtbetrag ($)</label>
+                            <input type="number" id="rpTotalAmount" min="1" placeholder="z.B. 8000000">
+                        </div>
+                        <div class="info-text">Der Betrag wird auf alle teilnehmenden Mitglieder aufgeteilt</div>
+                    </div>
+
+                    <!-- Vorschau -->
+                    <div class="preview-section" id="previewSection" style="display: none;">
+                        <div class="preview-title">Vorschau der Auszahlungen</div>
+                        <div id="previewContent"></div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="submit-section">
+                        <button class="submit-btn" id="submitEvent">🎯 Event Speichern</button>
+                        <div id="statusMessage" style="margin-top: 15px; display: none;"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script src="app.js"></script>
     <script>
-        // Erweiterte Event-Eingabe mit verbessertem Design
         document.addEventListener('DOMContentLoaded', function() {
-            const eventType = document.getElementById('eventType');
-            const memberSelect = document.getElementById('memberSelect');
-            const normalEvent = document.getElementById('normalEvent');
-            const cayoEvent = document.getElementById('cayoEvent');
-            const rpEvent = document.getElementById('rpEvent');
+            const eventOptions = document.querySelectorAll('.event-option');
+            const membersGrid = document.getElementById('membersGrid');
+            const detailsSections = document.querySelectorAll('.details-section');
+            const previewSection = document.getElementById('previewSection');
+            const previewContent = document.getElementById('previewContent');
             const submitBtn = document.getElementById('submitEvent');
             const statusMessage = document.getElementById('statusMessage');
 
-            // Fülle Mitglieder Select
+            let selectedEventType = '';
+            let selectedMembers = [];
+
+            // Event Preise
+            const EVENT_PRICES = {
+                'bizwar_win': 20000,
+                'bizwar_lose': 10000,
+                '40er_win': 40000,
+                '40er_lose': 20000,
+                'ekz': 80000,
+                'hafen': 40000,
+                'giesserei': 10000,
+                'waffenfabrik': 10000
+            };
+
+            // Lade Mitglieder
             function loadMembers() {
                 const members = db.getMembers();
-                
-                if (members.length === 0) {
-                    memberSelect.innerHTML = '<option value="">❌ Keine Mitglieder vorhanden</option>';
-                    return;
-                }
-                
-                memberSelect.innerHTML = '<option value="">-- Mitglied auswählen --</option>' +
-                    members.map(m => `<option value="${m.id}">${escapeHtml(m.name)} (${m.id})</option>`).join('');
+                membersGrid.innerHTML = members.map(member => `
+                    <label class="member-checkbox">
+                        <input type="checkbox" value="${member.id}" data-name="${member.name}">
+                        ${member.name}
+                    </label>
+                `).join('');
+
+                // Event Listener für Checkboxen
+                membersGrid.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.addEventListener('change', updateSelectedMembers);
+                });
             }
 
-            // Event Type Change mit Animation
-            eventType.addEventListener('change', function() {
-                // Verstecke alle Event-spezifischen Felder mit Animation
-                [normalEvent, cayoEvent, rpEvent].forEach(el => {
-                    if (el.style.display !== 'none') {
-                        el.style.animation = 'fadeOut 0.3s ease-out';
-                        setTimeout(() => {
-                            el.style.display = 'none';
-                            el.style.animation = '';
-                        }, 300);
-                    }
+            // Aktualisiere ausgewählte Mitglieder
+            function updateSelectedMembers() {
+                selectedMembers = [];
+                membersGrid.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+                    selectedMembers.push({
+                        id: checkbox.value,
+                        name: checkbox.dataset.name
+                    });
                 });
 
-                // Zeige die richtigen Felder mit Verzögerung für Animation
-                setTimeout(() => {
-                    switch(this.value) {
-                        case 'cayo':
-                            cayoEvent.style.display = 'block';
-                            break;
-                        case 'rp_fabrik':
-                            rpEvent.style.display = 'block';
-                            break;
-                        case '':
-                            break;
-                        default:
-                            normalEvent.style.display = 'block';
-                            break;
-                    }
-                }, 50);
+                // Update Vorschau
+                updatePreview();
+            }
+
+            // Event Typ Auswahl
+            eventOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Entferne Auswahl von anderen Optionen
+                    eventOptions.forEach(opt => opt.classList.remove('selected'));
+                    // Wähle diese Option aus
+                    this.classList.add('selected');
+                    selectedEventType = this.dataset.type;
+
+                    // Zeige entsprechende Details an
+                    showEventDetails(selectedEventType);
+                    // Update Vorschau
+                    updatePreview();
+                });
             });
 
-            // Submit Event mit erweitertem Feedback
-            submitBtn.addEventListener('click', function() {
-                const eventTypeValue = eventType.value;
-                const memberId = memberSelect.value;
-                
-                // Validierung
-                if (!eventTypeValue) {
-                    showStatus('❌ Bitte wähle einen Event-Typ aus!', 'error');
-                    eventType.focus();
+            // Zeige Event-spezifische Details
+            function showEventDetails(eventType) {
+                // Verstecke alle Details-Sektionen
+                detailsSections.forEach(section => section.style.display = 'none');
+
+                // Zeige entsprechende Sektion
+                if (eventType === 'cayo') {
+                    document.getElementById('cayoEvent').style.display = 'block';
+                } else if (eventType === 'rp_fabrik') {
+                    document.getElementById('rpEvent').style.display = 'block';
+                } else {
+                    document.getElementById('normalEvent').style.display = 'block';
+                }
+            }
+
+            // Input-Listener für Vorschau
+            document.getElementById('amount')?.addEventListener('input', updatePreview);
+            document.getElementById('cayoDrops')?.addEventListener('input', updatePreview);
+            document.getElementById('cayoTotalAmount')?.addEventListener('input', updatePreview);
+            document.getElementById('rpTotalAmount')?.addEventListener('input', updatePreview);
+
+            // Update Vorschau
+            function updatePreview() {
+                if (!selectedEventType || selectedMembers.length === 0) {
+                    previewSection.style.display = 'none';
                     return;
                 }
 
-                if (!memberId) {
-                    showStatus('❌ Bitte wähle ein Mitglied aus!', 'error');
-                    memberSelect.focus();
-                    return;
-                }
+                let totalAmount = 0;
+                let individualAmount = 0;
+                let description = '';
 
-                // Sammle Event-Daten
-                let eventData = {
-                    eventType: eventTypeValue,
-                    memberId: memberId
-                };
-
-                // Füge typspezifische Daten hinzu
-                let isValid = true;
-                switch(eventTypeValue) {
+                switch(selectedEventType) {
                     case 'cayo':
-                        const cayoDrops = parseInt(document.getElementById('cayoDrops').value) || 0;
-                        const cayoTotal = parseInt(document.getElementById('cayoTotalAmount').value) || 0;
-                        
-                        if (!cayoDrops || !cayoTotal) {
-                            showStatus('❌ Bitte fülle alle Felder für Cayo Perico aus!', 'error');
-                            isValid = false;
+                        const cayoDrops = parseInt(document.getElementById('cayoDrops')?.value) || 0;
+                        const cayoTotal = parseInt(document.getElementById('cayoTotalAmount')?.value) || 0;
+                        if (cayoDrops > 0 && cayoTotal > 0) {
+                            totalAmount = cayoTotal;
+                            individualAmount = Math.round(cayoTotal / selectedMembers.length);
+                            description = `Cayo Perico - ${cayoDrops} Drops`;
                         }
-                        
-                        eventData.amount = cayoDrops;
-                        eventData.totalAmount = cayoTotal;
                         break;
 
                     case 'rp_fabrik':
-                        const rpTotal = parseInt(document.getElementById('rpTotalAmount').value) || 0;
-                        
-                        if (!rpTotal) {
-                            showStatus('❌ Bitte gib den Gesamtbetrag für RP Fabrik ein!', 'error');
-                            isValid = false;
+                        const rpTotal = parseInt(document.getElementById('rpTotalAmount')?.value) || 0;
+                        if (rpTotal > 0) {
+                            totalAmount = rpTotal;
+                            individualAmount = Math.round(rpTotal / selectedMembers.length);
+                            description = 'RP Fabrik Win';
                         }
-                        
-                        eventData.amount = 1;
-                        eventData.totalAmount = rpTotal;
                         break;
 
                     default:
-                        const amount = parseInt(document.getElementById('amount').value) || 0;
-                        
-                        if (!amount) {
+                        const amount = parseInt(document.getElementById('amount')?.value) || 0;
+                        if (amount > 0 && EVENT_PRICES[selectedEventType]) {
+                            individualAmount = EVENT_PRICES[selectedEventType] * amount;
+                            totalAmount = individualAmount * selectedMembers.length;
+                            const eventNames = {
+                                'bizwar_win': 'Bizwar Win',
+                                'bizwar_lose': 'Bizwar Lose',
+                                '40er_win': '40er Win',
+                                '40er_lose': '40er Lose',
+                                'ekz': 'EKZ',
+                                'hafen': 'Hafen',
+                                'giesserei': 'Gießerei',
+                                'waffenfabrik': 'Waffenfabrik'
+                            };
+                            description = `${eventNames[selectedEventType]} - ${amount} Kill(s)`;
+                        }
+                        break;
+                }
+
+                if (totalAmount > 0 && individualAmount > 0) {
+                    previewContent.innerHTML = `
+                        ${selectedMembers.map(member => `
+                            <div class="preview-item">
+                                <span>${member.name}</span>
+                                <span>${formatCurrency(individualAmount)}</span>
+                            </div>
+                        `).join('')}
+                        <div class="preview-item" style="border-bottom: none; font-weight: bold; margin-top: 10px;">
+                            <span>Gesamt (${selectedMembers.length} Mitglieder):</span>
+                            <span>${formatCurrency(totalAmount)}</span>
+                        </div>
+                    `;
+                    previewSection.style.display = 'block';
+                } else {
+                    previewSection.style.display = 'none';
+                }
+            }
+
+            // Event speichern
+            submitBtn.addEventListener('click', function() {
+                if (!selectedEventType) {
+                    showStatus('❌ Bitte wähle einen Event-Typ aus!', 'error');
+                    return;
+                }
+
+                if (selectedMembers.length === 0) {
+                    showStatus('❌ Bitte wähle mindestens ein Mitglied aus!', 'error');
+                    return;
+                }
+
+                let isValid = true;
+                let eventData = {
+                    eventType: selectedEventType,
+                    amount: 0,
+                    totalAmount: 0
+                };
+
+                // Validiere Eingaben
+                switch(selectedEventType) {
+                    case 'cayo':
+                        eventData.amount = parseInt(document.getElementById('cayoDrops')?.value) || 0;
+                        eventData.totalAmount = parseInt(document.getElementById('cayoTotalAmount')?.value) || 0;
+                        if (!eventData.amount || !eventData.totalAmount) {
+                            showStatus('❌ Bitte fülle alle Felder für Cayo Perico aus!', 'error');
+                            isValid = false;
+                        }
+                        break;
+
+                    case 'rp_fabrik':
+                        eventData.totalAmount = parseInt(document.getElementById('rpTotalAmount')?.value) || 0;
+                        eventData.amount = 1;
+                        if (!eventData.totalAmount) {
+                            showStatus('❌ Bitte gib den Gesamtbetrag für RP Fabrik ein!', 'error');
+                            isValid = false;
+                        }
+                        break;
+
+                    default:
+                        eventData.amount = parseInt(document.getElementById('amount')?.value) || 0;
+                        if (!eventData.amount) {
                             showStatus('❌ Bitte gib die Anzahl Kills/Drops ein!', 'error');
                             isValid = false;
                         }
-                        
-                        eventData.amount = amount;
                         break;
                 }
 
                 if (!isValid) return;
 
-                // Button-Animation
-                submitBtn.style.transform = 'scale(0.95)';
-                setTimeout(() => {
-                    submitBtn.style.transform = '';
-                }, 150);
+                // Speichere Event für alle ausgewählten Mitglieder
+                let successCount = 0;
+                let totalAmount = 0;
 
-                // Nutze die Haupt-DB aus app.js
-                const result = db.addEvent(eventData);
-                
-                if (result.success) {
-                    showStatus(`✅ Event erfolgreich gespeichert! Betrag: ${formatCurrency(result.calculatedAmount)}`, 'success');
-                    setTimeout(resetForm, 2000);
+                selectedMembers.forEach(member => {
+                    const result = db.addEvent({
+                        eventType: eventData.eventType,
+                        memberId: member.id,
+                        amount: eventData.amount,
+                        totalAmount: eventData.totalAmount
+                    });
+
+                    if (result.success) {
+                        successCount++;
+                        totalAmount += result.calculatedAmount;
+                    }
+                });
+
+                if (successCount === selectedMembers.length) {
+                    showStatus(`✅ Event erfolgreich für ${successCount} Mitglieder gespeichert! Gesamt: ${formatCurrency(totalAmount)}`, 'success');
+                    setTimeout(() => {
+                        window.location.href = 'auszahlungen.html';
+                    }, 2000);
                 } else {
-                    showStatus('❌ Fehler: ' + result.error, 'error');
+                    showStatus(`⚠️ Event für ${successCount}/${selectedMembers.length} Mitgliedern gespeichert. Gesamt: ${formatCurrency(totalAmount)}`, 'warning');
                 }
             });
 
             function showStatus(message, type) {
                 statusMessage.textContent = message;
-                statusMessage.style.background = type === 'success' 
-                    ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(22, 163, 74, 0.1))' 
-                    : 'linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.1))';
-                statusMessage.style.border = type === 'success' 
-                    ? '2px solid rgba(34, 197, 94, 0.3)' 
-                    : '2px solid rgba(239, 68, 68, 0.3)';
-                statusMessage.style.color = type === 'success' ? '#22c55e' : '#ef4444';
-
-                // Auto-hide nach 5 Sekunden
+                statusMessage.style.color = type === 'success' ? '#22c55e' : type === 'warning' ? '#f59e0b' : '#ef4444';
+                statusMessage.style.display = 'block';
+                
                 setTimeout(() => {
-                    statusMessage.textContent = '';
-                    statusMessage.style.background = '';
-                    statusMessage.style.border = '';
+                    statusMessage.style.display = 'none';
                 }, 5000);
             }
 
-            function resetForm() {
-                eventType.value = '';
-                memberSelect.value = '';
-                document.getElementById('amount').value = '';
-                document.getElementById('cayoDrops').value = '';
-                document.getElementById('cayoTotalAmount').value = '';
-                document.getElementById('rpTotalAmount').value = '';
-                
-                [normalEvent, cayoEvent, rpEvent].forEach(el => {
-                    el.style.display = 'none';
-                });
-                
-                showStatus('📝 Formular wurde zurückgesetzt', 'info');
-                setTimeout(() => {
-                    statusMessage.textContent = '';
-                }, 3000);
+            function formatCurrency(amount) {
+                return '$' + parseInt(amount).toLocaleString('de-DE');
             }
 
             // Initialisierung
@@ -351,3 +626,4 @@
     </script>
 </body>
 </html>
+[file content end]
