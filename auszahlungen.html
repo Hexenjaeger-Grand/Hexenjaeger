@@ -38,13 +38,6 @@
             font-size: 0.9em;
         }
 
-        .bulk-actions {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
         .payout-actions {
             display: flex;
             gap: 8px;
@@ -53,6 +46,63 @@
         .btn-small {
             padding: 8px 16px;
             font-size: 12px;
+        }
+
+        .details-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+        }
+
+        .details-content {
+            background: var(--bg-card);
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            border: 1px solid var(--border-color);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .event-details-list {
+            margin-top: 20px;
+        }
+
+        .event-detail-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .event-detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .event-date {
+            color: var(--text-muted);
+            font-size: 0.9em;
+            min-width: 100px;
+        }
+
+        .event-description {
+            flex: 1;
+            margin: 0 15px;
+        }
+
+        .event-amount {
+            color: var(--accent-purple-light);
+            font-weight: 600;
+            min-width: 100px;
+            text-align: right;
         }
     </style>
 </head>
@@ -83,9 +133,8 @@
             </div>
         </div>
 
-        <div class="bulk-actions">
-            <button onclick="completeAllPayouts()" class="btn btn-primary">Alle Auszahlungen abschließen</button>
-            <button onclick="window.location.href='eingabe.html'" class="btn btn-secondary">Neues Event erfassen</button>
+        <div style="margin-bottom: 20px;">
+            <button onclick="window.location.href='eingabe.html'" class="btn btn-primary">Neues Event erfassen</button>
         </div>
 
         <div class="card">
@@ -98,7 +147,7 @@
                             <th>Mitglied</th>
                             <th>ID</th>
                             <th>Gesamtbetrag</th>
-                            <th>Details</th>
+                            <th>Events</th>
                             <th>Aktionen</th>
                         </tr>
                     </thead>
@@ -112,10 +161,32 @@
                 Keine offenen Auszahlungen vorhanden
             </div>
         </div>
+
+        <!-- Details Modal -->
+        <div id="detailsModal" class="details-modal">
+            <div class="details-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="color: var(--accent-purple-light); margin: 0;" id="detailsTitle">Event Details</h3>
+                    <button onclick="closeDetails()" class="btn-icon" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 18px;">
+                        ✕
+                    </button>
+                </div>
+                
+                <div class="event-details-list" id="eventDetailsList">
+                    <!-- Event Details werden hier geladen -->
+                </div>
+                
+                <div style="margin-top: 25px; text-align: center;">
+                    <button onclick="closeDetails()" class="btn btn-secondary">Schließen</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="app.js"></script>
     <script>
+        let currentMemberDetails = null;
+
         function loadPayouts() {
             const payouts = db.getPayouts();
             const tbody = document.getElementById('payoutBody');
@@ -137,27 +208,24 @@
             noPayouts.style.display = 'none';
 
             tbody.innerHTML = payouts.map(payout => {
-                // Erstelle Details-String
-                const details = [];
-                if (payout.bizwar_win > 0) details.push(`${payout.bizwar_win} Bizwar W`);
-                if (payout.bizwar_lose > 0) details.push(`${payout.bizwar_lose} Bizwar L`);
-                if (payout['40er_win'] > 0) details.push(`${payout['40er_win']} 40er W`);
-                if (payout['40er_lose'] > 0) details.push(`${payout['40er_lose']} 40er L`);
-                if (payout.giesserei > 0) details.push(`${payout.giesserei} Gießerei`);
-                if (payout.waffenfabrik > 0) details.push(`${payout.waffenfabrik} Waffenfabrik`);
-                if (payout.hafen > 0) details.push(`${payout.hafen} Hafen`);
-                if (payout.cayo > 0) details.push(`${payout.cayo} Cayo`);
-                if (payout.rp_fabrik > 0) details.push(`${payout.rp_fabrik} RP Fabrik`);
-                if (payout.ekz > 0) details.push(`${payout.ekz} EKZ`);
+                // Zähle totale Events für dieses Mitglied
+                const totalEvents = payout.bizwar_win + payout.bizwar_lose + 
+                                  payout['40er_win'] + payout['40er_lose'] +
+                                  payout.giesserei + payout.waffenfabrik +
+                                  payout.hafen + payout.cayo + 
+                                  payout.rp_fabrik + payout.ekz;
 
                 return `
                     <tr>
                         <td><strong>${payout.memberName}</strong></td>
                         <td><code>${payout.memberId}</code></td>
-                        <td><strong style="color: var(--accent-purple);">${formatCurrency(payout.total)}</strong></td>
-                        <td><small style="color: var(--text-muted);">${details.join(', ')}</small></td>
+                        <td><strong style="color: var(--accent-purple); font-size: 1.1em;">${formatCurrency(payout.total)}</strong></td>
+                        <td>${totalEvents} Events</td>
                         <td>
                             <div class="payout-actions">
+                                <button onclick="showDetails('${payout.memberId}', '${payout.memberName}')" class="btn btn-secondary btn-small">
+                                    Details
+                                </button>
                                 <button onclick="completePayout('${payout.memberId}')" class="btn btn-primary btn-small">
                                     Auszahlen
                                 </button>
@@ -168,6 +236,37 @@
             }).join('');
         }
 
+        function showDetails(memberId, memberName) {
+            const eventHistory = db.getMemberEventHistory(memberId);
+            const detailsList = document.getElementById('eventDetailsList');
+            const detailsTitle = document.getElementById('detailsTitle');
+            
+            currentMemberDetails = memberId;
+            detailsTitle.textContent = `Event Details - ${memberName}`;
+            
+            if (eventHistory.length === 0) {
+                detailsList.innerHTML = '<div class="no-data" style="margin: 20px 0;">Keine Event-Daten gefunden</div>';
+            } else {
+                detailsList.innerHTML = eventHistory.map(event => {
+                    const eventDescription = db.formatEventDetails(event);
+                    return `
+                        <div class="event-detail-item">
+                            <div class="event-date">${event.date}</div>
+                            <div class="event-description">${eventDescription}</div>
+                            <div class="event-amount">${formatCurrency(event.individualAmount)}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            document.getElementById('detailsModal').style.display = 'block';
+        }
+
+        function closeDetails() {
+            document.getElementById('detailsModal').style.display = 'none';
+            currentMemberDetails = null;
+        }
+
         function completePayout(memberId) {
             if (confirm('Auszahlung als erledigt markieren?')) {
                 const result = db.completePayout(memberId);
@@ -176,16 +275,6 @@
                     loadPayouts();
                 } else {
                     showNotification('Fehler: ' + result.error, 'error');
-                }
-            }
-        }
-
-        function completeAllPayouts() {
-            if (confirm(`ALLE Auszahlungen auf einmal abschließen?`)) {
-                const result = db.completeAllPayouts();
-                if (result.success) {
-                    showNotification(`${result.completed} Auszahlungen abgeschlossen!`);
-                    loadPayouts();
                 }
             }
         }
