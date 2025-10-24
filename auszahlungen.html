@@ -5,38 +5,93 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Auszahlungen - Hexenjäger</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>💰 Auszahlungsliste</h1>
-            <a href="index.html" class="back-btn">← Zurück</a>
+            <div class="hexenjaeger-symbol"></div>
+            <h1>Auszahlungsliste</h1>
+            <p>Verwalte die offenen Auszahlungen der Family</p>
+            <a href="index.html" class="back-btn">← Zurück zur Übersicht</a>
         </header>
 
-        <div id="payoutTable" class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Mitglied</th>
-                        <th>Offene Auszahlung</th>
-                        <th>Bizwar Kills</th>
-                        <th>40er Kills</th>
-                        <th>Gießerei Kills</th>
-                        <th>Waffenfabrik Kills</th>
-                        <th>Hafen Drops</th>
-                        <th>Cayo Drops</th>
-                        <th>RP Fabrik</th>
-                        <th>EKZ</th>
-                        <th>Aktion</th>
-                    </tr>
-                </thead>
-                <tbody id="payoutBody">
-                    <!-- Daten werden geladen -->
-                </tbody>
-            </table>
+        <div class="card">
+            <h2 style="color: var(--accent-gold); margin-bottom: 25px; text-align: center;">💰 Offene Auszahlungen</h2>
+            
+            <div id="payoutTable" class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Mitglied</th>
+                            <th>Gesamtbetrag</th>
+                            <th>Bizwar</th>
+                            <th>40er</th>
+                            <th>Gießerei</th>
+                            <th>Waffenfabrik</th>
+                            <th>Hafen</th>
+                            <th>Cayo</th>
+                            <th>RP Fabrik</th>
+                            <th>EKZ</th>
+                            <th>Aktion</th>
+                        </tr>
+                    </thead>
+                    <tbody id="payoutBody">
+                        <!-- Daten werden geladen -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="noPayouts" class="no-data" style="display: none;">
+                🎉 Keine offenen Auszahlungen vorhanden!
+            </div>
         </div>
     </div>
     <script src="app.js"></script>
+    <script>
+        // Erweiterte loadPayouts Funktion für diese Seite
+        function loadPayouts() {
+            const payouts = db.getPayouts();
+            const tbody = document.getElementById('payoutBody');
+            const noPayouts = document.getElementById('noPayouts');
+            
+            if (!tbody) return;
+            
+            if (payouts.length === 0) {
+                tbody.innerHTML = '';
+                noPayouts.style.display = 'block';
+                return;
+            }
+            
+            noPayouts.style.display = 'none';
+            
+            tbody.innerHTML = payouts.map(payout => `
+                <tr>
+                    <td><strong>${escapeHtml(payout.memberId)}</strong></td>
+                    <td><strong style="color: var(--accent-gold-light);">${escapeHtml(payout.memberName)}</strong></td>
+                    <td><strong style="color: var(--accent-gold); font-size: 1.1em;">${formatCurrency(payout.total)}</strong></td>
+                    <td>${payout.bizwar_win}W / ${payout.bizwar_lose}L</td>
+                    <td>${payout['40er_win']}W / ${payout['40er_lose']}L</td>
+                    <td>${payout.giesserei}</td>
+                    <td>${payout.waffenfabrik}</td>
+                    <td>${payout.hafen}</td>
+                    <td>${payout.cayo}</td>
+                    <td>${payout.rp_fabrik}</td>
+                    <td>${payout.ekz}</td>
+                    <td>
+                        <button onclick="completePayout('${payout.memberId}')" class="btn-primary" style="padding: 10px 20px; font-size: 14px;">
+                            💰 Auszahlen
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Überschreibe die globale Funktion für diese Seite
+        if (window.location.pathname.includes('auszahlungen.html')) {
+            document.addEventListener('DOMContentLoaded', loadPayouts);
+        }
+    </script>
 </body>
 </html>
