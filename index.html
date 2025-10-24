@@ -7,352 +7,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hexenjäger Family</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        .dashboard {
-            display: grid;
-            grid-template-columns: 1fr 300px;
-            gap: 25px;
-            margin-bottom: 30px;
-        }
-
-        .main-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-        }
-
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .feature-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 25px;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            color: var(--text-light);
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .feature-card:hover {
-            border-color: var(--accent-purple);
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-glow);
-        }
-
-        .feature-icon {
-            font-size: 2.5em;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .feature-title {
-            color: var(--accent-lilac);
-            font-size: 1.3em;
-            font-weight: 600;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-
-        .feature-desc {
-            color: var(--text-muted);
-            text-align: center;
-            flex-grow: 1;
-            font-size: 0.9em;
-        }
-
-        .feature-stats {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid var(--border-color);
-            text-align: center;
-            color: var(--accent-purple);
-            font-weight: 600;
-            font-size: 0.9em;
-        }
-
-        .stats-widget {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-        }
-
-        .widget-title {
-            color: var(--accent-lilac);
-            font-size: 1.1em;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .stat-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .stat-item:last-child {
-            border-bottom: none;
-        }
-
-        .stat-label {
-            color: var(--text-muted);
-        }
-
-        .stat-value {
-            color: var(--accent-lilac);
-            font-weight: 600;
-        }
-
-        .recent-activity {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-        }
-
-        .activity-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .activity-item:last-child {
-            border-bottom: none;
-        }
-
-        .activity-icon {
-            font-size: 1.2em;
-            width: 30px;
-            text-align: center;
-        }
-
-        .activity-content {
-            flex-grow: 1;
-        }
-
-        .activity-text {
-            font-size: 0.9em;
-            margin-bottom: 2px;
-        }
-
-        .activity-amount {
-            color: var(--accent-purple);
-            font-size: 0.8em;
-            font-weight: 600;
-        }
-
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-top: 25px;
-        }
-
-        .quick-btn {
-            background: rgba(139, 92, 246, 0.1);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-            text-decoration: none;
-            color: var(--text-light);
-            transition: all 0.3s ease;
-        }
-
-        .quick-btn:hover {
-            background: rgba(139, 92, 246, 0.2);
-            border-color: var(--accent-purple);
-        }
-
-        .quick-icon {
-            font-size: 1.5em;
-            margin-bottom: 8px;
-            display: block;
-        }
-
-        .quick-text {
-            font-size: 0.8em;
-            color: var(--text-muted);
-        }
-
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px;
-            background: rgba(34, 197, 94, 0.1);
-            border: 1px solid rgba(34, 197, 94, 0.3);
-            border-radius: 8px;
-            margin-top: 20px;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background: #22c55e;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        @media (max-width: 1024px) {
-            .dashboard {
-                grid-template-columns: 1fr;
-            }
-            
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .quick-actions {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .quick-actions {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-    </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <div class="hexenjaeger-symbol"></div>
-            <h1>Hexenjäger Family</h1>
-            <p>Management System für Family-Aktivitäten und Auszahlungen</p>
+            <div class="hexenjaeger-symbol">ᛉ</div>
+            <h1>Hexenjäger</h1>
+            <p>Family Management System - Wo Schatten herrschen, spricht das Gewehr</p>
         </header>
 
-        <div class="dashboard">
-            <!-- Hauptbereich -->
-            <div class="main-grid">
-                <a href="auszahlungen.html" class="feature-card">
-                    <div class="feature-icon">💰</div>
-                    <h3 class="feature-title">Auszahlungen</h3>
-                    <p class="feature-desc">Verwalte offene Zahlungen und markiere sie als erledigt</p>
-                    <div class="feature-stats" id="payoutsCount">12 ausstehend</div>
-                </a>
+        <nav class="main-nav">
+            <a href="auszahlungen.html" class="nav-card mystic-border">
+                <span class="nav-icon">💰</span>
+                <h3>Auszahlungen</h3>
+                <p>Offene Zahlungen verwalten und bearbeiten</p>
+            </a>
 
-                <a href="eingabe.html" class="feature-card">
-                    <div class="feature-icon">📝</div>
-                    <h3 class="feature-title">Event Eingabe</h3>
-                    <p class="feature-desc">Erfasse neue Events, Kills und Drops für die Family</p>
-                    <div class="feature-stats" id="eventsToday">24 heute</div>
-                </a>
+            <a href="eingabe.html" class="nav-card mystic-border">
+                <span class="nav-icon">📝</span>
+                <h3>Event Eingabe</h3>
+                <p>Neue Events und Kills erfassen</p>
+            </a>
 
-                <a href="statistik.html" class="feature-card">
-                    <div class="feature-icon">📊</div>
-                    <h3 class="feature-title">Statistik</h3>
-                    <p class="feature-desc">Analysiere Daten, exportiere Berichte und verfolge Trends</p>
-                    <div class="feature-stats" id="totalStats">$2.4M Gesamt</div>
-                </a>
+            <a href="statistik.html" class="nav-card mystic-border">
+                <span class="nav-icon">📊</span>
+                <h3>Statistik</h3>
+                <p>Daten analysieren und exportieren</p>
+            </a>
 
-                <a href="mitglieder.html" class="feature-card">
-                    <div class="feature-icon">👥</div>
-                    <h3 class="feature-title">Mitglieder</h3>
-                    <p class="feature-desc">Verwalte Family-Mitglieder, bearbeite Daten und IDs</p>
-                    <div class="feature-stats" id="membersCount">15 Mitglieder</div>
-                </a>
-            </div>
+            <a href="mitglieder.html" class="nav-card mystic-border">
+                <span class="nav-icon">👥</span>
+                <h3>Mitglieder</h3>
+                <p>Family Mitglieder verwalten</p>
+            </a>
+        </nav>
 
-            <!-- Sidebar -->
-            <div class="sidebar">
-                <!-- Schnellstatistiken -->
-                <div class="stats-widget">
-                    <h3 class="widget-title">Schnellübersicht</h3>
-                    <div class="stat-item">
-                        <span class="stat-label">Aktive Mitglieder</span>
-                        <span class="stat-value" id="quickMembers">15</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Diese Woche</span>
-                        <span class="stat-value" id="quickWeek">47 Events</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Ausstehend</span>
-                        <span class="stat-value" id="quickPending">$84,000</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Gesamt</span>
-                        <span class="stat-value" id="quickTotal">$2.4M</span>
-                    </div>
+        <div class="card mystic-border">
+            <h2>Family Status</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                <div style="text-align: center;">
+                    <div style="font-size: 2em; color: var(--accent-purple-light);">👥</div>
+                    <div style="font-size: 1.5em; font-weight: bold; color: var(--accent-purple-light);" id="memberCount">15</div>
+                    <div style="color: var(--text-muted);">Aktive Mitglieder</div>
                 </div>
-
-                <!-- Letzte Aktivitäten -->
-                <div class="recent-activity">
-                    <h3 class="widget-title">Letzte Aktivitäten</h3>
-                    <div class="activity-item">
-                        <div class="activity-icon">⚔️</div>
-                        <div class="activity-content">
-                            <div class="activity-text">Malachi - 3 Kills Bizwar</div>
-                            <div class="activity-amount">+$60,000</div>
-                        </div>
-                    </div>
-                    <div class="activity-item">
-                        <div class="activity-icon">🏰</div>
-                        <div class="activity-content">
-                            <div class="activity-text">Raven - EKZ gesichert</div>
-                            <div class="activity-amount">+$80,000</div>
-                        </div>
-                    </div>
-                    <div class="activity-item">
-                        <div class="activity-icon">🔫</div>
-                        <div class="activity-content">
-                            <div class="activity-text">Orion - Waffenfabrik</div>
-                            <div class="activity-amount">+$10,000</div>
-                        </div>
-                    </div>
-                    <div class="activity-item">
-                        <div class="activity-icon">⚓</div>
-                        <div class="activity-content">
-                            <div class="activity-text">Luna - Hafen Drop</div>
-                            <div class="activity-amount">+$40,000</div>
-                        </div>
-                    </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2em; color: var(--accent-purple-light);">💰</div>
+                    <div style="font-size: 1.5em; font-weight: bold; color: var(--accent-purple-light);" id="payoutCount">12</div>
+                    <div style="color: var(--text-muted);">Ausstehende Zahlungen</div>
                 </div>
-
-                <!-- Schnellaktionen -->
-                <div class="quick-actions">
-                    <a href="eingabe.html?type=bizwar" class="quick-btn">
-                        <span class="quick-icon">⚔️</span>
-                        <span class="quick-text">Bizwar</span>
-                    </a>
-                    <a href="eingabe.html?type=40er" class="quick-btn">
-                        <span class="quick-icon">🎯</span>
-                        <span class="quick-text">40er</span>
-                    </a>
-                    <a href="eingabe.html?type=ekz" class="quick-btn">
-                        <span class="quick-icon">🏰</span>
-                        <span class="quick-text">EKZ</span>
-                    </a>
-                    <a href="eingabe.html?type=hafen" class="quick-btn">
-                        <span class="quick-icon">⚓</span>
-                        <span class="quick-text">Hafen</span>
-                    </a>
-                </div>
-
-                <!-- Status -->
-                <div class="status-indicator">
-                    <div class="status-dot"></div>
-                    <div style="font-size: 0.9em;">
-                        <strong>Nächste Auszahlung:</strong> Freitag
-                    </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 2em; color: var(--accent-purple-light);">🎯</div>
+                    <div style="font-size: 1.5em; font-weight: bold; color: var(--accent-purple-light);" id="eventCount">47</div>
+                    <div style="color: var(--text-muted);">Events diese Woche</div>
                 </div>
             </div>
         </div>
@@ -361,33 +67,20 @@
     <script src="app.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Lade echte Daten
             const members = db.getMembers();
             const payouts = db.getPayouts();
-            const stats = db.getStats();
-
-            // Aktualisiere Statistiken
-            document.getElementById('quickMembers').textContent = members.length;
-            document.getElementById('membersCount').textContent = members.length + ' Mitglieder';
             
-            const totalPayouts = payouts.reduce((sum, payout) => sum + payout.total, 0);
-            document.getElementById('quickPending').textContent = '$' + totalPayouts.toLocaleString('de-DE');
-            document.getElementById('payoutsCount').textContent = payouts.length + ' ausstehend';
-
-            const totalStats = stats.reduce((sum, stat) => sum + stat.total, 0);
-            document.getElementById('quickTotal').textContent = '$' + totalStats.toLocaleString('de-DE');
-            document.getElementById('totalStats').textContent = '$' + totalStats.toLocaleString('de-DE');
-
-            // Vereinfachte Wochen-Statistik
+            document.getElementById('memberCount').textContent = members.length;
+            document.getElementById('payoutCount').textContent = payouts.length;
+            
+            // Events diese Woche (vereinfacht)
+            const stats = db.getStats();
             const weeklyEvents = stats.filter(stat => {
                 if (!stat.paidDate) return false;
-                const statDate = new Date(stat.paidDate);
-                const now = new Date();
-                return (now - statDate) <= (7 * 24 * 60 * 60 * 1000);
+                const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+                return new Date(stat.paidDate) > weekAgo;
             }).length;
-            
-            document.getElementById('quickWeek').textContent = weeklyEvents + ' Events';
-            document.getElementById('eventsToday').textContent = '24 heute'; // Platzhalter
+            document.getElementById('eventCount').textContent = weeklyEvents;
         });
     </script>
 </body>
