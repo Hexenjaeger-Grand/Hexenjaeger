@@ -253,7 +253,7 @@
                         sharedAmount.style.display = 'none';
                         individualAmounts.style.display = 'block';
                         individualAmountLabel.textContent = config.label;
-                        updateIndividualInputs();
+                        updateIndividualInputs(); // HIER WAR DER FEHLER - DIESE ZEILE FEHLTE!
                     }
                 } else {
                     eventDetails.style.display = 'none';
@@ -355,9 +355,10 @@
                     
                     previewContent.innerHTML = individualAmounts.map(item => {
                         const member = db.getMembers().find(m => m.id === item.memberId);
+                        const unit = eventTypeValue.includes('hafen') ? 'Drops' : 'Kills';
                         return `
                             <div class="preview-item">
-                                <span>${member.name} (${item.amount} ${eventTypeValue.includes('hafen') ? 'Drops' : 'Kills'})</span>
+                                <span>${member.name} (${item.amount} ${unit})</span>
                                 <span>${formatCurrency(item.amountValue)}</span>
                             </div>
                         `;
@@ -411,6 +412,14 @@
                         amount: amount,
                         totalAmount: totalAmount
                     };
+
+                    const result = db.addEvent(eventData);
+                    if (result.success) {
+                        showStatus(`Event für ${selectedMembers.length} Mitglieder gespeichert! Gesamt: ${formatCurrency(result.calculatedAmount)}`, 'success');
+                        resetForm();
+                    } else {
+                        showStatus('Fehler: ' + result.error, 'error');
+                    }
                 } 
                 // Individuelle Events (Bizwar, 40er, Hafen, Gießerei, Waffenfabrik)
                 else {
@@ -441,15 +450,6 @@
                     } else {
                         showStatus(`Event für ${successCount}/${selectedMembers.length} Mitgliedern gespeichert`, 'warning');
                     }
-                    return;
-                }
-
-                const result = db.addEvent(eventData);
-                if (result.success) {
-                    showStatus(`Event für ${selectedMembers.length} Mitglieder gespeichert! Gesamt: ${formatCurrency(result.calculatedAmount)}`, 'success');
-                    resetForm();
-                } else {
-                    showStatus('Fehler: ' + result.error, 'error');
                 }
             });
 
