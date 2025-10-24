@@ -1,3 +1,5 @@
+[file name]: mitglieder.html
+[file content begin]
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -5,20 +7,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mitglieder - Hexenjäger</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <header>
-            <div class="hexenjaeger-symbol"></div>
+            <div class="hexenjaeger-symbol">ᛉ</div>
             <h1>Mitgliederverwaltung</h1>
-            <p>Verwalte die tapferen Krieger der Hexenjäger Family</p>
+            <p>Verwalte die Mitglieder der Hexenjäger Family</p>
             <a href="index.html" class="back-btn">← Zurück zur Übersicht</a>
         </header>
 
-        <div class="card">
-            <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 30px;">
-                <h2 style="color: var(--accent-gold); margin: 0;">👥 Family Mitglieder</h2>
+        <div class="card mystic-border">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <h2>Family Mitglieder</h2>
                 <button id="addMemberBtn" class="btn-primary">➕ Neues Mitglied</button>
             </div>
 
@@ -29,15 +30,17 @@
 
         <!-- Modal für neues Mitglied -->
         <div id="memberModal" class="modal">
-            <div class="modal-content">
-                <h3>🏹 Neues Mitglied</h3>
-                <div class="form-group">
-                    <label for="memberName">IC-Name</label>
-                    <input type="text" id="memberName" placeholder="Name des Mitglieds">
-                </div>
-                <div class="form-group">
-                    <label for="memberId">Mitglieds-ID</label>
-                    <input type="text" id="memberId" placeholder="Eindeutige ID">
+            <div class="modal-content mystic-border">
+                <h3 style="color: var(--accent-purple-light); margin-bottom: 25px; text-align: center;">Neues Mitglied</h3>
+                <div style="display: grid; gap: 20px;">
+                    <div class="form-group">
+                        <label style="display: block; color: var(--accent-purple-light); margin-bottom: 8px; font-weight: 600;">Name</label>
+                        <input type="text" id="memberName" placeholder="Name des Mitglieds">
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; color: var(--accent-purple-light); margin-bottom: 8px; font-weight: 600;">Mitglieds-ID</label>
+                        <input type="text" id="memberId" placeholder="Eindeutige ID">
+                    </div>
                 </div>
                 <div class="modal-actions">
                     <button id="saveMember" class="btn-primary">Speichern</button>
@@ -48,5 +51,90 @@
     </div>
 
     <script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const memberList = document.getElementById('memberList');
+            const modal = document.getElementById('memberModal');
+            const addMemberBtn = document.getElementById('addMemberBtn');
+            const saveMemberBtn = document.getElementById('saveMember');
+            const cancelBtn = document.getElementById('cancelMember');
+            const memberNameInput = document.getElementById('memberName');
+            const memberIdInput = document.getElementById('memberId');
+
+            function renderMembers() {
+                const members = db.getMembers();
+                if (members.length === 0) {
+                    memberList.innerHTML = '<div class="no-data">Noch keine Mitglieder vorhanden</div>';
+                    return;
+                }
+
+                memberList.innerHTML = members.map(member => `
+                    <div class="member-item mystic-border">
+                        <div class="member-info">
+                            <strong>${member.name}</strong>
+                            <div class="member-id">${member.id}</div>
+                        </div>
+                        <div class="member-actions">
+                            <button class="edit-btn" onclick="editMember('${member.id}')">✏️</button>
+                            <button class="delete-btn" onclick="deleteMember('${member.id}')">🗑️</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            addMemberBtn.addEventListener('click', () => {
+                modal.style.display = 'block';
+                memberNameInput.focus();
+            });
+
+            saveMemberBtn.addEventListener('click', () => {
+                const name = memberNameInput.value.trim();
+                const id = memberIdInput.value.trim();
+                
+                if (!name || !id) {
+                    alert('Bitte fülle alle Felder aus!');
+                    return;
+                }
+                
+                const result = db.addMember(name, id);
+                if (result.success) {
+                    modal.style.display = 'none';
+                    memberNameInput.value = '';
+                    memberIdInput.value = '';
+                    renderMembers();
+                } else {
+                    alert(result.error);
+                }
+            });
+
+            cancelBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+                memberNameInput.value = '';
+                memberIdInput.value = '';
+            });
+
+            window.editMember = (id) => {
+                const members = db.getMembers();
+                const member = members.find(m => m.id === id);
+                if (member) {
+                    const newName = prompt('Neuen Namen eingeben:', member.name);
+                    if (newName && newName.trim()) {
+                        db.updateMember(id, newName.trim());
+                        renderMembers();
+                    }
+                }
+            };
+
+            window.deleteMember = (id) => {
+                if (confirm('Mitglied wirklich löschen?')) {
+                    db.deleteMember(id);
+                    renderMembers();
+                }
+            };
+
+            renderMembers();
+        });
+    </script>
 </body>
 </html>
+[file content end]
