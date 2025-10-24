@@ -19,6 +19,9 @@ class HexenjaegerDB {
         if (!localStorage.getItem('hexenjaeger_stats')) {
             this.saveStats([]);
         }
+        if (!localStorage.getItem('hexenjaeger_event_history')) {
+            this.saveEventHistory([]);
+        }
     }
 
     // Mitglieder Management
@@ -49,6 +52,15 @@ class HexenjaegerDB {
         localStorage.setItem('hexenjaeger_payouts', JSON.stringify(payouts));
     }
 
+    // Event History für Details
+    getEventHistory() {
+        return JSON.parse(localStorage.getItem('hexenjaeger_event_history') || '[]');
+    }
+
+    saveEventHistory(history) {
+        localStorage.setItem('hexenjaeger_event_history', JSON.stringify(history));
+    }
+
     // Event Preise
     getEventPrice(eventType, amount = 1) {
         const PRICES = {
@@ -66,14 +78,16 @@ class HexenjaegerDB {
         return PRICES[eventType] * amount;
     }
 
-    // Event hinzufügen - JETZT MIT MEHREREN MITGLIEDERN
+    // Event hinzufügen - MIT HISTORY
     addEvent(eventData) {
         const { eventType, memberIds, amount, totalAmount } = eventData;
         const members = this.getMembers();
         const payouts = this.getPayouts();
+        const eventHistory = this.getEventHistory();
         
         let calculatedAmount = 0;
         let payoutEntries = [];
+        const timestamp = new Date().toISOString();
 
         // Für jedes Mitglied erstellen/updaten wir einen Eintrag
         memberIds.forEach(memberId => {
@@ -95,26 +109,42 @@ class HexenjaegerDB {
             }
 
             // Berechne Betrag basierend auf Event-Typ
+            let individualAmount = 0;
             if (eventType === 'cayo' || eventType === 'rp_fabrik') {
-                const individualAmount = Math.round(totalAmount / memberIds.length);
+                individualAmount = Math.round(totalAmount / memberIds.length);
                 payout[eventType] += parseInt(amount);
                 payout.total += individualAmount;
                 calculatedAmount += individualAmount;
             } else {
-                const eventAmount = this.getEventPrice(eventType, amount);
+                individualAmount = this.getEventPrice(eventType, amount);
                 payout[eventType] += parseInt(amount);
-                payout.total += eventAmount;
-                calculatedAmount += eventAmount;
+                payout.total += individualAmount;
+                calculatedAmount += individualAmount;
             }
+
+            // Event zur History hinzufügen
+            const eventEntry = {
+                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                memberId: member.id,
+                memberName: member.name,
+                eventType: eventType,
+                amount: parseInt(amount),
+                totalAmount: eventType === 'cayo' || eventType === 'rp_fabrik' ? totalAmount : individualAmount,
+                individualAmount: individualAmount,
+                timestamp: timestamp,
+                date: new Date().toLocaleDateString('de-DE')
+            };
+            eventHistory.push(eventEntry);
 
             payoutEntries.push({
                 memberId: member.id,
                 memberName: member.name,
-                amount: calculatedAmount
+                amount: individualAmount
             });
         });
 
         this.savePayouts(payouts);
+        this.saveEventHistory(eventHistory);
         return { 
             success: true, 
             calculatedAmount,
@@ -122,10 +152,45 @@ class HexenjaegerDB {
         };
     }
 
+    // Event History für ein Mitglied abrufen - DIESE FUNKTION HAT GEFEHLT!
+    getMemberEventHistory(memberId) {
+        const history = this.getEventHistory();
+        return history
+            .filter(event => event.memberId === memberId)
+            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    }
+
+    // Event Details als Text formatieren
+    formatEventDetails(event) {
+        const eventNames = {
+            'bizwar_win': 'Bizwar (Win)',
+            'bizwar_lose': 'Bizwar (Lose)', 
+            '40er_win': '40er (Win)',
+            '40er_lose': '40er (Lose)',
+            'ekz': 'EKZ (Win)',
+            'hafen': 'Hafen Drop',
+            'giesserei': 'Gießerei Kill',
+            'waffenfabrik': 'Waffenfabrik Kill',
+            'cayo': 'Cayo Perico Drop',
+            'rp_fabrik': 'RP Fabrik (Win)'
+        };
+
+        const eventName = eventNames[event.eventType] || event.eventType;
+        
+        if (event.eventType === 'cayo') {
+            return `${event.amount} Cayo Drops`;
+        } else if (event.eventType === 'rp_fabrik') {
+            return `${event.amount} RP Fabrik (Win)`;
+        } else {
+            return `${event.amount} Kills ${eventName}`;
+        }
+    }
+
     // Auszahlung abschließen
     completePayout(memberId) {
         const payouts = this.getPayouts();
         const stats = this.getStats();
+        const eventHistory = this.getEventHistory();
         
         const payoutIndex = payouts.findIndex(p => p.memberId === memberId);
         if (payoutIndex !== -1) {
@@ -142,15 +207,6 @@ class HexenjaegerDB {
         return { error: 'Auszahlung nicht gefunden' };
     }
 
-    // Statistik
-    getStats() {
-        return JSON.parse(localStorage.getItem('hexenjaeger_stats') || '[]');
-    }
-
-    saveStats(stats) {
-        localStorage.setItem('hexenjaeger_stats', JSON.stringify(stats));
-    }
-
     // Bulk Operationen
     completeAllPayouts() {
         const payouts = this.getPayouts();
@@ -164,6 +220,15 @@ class HexenjaegerDB {
         this.saveStats(stats);
         this.savePayouts([]);
         return { success: true, completed: payouts.length };
+    }
+
+    // Statistik
+    getStats() {
+        return JSON.parse(localStorage.getItem('hexenjaeger_stats') || '[]');
+    }
+
+    saveStats(stats) {
+        localStorage.setItem('hexenjaeger_stats', JSON.stringify(stats));
     }
 }
 
