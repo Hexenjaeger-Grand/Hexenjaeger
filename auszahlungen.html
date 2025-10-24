@@ -1,3 +1,5 @@
+[file name]: auszahlungen.html
+[file content begin]
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -5,19 +7,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Auszahlungen - Hexenjäger</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <header>
             <div class="hexenjaeger-symbol"></div>
-            <h1>Auszahlungsliste</h1>
+            <h1>Auszahlungen</h1>
             <p>Verwalte die offenen Auszahlungen der Family</p>
             <a href="index.html" class="back-btn">← Zurück zur Übersicht</a>
         </header>
 
         <div class="card">
-            <h2 style="color: var(--accent-gold); margin-bottom: 25px; text-align: center;">💰 Offene Auszahlungen</h2>
+            <h2 style="color: var(--accent-lilac); margin-bottom: 20px; text-align: center;">Offene Auszahlungen</h2>
             
             <div id="payoutTable" class="table-container">
                 <table>
@@ -48,15 +49,13 @@
             </div>
         </div>
     </div>
+
     <script src="app.js"></script>
     <script>
-        // Erweiterte loadPayouts Funktion für diese Seite
         function loadPayouts() {
             const payouts = db.getPayouts();
             const tbody = document.getElementById('payoutBody');
             const noPayouts = document.getElementById('noPayouts');
-            
-            if (!tbody) return;
             
             if (payouts.length === 0) {
                 tbody.innerHTML = '';
@@ -69,8 +68,8 @@
             tbody.innerHTML = payouts.map(payout => `
                 <tr>
                     <td><strong>${escapeHtml(payout.memberId)}</strong></td>
-                    <td><strong style="color: var(--accent-gold-light);">${escapeHtml(payout.memberName)}</strong></td>
-                    <td><strong style="color: var(--accent-gold); font-size: 1.1em;">${formatCurrency(payout.total)}</strong></td>
+                    <td><strong style="color: var(--accent-lilac);">${escapeHtml(payout.memberName)}</strong></td>
+                    <td><strong style="color: var(--accent-purple);">${formatCurrency(payout.total)}</strong></td>
                     <td>${payout.bizwar_win}W / ${payout.bizwar_lose}L</td>
                     <td>${payout['40er_win']}W / ${payout['40er_lose']}L</td>
                     <td>${payout.giesserei}</td>
@@ -80,18 +79,27 @@
                     <td>${payout.rp_fabrik}</td>
                     <td>${payout.ekz}</td>
                     <td>
-                        <button onclick="completePayout('${payout.memberId}')" class="btn-primary" style="padding: 10px 20px; font-size: 14px;">
-                            💰 Auszahlen
+                        <button onclick="completePayout('${payout.memberId}')" class="btn-primary" style="padding: 8px 16px; font-size: 12px;">
+                            Auszahlen
                         </button>
                     </td>
                 </tr>
             `).join('');
         }
 
-        // Überschreibe die globale Funktion für diese Seite
-        if (window.location.pathname.includes('auszahlungen.html')) {
-            document.addEventListener('DOMContentLoaded', loadPayouts);
+        function completePayout(memberId) {
+            if (confirm('Auszahlung als erledigt markieren?')) {
+                const result = db.completePayout(memberId);
+                if (result.success) {
+                    loadPayouts();
+                } else {
+                    alert('Fehler: ' + result.error);
+                }
+            }
         }
+
+        document.addEventListener('DOMContentLoaded', loadPayouts);
     </script>
 </body>
 </html>
+[file content end]
