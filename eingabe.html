@@ -84,6 +84,67 @@
             background: var(--bg-darker);
             color: var(--text-light);
         }
+
+        /* Neue Styles für Event-Preise */
+        .event-prices-container {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .event-prices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .event-price-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .event-price-info {
+            flex: 1;
+        }
+
+        .event-price-name {
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 5px;
+        }
+
+        .event-price-description {
+            color: var(--text-muted);
+            font-size: 0.85em;
+        }
+
+        .event-price-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .event-price-input input {
+            width: 120px;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-darker);
+            color: var(--text-light);
+            text-align: right;
+        }
+
+        .price-unit {
+            color: var(--text-muted);
+            font-size: 0.9em;
+            min-width: 60px;
+        }
     </style>
 </head>
 <body>
@@ -169,12 +230,43 @@
                 
                 <div id="statusMessage" style="margin-top: 15px; text-align: center; display: none;"></div>
             </div>
+
+            <!-- NEU: Event-Preise Container -->
+            <div class="event-prices-container">
+                <h3>Event-Preise verwalten</h3>
+                <p>Aktuelle Auszahlungsbeträge pro Event-Typ</p>
+                
+                <div class="event-prices-grid" id="eventPricesGrid">
+                    <!-- Wird via JavaScript gefüllt -->
+                </div>
+                
+                <div style="display: flex; gap: 12px; margin-top: 20px;">
+                    <button onclick="saveEventPrices()" class="btn btn-primary">Preise speichern</button>
+                    <button onclick="resetEventPrices()" class="btn btn-secondary">Standard-Preise</button>
+                </div>
+                
+                <div id="pricesStatusMessage" style="margin-top: 15px; text-align: center; display: none;"></div>
+            </div>
         </div>
     </div>
 
     <script src="app.js"></script>
     <script>
         let selectedMembers = [];
+
+        // Event-Preis Konfiguration
+        const defaultEventPrices = {
+            'bizwar_win': { price: 50000, description: 'Pro Kill (Win)', unit: 'pro Kill' },
+            'bizwar_lose': { price: 25000, description: 'Pro Kill (Lose)', unit: 'pro Kill' },
+            '40er_win': { price: 40000, description: 'Pro Kill (Win)', unit: 'pro Kill' },
+            '40er_lose': { price: 20000, description: 'Pro Kill (Lose)', unit: 'pro Kill' },
+            'giesserei': { price: 30000, description: 'Pro Kill', unit: 'pro Kill' },
+            'waffenfabrik': { price: 35000, description: 'Pro Kill', unit: 'pro Kill' },
+            'hafen': { price: 100000, description: 'Pro Drop', unit: 'pro Drop' },
+            'ekz': { price: 150000, description: 'Pro Win', unit: 'pro Win' },
+            'rp_fabrik': { price: 200000, description: 'Pro Win', unit: 'pro Win' },
+            'cayo': { price: 250000, description: 'Pro Drop', unit: 'pro Drop' }
+        };
 
         // Globale Funktionen
         function updatePreview() {
@@ -329,6 +421,72 @@
             updatePreview();
             document.getElementById('eventDetails').style.display = 'none';
             document.getElementById('previewSection').style.display = 'none';
+        }
+
+        // NEUE FUNKTIONEN FÜR EVENT-PREISE
+        function loadEventPrices() {
+            const eventPrices = db.getEventPrices();
+            const grid = document.getElementById('eventPricesGrid');
+            
+            const eventNames = {
+                'bizwar_win': 'Bizwar Win',
+                'bizwar_lose': 'Bizwar Lose',
+                '40er_win': '40er Win',
+                '40er_lose': '40er Lose',
+                'giesserei': 'Gießerei',
+                'waffenfabrik': 'Waffenfabrik',
+                'hafen': 'Hafen',
+                'ekz': 'EKZ',
+                'rp_fabrik': 'RP Fabrik',
+                'cayo': 'Cayo Perico'
+            };
+            
+            grid.innerHTML = Object.entries(eventPrices).map(([eventType, config]) => `
+                <div class="event-price-item">
+                    <div class="event-price-info">
+                        <div class="event-price-name">${eventNames[eventType]}</div>
+                        <div class="event-price-description">${config.description}</div>
+                    </div>
+                    <div class="event-price-input">
+                        <input type="number" id="price_${eventType}" value="${config.price}" min="0" step="1000">
+                        <span class="price-unit">${config.unit}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function saveEventPrices() {
+            const eventPrices = {};
+            const eventTypes = Object.keys(defaultEventPrices);
+            
+            eventTypes.forEach(eventType => {
+                const input = document.getElementById(`price_${eventType}`);
+                if (input) {
+                    const price = parseInt(input.value) || 0;
+                    eventPrices[eventType] = {
+                        price: price,
+                        description: defaultEventPrices[eventType].description,
+                        unit: defaultEventPrices[eventType].unit
+                    };
+                }
+            });
+            
+            db.saveEventPrices(eventPrices);
+            showPricesStatus('Event-Preise erfolgreich gespeichert!', 'success');
+        }
+
+        function resetEventPrices() {
+            db.saveEventPrices(defaultEventPrices);
+            loadEventPrices();
+            showPricesStatus('Standard-Preise wiederhergestellt!', 'success');
+        }
+
+        function showPricesStatus(message, type) {
+            const statusElement = document.getElementById('pricesStatusMessage');
+            statusElement.textContent = message;
+            statusElement.style.color = type === 'success' ? '#10b981' : '#ef4444';
+            statusElement.style.display = 'block';
+            setTimeout(() => statusElement.style.display = 'none', 4000);
         }
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -501,6 +659,7 @@
             }
 
             loadMembers();
+            loadEventPrices(); // Event-Preise laden
         });
     </script>
 </body>
