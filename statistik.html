@@ -298,14 +298,15 @@
         let currentSort = 'payout';
 
         function updateStatistics() {
-            // Verwende direkt die Events aus der Datenbank
+            // Verwende BOTH Events und Completed Payouts für die Statistik
             const events = db.getEvents();
             const completedPayouts = db.getCompletedPayouts();
             const openPayouts = calculateOpenPayouts(events);
+            const allEvents = [...events]; // Alle Events für die Gesamtstatistik
             
-            updateSummaryStats(events, completedPayouts, openPayouts);
-            updateTopList(events);
-            updateDetailedStats(events);
+            updateSummaryStats(allEvents, completedPayouts, openPayouts);
+            updateTopList(allEvents, completedPayouts);
+            updateDetailedStats(allEvents, completedPayouts);
         }
 
         function calculateOpenPayouts(events) {
@@ -354,21 +355,31 @@
             // Offene Auszahlungen
             document.getElementById('openPayouts').textContent = openPayouts.length;
             
-            // Gesamt Events
+            // Gesamt Events (alle jemals erfassten Events)
             document.getElementById('totalEvents').textContent = events.length;
             
             // Durchschnitt pro Person
-            const activeMembers = new Set(events.flatMap(event => event.memberIds)).size;
+            const allMembers = db.getMembers();
             const totalAmount = totalPaid + openPayouts.reduce((sum, payout) => sum + payout.total, 0);
-            const avgPerMember = activeMembers > 0 ? Math.round(totalAmount / activeMembers) : 0;
+            const avgPerMember = allMembers.length > 0 ? Math.round(totalAmount / allMembers.length) : 0;
             document.getElementById('avgPerMember').textContent = formatCurrency(avgPerMember);
         }
         
-        function updateTopList(events) {
+        function updateTopList(events, completedPayouts) {
             const topList = document.getElementById('topList');
             const memberStats = {};
+            const members = db.getMembers();
             
-            // Sammle Daten pro Mitglied
+            // Initialisiere alle Mitglieder
+            members.forEach(member => {
+                memberStats[member.id] = {
+                    name: member.name,
+                    totalEvents: 0,
+                    totalPaid: 0
+                };
+            });
+            
+            // Addiere Events (offene Auszahlungen)
             events.forEach(event => {
                 const eventType = event.eventType;
                 const amount = event.amount || 1;
@@ -385,22 +396,24 @@
                 
                 // Verteile auf Mitglieder
                 event.memberIds.forEach(memberId => {
-                    if (!memberStats[memberId]) {
-                        const member = db.getMembers().find(m => m.id === memberId);
-                        memberStats[memberId] = {
-                            name: member?.name || 'Unbekannt',
-                            totalEvents: 0,
-                            totalPaid: 0
-                        };
+                    if (memberStats[memberId]) {
+                        memberStats[memberId].totalEvents += 1;
+                        memberStats[memberId].totalPaid += calculatedAmount;
                     }
-                    
-                    memberStats[memberId].totalEvents += 1;
-                    memberStats[memberId].totalPaid += calculatedAmount;
                 });
+            });
+            
+            // Addiere abgeschlossene Auszahlungen
+            completedPayouts.forEach(payout => {
+                if (memberStats[payout.memberId]) {
+                    memberStats[payout.memberId].totalPaid += payout.total;
+                    // Für Events zählen wir hier nicht, da diese bereits in den Events enthalten waren
+                }
             });
             
             // Sortiere nach aktueller Sortierung
             const sortedMembers = Object.values(memberStats)
+                .filter(member => member.totalPaid > 0 || member.totalEvents > 0)
                 .sort((a, b) => {
                     if (currentSort === 'payout') {
                         return b.totalPaid - a.totalPaid;
@@ -409,6 +422,11 @@
                     }
                 })
                 .slice(0, 20);
+
+            if (sortedMembers.length === 0) {
+                topList.innerHTML = '<div class="no-data" style="margin: 20px;">Noch keine Daten vorhanden</div>';
+                return;
+            }
 
             topList.innerHTML = sortedMembers.map((member, index) => `
                 <div class="top-item">
@@ -428,54 +446,80 @@
             `).join('');
         }
         
-        function updateDetailedStats(events) {
+        function updateDetailedStats(events, completedPayouts) {
             const tbody = document.getElementById('statsTableBody');
             const noData = document.getElementById('noStatsData');
+            const members = db.getMembers();
+            const memberTotals = {};
             
-            if (events.length === 0) {
+            // Initialisiere für jedes Mitglied
+            members.forEach(member => {
+                memberTotals[member.id] = {
+                    name: member.name,
+                    bizwar_win: 0, bizwar_lose: 0,
+                    '40er_win': 0, '40er_lose': 0,
+                    giesserei: 0, waffenfabrik: 0,
+                    hafen: 0, cayo: 0, rp_fabrik: 0, ekz: 0,
+                    total: 0
+                };
+            });
+            
+            // Addiere Events (offene Auszahlungen)
+            events.forEach(event => {
+                const eventType = event.eventType;
+                const amount = event.amount || 1;
+                const totalAmount = event.totalAmount || 0;
+                
+                // Berechne Betrag für dieses Event
+                let calculatedAmount = 0;
+                if (['cayo', 'rp_fabrik', 'ekz'].includes(eventType)) {
+                    calculatedAmount = totalAmount > 0 ? Math.round(totalAmount / event.memberIds.length) : 0;
+                } else {
+                    calculatedAmount = db.getEventPrice(eventType, amount);
+                }
+                
+                // Verteile auf Mitglieder
+                event.memberIds.forEach(memberId => {
+                    if (memberTotals[memberId]) {
+                        // Addiere Anzahl
+                        if (eventType in memberTotals[memberId]) {
+                            memberTotals[memberId][eventType] += amount;
+                        }
+                        
+                        // Addiere Gesamtbetrag
+                        memberTotals[memberId].total += calculatedAmount;
+                    }
+                });
+            });
+            
+            // Addiere abgeschlossene Auszahlungen (hier müssen wir die Event-History verwenden)
+            const eventHistory = db.getEventHistory();
+            completedPayouts.forEach(payout => {
+                const memberEvents = eventHistory.filter(event => event.memberId === payout.memberId);
+                memberEvents.forEach(event => {
+                    if (memberTotals[event.memberId]) {
+                        // Addiere Anzahl
+                        if (event.eventType in memberTotals[event.memberId]) {
+                            memberTotals[event.memberId][event.eventType] += event.amount;
+                        }
+                        
+                        // Addiere Gesamtbetrag
+                        memberTotals[event.memberId].total += event.individualAmount;
+                    }
+                });
+            });
+            
+            const membersWithData = Object.values(memberTotals).filter(member => member.total > 0);
+            
+            if (membersWithData.length === 0) {
                 tbody.innerHTML = '';
                 noData.style.display = 'block';
                 return;
             }
             
             noData.style.display = 'none';
-            const memberTotals = {};
             
-            // Initialisiere für jedes Mitglied
-            events.forEach(event => {
-                const eventType = event.eventType;
-                const amount = event.amount || 1;
-                
-                event.memberIds.forEach(memberId => {
-                    if (!memberTotals[memberId]) {
-                        const member = db.getMembers().find(m => m.id === memberId);
-                        memberTotals[memberId] = {
-                            name: member?.name || 'Unbekannt',
-                            bizwar_win: 0, bizwar_lose: 0,
-                            '40er_win': 0, '40er_lose': 0,
-                            giesserei: 0, waffenfabrik: 0,
-                            hafen: 0, cayo: 0, rp_fabrik: 0, ekz: 0,
-                            total: 0
-                        };
-                    }
-                    
-                    // Addiere Beträge basierend auf Event-Typ
-                    if (eventType in memberTotals[memberId]) {
-                        memberTotals[memberId][eventType] += amount;
-                    }
-                    
-                    // Addiere Gesamtbetrag
-                    let calculatedAmount = 0;
-                    if (['cayo', 'rp_fabrik', 'ekz'].includes(eventType)) {
-                        calculatedAmount = event.totalAmount > 0 ? Math.round(event.totalAmount / event.memberIds.length) : 0;
-                    } else {
-                        calculatedAmount = db.getEventPrice(eventType, amount);
-                    }
-                    memberTotals[memberId].total += calculatedAmount;
-                });
-            });
-            
-            tbody.innerHTML = Object.values(memberTotals)
+            tbody.innerHTML = membersWithData
                 .sort((a, b) => b.total - a.total)
                 .map(member => `
                     <tr>
@@ -521,6 +565,7 @@
             if (confirm('⚠️ STATISTIK wirklich zurücksetzen?\n\nDies löscht ALLE Events und Auszahlungsdaten!\n\nDiese Aktion kann nicht rückgängig gemacht werden.')) {
                 localStorage.setItem('hexenjaeger_events', JSON.stringify([]));
                 localStorage.setItem('hexenjaeger_completed_payouts', JSON.stringify([]));
+                localStorage.setItem('hexenjaeger_event_history', JSON.stringify([]));
                 showNotification('Statistik wurde zurückgesetzt!', 'success');
                 updateStatistics();
             }
