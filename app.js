@@ -22,6 +22,9 @@ class HexenjaegerDB {
         if (!localStorage.getItem('hexenjaeger_event_history')) {
             this.saveEventHistory([]);
         }
+        if (!localStorage.getItem('hexenjaeger_events')) {
+            this.saveEvents([]);
+        }
     }
 
     // Mitglieder Management
@@ -61,25 +64,75 @@ class HexenjaegerDB {
         localStorage.setItem('hexenjaeger_event_history', JSON.stringify(history));
     }
 
+    // Events Management
+    getEvents() {
+        return JSON.parse(localStorage.getItem('hexenjaeger_events') || '[]');
+    }
+
+    saveEvents(events) {
+        localStorage.setItem('hexenjaeger_events', JSON.stringify(events));
+    }
+
+    addEvent(eventData) {
+        try {
+            const events = this.getEvents();
+            const newEvent = {
+                id: Date.now().toString(),
+                ...eventData,
+                date: new Date().toISOString()
+            };
+            
+            events.push(newEvent);
+            this.saveEvents(events);
+            
+            // Für individuelle Events berechnen wir den Betrag hier
+            let calculatedAmount = 0;
+            if (['cayo', 'rp_fabrik', 'ekz'].includes(eventData.eventType)) {
+                // Shared Events
+                calculatedAmount = eventData.totalAmount || 0;
+            } else {
+                // Individuelle Events
+                calculatedAmount = this.getEventPrice(eventData.eventType, eventData.amount || 1);
+            }
+            
+            return {
+                success: true,
+                calculatedAmount: calculatedAmount
+            };
+        } catch (error) {
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+
     // Event Preise
+    getEventPrices() {
+        const prices = localStorage.getItem('hexenjaeger_event_prices');
+        if (prices) {
+            return JSON.parse(prices);
+        } else {
+            // Leere Preise zurückgeben, da sie in der Event-Eingabe gesetzt werden
+            return {};
+        }
+    }
+
+    saveEventPrices(prices) {
+        localStorage.setItem('hexenjaeger_event_prices', JSON.stringify(prices));
+    }
+
     getEventPrice(eventType, amount = 1) {
-        const PRICES = {
-            'bizwar_win': 20000,
-            'bizwar_lose': 10000,
-            '40er_win': 40000,
-            '40er_lose': 20000,
-            'ekz': 80000,
-            'hafen': 40000,
-            'giesserei': 10000,
-            'waffenfabrik': 10000,
-            'cayo': 0, // Wird separat berechnet
-            'rp_fabrik': 0  // Wird separat berechnet
-        };
-        return PRICES[eventType] * amount;
+        const prices = this.getEventPrices();
+        const eventPrice = prices[eventType];
+        if (eventPrice && eventPrice.price) {
+            return eventPrice.price * amount;
+        }
+        return 0; // Fallback, falls kein Preis gesetzt ist
     }
 
     // Event hinzufügen - MIT HISTORY
-    addEvent(eventData) {
+    addEventWithHistory(eventData) {
         const { eventType, memberIds, amount, totalAmount } = eventData;
         const members = this.getMembers();
         const payouts = this.getPayouts();
@@ -152,7 +205,7 @@ class HexenjaegerDB {
         };
     }
 
-    // Event History für ein Mitglied abrufen - DIESE FUNKTION HAT GEFEHLT!
+    // Event History für ein Mitglied abrufen
     getMemberEventHistory(memberId) {
         const history = this.getEventHistory();
         return history
@@ -185,76 +238,6 @@ class HexenjaegerDB {
             return `${event.amount} Kills ${eventName}`;
         }
     }
-
-    // In app.js hinzufügen:
-
-// Events Funktionen
-function getEvents() {
-    return JSON.parse(localStorage.getItem('hexenjaeger_events') || '[]');
-}
-
-function addEvent(eventData) {
-    try {
-        const events = getEvents();
-        const newEvent = {
-            id: Date.now().toString(),
-            ...eventData,
-            date: new Date().toISOString()
-        };
-        
-        events.push(newEvent);
-        localStorage.setItem('hexenjaeger_events', JSON.stringify(events));
-        
-        // Für individuelle Events berechnen wir den Betrag hier
-        let calculatedAmount = 0;
-        if (['cayo', 'rp_fabrik', 'ekz'].includes(eventData.eventType)) {
-            // Shared Events
-            calculatedAmount = eventData.totalAmount || 0;
-        } else {
-            // Individuelle Events
-            calculatedAmount = getEventPrice(eventData.eventType, eventData.amount || 1);
-        }
-        
-        return {
-            success: true,
-            calculatedAmount: calculatedAmount
-        };
-    } catch (error) {
-        return {
-            success: false,
-            error: error.message
-        };
-    }
-}
-
-// Event-Preise Funktionen
-function getEventPrices() {
-    const prices = localStorage.getItem('hexenjaeger_event_prices');
-    if (prices) {
-        return JSON.parse(prices);
-    } else {
-        // Leere Preise zurückgeben, da sie in der Event-Eingabe gesetzt werden
-        return {};
-    }
-}
-
-function saveEventPrices(prices) {
-    localStorage.setItem('hexenjaeger_event_prices', JSON.stringify(prices));
-}
-
-function getEventPrice(eventType, amount = 1) {
-    const prices = getEventPrices();
-    const eventPrice = prices[eventType];
-    if (eventPrice && eventPrice.price) {
-        return eventPrice.price * amount;
-    }
-    return 0; // Fallback, falls kein Preis gesetzt ist
-}
-
-// Stats Funktionen (falls benötigt)
-function getStats() {
-    return JSON.parse(localStorage.getItem('hexenjaeger_stats') || '[]');
-}
     
     // Auszahlung abschließen
     completePayout(memberId) {
@@ -300,41 +283,6 @@ function getStats() {
     saveStats(stats) {
         localStorage.setItem('hexenjaeger_stats', JSON.stringify(stats));
     }
-}
-
-// Event-Preise Funktionen
-function getEventPrices() {
-    const prices = localStorage.getItem('hexenjaeger_event_prices');
-    if (prices) {
-        return JSON.parse(prices);
-    } else {
-        // Standard-Preise zurückgeben
-        return {
-            'bizwar_win': { price: 50000, description: 'Pro Kill (Win)', unit: 'pro Kill' },
-            'bizwar_lose': { price: 25000, description: 'Pro Kill (Lose)', unit: 'pro Kill' },
-            '40er_win': { price: 40000, description: 'Pro Kill (Win)', unit: 'pro Kill' },
-            '40er_lose': { price: 20000, description: 'Pro Kill (Lose)', unit: 'pro Kill' },
-            'giesserei': { price: 30000, description: 'Pro Kill', unit: 'pro Kill' },
-            'waffenfabrik': { price: 35000, description: 'Pro Kill', unit: 'pro Kill' },
-            'hafen': { price: 100000, description: 'Pro Drop', unit: 'pro Drop' },
-            'ekz': { price: 150000, description: 'Pro Win', unit: 'pro Win' },
-            'rp_fabrik': { price: 200000, description: 'Pro Win', unit: 'pro Win' },
-            'cayo': { price: 250000, description: 'Pro Drop', unit: 'pro Drop' }
-        };
-    }
-}
-
-function saveEventPrices(prices) {
-    localStorage.setItem('hexenjaeger_event_prices', JSON.stringify(prices));
-}
-
-function getEventPrice(eventType, amount = 1) {
-    const prices = getEventPrices();
-    const eventPrice = prices[eventType];
-    if (eventPrice) {
-        return eventPrice.price * amount;
-    }
-    return 0;
 }
 
 // Globale DB Instanz
