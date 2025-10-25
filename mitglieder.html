@@ -243,16 +243,26 @@
                 if (member) {
                     const newName = prompt('Neuen Namen eingeben:', member.name);
                     if (newName && newName.trim()) {
-                        // In einer echten App würde hier db.updateMember() aufgerufen werden
-                        showNotification('Bearbeitungsfunktion kommt bald!');
+                        const result = db.updateMember(id, newName.trim());
+                        if (result.success) {
+                            renderMembers();
+                            showNotification('Mitglied erfolgreich bearbeitet!');
+                        } else {
+                            alert(result.error);
+                        }
                     }
                 }
             };
 
             window.deleteMember = (id) => {
                 if (confirm('Mitglied wirklich löschen?\n\nDiese Aktion kann nicht rückgängig gemacht werden.')) {
-                    // In einer echten App würde hier db.deleteMember() aufgerufen werden
-                    showNotification('Löschfunktion kommt bald!');
+                    const result = db.deleteMember(id);
+                    if (result.success) {
+                        renderMembers();
+                        showNotification('Mitglied erfolgreich gelöscht!');
+                    } else {
+                        alert(result.error);
+                    }
                 }
             };
 
