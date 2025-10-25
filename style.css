@@ -51,10 +51,7 @@ header {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    font-weight: bold;
-    font-size: 18px;
-    background-image: url('https://cdn.discordapp.com/attachments/1428752101714169876/1431648887562698864/hj1.png');
+    background-image: url('logo.png');
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
