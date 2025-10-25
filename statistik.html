@@ -15,40 +15,50 @@
 
         .stat-card {
             background: var(--bg-card);
-            border-radius: 12px;
-            padding: 25px;
             border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
             text-align: center;
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--accent-purple);
         }
 
         .stat-icon {
             font-size: 2.5em;
             margin-bottom: 15px;
+            display: block;
         }
 
-        .stat-value {
+        .stat-number {
             font-size: 2em;
             font-weight: bold;
             color: var(--accent-purple-light);
-            margin-bottom: 5px;
+            margin: 10px 0;
         }
 
         .stat-label {
             color: var(--text-muted);
-            margin-bottom: 10px;
             font-size: 0.9em;
         }
 
-        .stat-change {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            font-size: 0.85em;
+        .stat-trend {
+            font-size: 0.8em;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-top: 5px;
+            display: inline-block;
+        }
+
+        .trend-up {
+            background: rgba(16, 185, 129, 0.2);
             color: #10b981;
         }
 
-        .stat-change.negative {
+        .trend-down {
+            background: rgba(239, 68, 68, 0.2);
             color: #ef4444;
         }
 
@@ -109,6 +119,33 @@
             border-color: var(--accent-purple);
         }
 
+        .event-breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .event-item {
+            background: var(--bg-darker);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .event-count {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--accent-purple-light);
+            margin-bottom: 5px;
+        }
+
+        .event-name {
+            color: var(--text-muted);
+            font-size: 0.9em;
+        }
+
         .top-list {
             background: var(--bg-card);
             border-radius: 12px;
@@ -154,6 +191,17 @@
             color: var(--text-muted);
             font-size: 0.85em;
         }
+
+        .reset-btn {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .reset-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.5);
+        }
     </style>
 </head>
 <body>
@@ -165,54 +213,57 @@
             <a href="index.html" class="back-btn">← Zurück zur Übersicht</a>
         </header>
 
-        <div class="card">
-            <h2>Gesamtstatistik</h2>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">💰</div>
-                    <div class="stat-value" id="totalPayout">$0</div>
-                    <div class="stat-label">Gesamt ausgezahlt</div>
-                    <div class="stat-change" id="payoutChange">
-                        +0%
-                        <div class="tooltip">?
-                            <span class="tooltiptext">Veränderung gegenüber dem vorherigen Zeitraum</span>
-                        </div>
+        <div class="export-actions">
+            <button onclick="showResetConfirm()" class="btn btn-secondary reset-btn">
+                🗑️ Statistik zurücksetzen
+            </button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-number" id="totalPaid">$0</div>
+                <div class="stat-label">Gesamt ausgezahlt</div>
+                <div class="stat-trend trend-up">
+                    +0%
+                    <div class="tooltip">?
+                        <span class="tooltiptext">Veränderung gegenüber dem vorherigen Zeitraum</span>
                     </div>
                 </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon">👥</div>
-                    <div class="stat-value" id="activeMembers">0</div>
-                    <div class="stat-label">Aktive Mitglieder</div>
-                    <div class="stat-change" id="membersChange">
-                        +0%
-                        <div class="tooltip">?
-                            <span class="tooltiptext">Veränderung der aktiven Mitglieder im Vergleich zum vorherigen Zeitraum</span>
-                        </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-number" id="activeMembers">0</div>
+                <div class="stat-label">Aktive Mitglieder</div>
+                <div class="stat-trend trend-up">
+                    +0%
+                    <div class="tooltip">?
+                        <span class="tooltiptext">Veränderung der aktiven Mitglieder im Vergleich zum vorherigen Zeitraum</span>
                     </div>
                 </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon">🎯</div>
-                    <div class="stat-value" id="totalEvents">0</div>
-                    <div class="stat-label">Gesamt Events</div>
-                    <div class="stat-change" id="eventsChange">
-                        +0%
-                        <div class="tooltip">?
-                            <span class="tooltiptext">Veränderung der Event-Teilnahmen im Vergleich zum vorherigen Zeitraum</span>
-                        </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-number" id="totalEvents">0</div>
+                <div class="stat-label">Gesamt Events</div>
+                <div class="stat-trend trend-up">
+                    +0%
+                    <div class="tooltip">?
+                        <span class="tooltiptext">Veränderung der Event-Teilnahmen im Vergleich zum vorherigen Zeitraum</span>
                     </div>
                 </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon">📈</div>
-                    <div class="stat-value" id="avgPerPerson">$0</div>
-                    <div class="stat-label">Durchschnitt pro Person</div>
-                    <div class="stat-change" id="avgChange">
-                        +0%
-                        <div class="tooltip">?
-                            <span class="tooltiptext">Veränderung des Durchschnittsbetrags pro Person im Vergleich zum vorherigen Zeitraum</span>
-                        </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">📈</div>
+                <div class="stat-number" id="avgPerMember">$0</div>
+                <div class="stat-label">Durchschnitt pro Person</div>
+                <div class="stat-trend trend-up">
+                    +0%
+                    <div class="tooltip">?
+                        <span class="tooltiptext">Veränderung des Durchschnittsbetrags pro Person im Vergleich zum vorherigen Zeitraum</span>
                     </div>
                 </div>
             </div>
@@ -230,116 +281,147 @@
                 <!-- Wird via JavaScript gefüllt -->
             </div>
         </div>
+
+        <div class="card">
+            <h2>Event-Verteilung</h2>
+            <div class="event-breakdown" id="eventBreakdown">
+                <!-- Wird via JavaScript gefüllt -->
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Detaillierte Auszahlungsstatistik</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mitglied</th>
+                            <th>Bizwar W/L</th>
+                            <th>40er W/L</th>
+                            <th>Gießerei</th>
+                            <th>Waffenfabrik</th>
+                            <th>Hafen</th>
+                            <th>Cayo</th>
+                            <th>RP Fabrik</th>
+                            <th>EKZ</th>
+                            <th>Gesamt</th>
+                        </tr>
+                    </thead>
+                    <tbody id="statsTableBody">
+                        <!-- Wird via JavaScript gefüllt -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="noStatsData" class="no-data" style="display: none;">
+                Noch keine Auszahlungsdaten vorhanden
+            </div>
+        </div>
     </div>
 
     <script src="app.js"></script>
     <script>
         let currentSort = 'payout';
 
-        document.addEventListener('DOMContentLoaded', function() {
-            loadStatistics();
-            loadTopList();
-        });
-
-        function loadStatistics() {
-            const members = db.getMembers();
-            const payouts = db.getPayouts();
-            const events = db.getEvents();
+        function updateStatistics() {
+            const stats = db.getStats();
             
-            // Aktuelle Werte
-            const currentTotalPayout = payouts.reduce((sum, payout) => sum + payout.total, 0);
-            const currentActiveMembers = members.length;
-            const currentTotalEvents = events.length;
-            const currentAvgPerPerson = currentActiveMembers > 0 ? Math.round(currentTotalPayout / currentActiveMembers) : 0;
-
-            // Vorherige Werte (letzte 30 Tage)
-            const thirtyDaysAgo = new Date();
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-            const previousPayouts = payouts.filter(payout => {
-                const payoutDate = new Date(payout.date);
-                return payoutDate < thirtyDaysAgo;
-            });
-            const previousEvents = events.filter(event => {
-                const eventDate = new Date(event.date);
-                return eventDate < thirtyDaysAgo;
-            });
-
-            const previousTotalPayout = previousPayouts.reduce((sum, payout) => sum + payout.total, 0);
-            const previousTotalEvents = previousEvents.length;
-            
-            // Prozentuale Veränderungen berechnen
-            const payoutChange = previousTotalPayout > 0 ? 
-                Math.round(((currentTotalPayout - previousTotalPayout) / previousTotalPayout) * 100) : 0;
-            
-            const eventsChange = previousTotalEvents > 0 ? 
-                Math.round(((currentTotalEvents - previousTotalEvents) / previousTotalEvents) * 100) : 0;
-
-            // Für Mitglieder und Durchschnitt verwenden wir einfache Schätzungen
-            const membersChange = 0; // Könnte erweitert werden mit historischen Daten
-            const avgChange = previousTotalPayout > 0 ? 
-                Math.round(((currentAvgPerPerson - (previousTotalPayout / currentActiveMembers)) / (previousTotalPayout / currentActiveMembers)) * 100) : 0;
-
-            // Werte anzeigen
-            document.getElementById('totalPayout').textContent = formatCurrency(currentTotalPayout);
-            document.getElementById('activeMembers').textContent = currentActiveMembers;
-            document.getElementById('totalEvents').textContent = currentTotalEvents;
-            document.getElementById('avgPerPerson').textContent = formatCurrency(currentAvgPerPerson);
-
-            // Prozentwerte anzeigen
-            updatePercentageDisplay('payoutChange', payoutChange);
-            updatePercentageDisplay('membersChange', membersChange);
-            updatePercentageDisplay('eventsChange', eventsChange);
-            updatePercentageDisplay('avgChange', avgChange);
+            updateSummaryStats(stats);
+            updateEventBreakdown(stats);
+            updateTopList(stats);
+            updateDetailedStats(stats);
         }
-
-        function updatePercentageDisplay(elementId, change) {
-            const element = document.getElementById(elementId);
-            const changeElement = element.querySelector('.stat-change');
+        
+        function updateSummaryStats(stats) {
+            const totalPaid = stats.reduce((sum, stat) => sum + (stat.total || 0), 0);
+            document.getElementById('totalPaid').textContent = formatCurrency(totalPaid);
             
-            if (change > 0) {
-                changeElement.innerHTML = `+${change}% <div class="tooltip">?<span class="tooltiptext">Veränderung gegenüber dem vorherigen Zeitraum</span></div>`;
-                changeElement.style.color = '#10b981';
-            } else if (change < 0) {
-                changeElement.innerHTML = `${change}% <div class="tooltip">?<span class="tooltiptext">Veränderung gegenüber dem vorherigen Zeitraum</span></div>`;
-                changeElement.style.color = '#ef4444';
-            } else {
-                changeElement.innerHTML = `${change}% <div class="tooltip">?<span class="tooltiptext">Veränderung gegenüber dem vorherigen Zeitraum</span></div>`;
-                changeElement.style.color = 'var(--text-muted)';
-            }
+            const activeMembers = new Set(stats.map(stat => stat.memberId)).size;
+            document.getElementById('activeMembers').textContent = activeMembers;
+            
+            const totalEvents = stats.reduce((sum, stat) => {
+                return sum + (stat.bizwar_win || 0) + (stat.bizwar_lose || 0) + 
+                       (stat['40er_win'] || 0) + (stat['40er_lose'] || 0) +
+                       (stat.giesserei || 0) + (stat.waffenfabrik || 0) +
+                       (stat.hafen || 0) + (stat.cayo || 0) + 
+                       (stat.rp_fabrik || 0) + (stat.ekz || 0);
+            }, 0);
+            document.getElementById('totalEvents').textContent = totalEvents;
+            
+            const avgPerMember = activeMembers > 0 ? Math.round(totalPaid / activeMembers) : 0;
+            document.getElementById('avgPerMember').textContent = formatCurrency(avgPerMember);
         }
-
-        function loadTopList() {
-            const members = db.getMembers();
-            const events = db.getEvents();
-            const payouts = db.getPayouts();
-
-            // Berechne Statistiken für jedes Mitglied
-            const memberStats = members.map(member => {
-                const memberPayouts = payouts.filter(payout => payout.memberId === member.id);
-                const memberEvents = events.filter(event => event.memberIds.includes(member.id));
+        
+        function updateEventBreakdown(stats) {
+            const eventBreakdown = document.getElementById('eventBreakdown');
+            const eventTotals = {};
+            
+            // Zähle Events pro Typ
+            stats.forEach(stat => {
+                const eventTypes = ['bizwar_win', 'bizwar_lose', '40er_win', '40er_lose', 
+                                  'giesserei', 'waffenfabrik', 'hafen', 'cayo', 'rp_fabrik', 'ekz'];
                 
-                const totalPayout = memberPayouts.reduce((sum, payout) => sum + payout.total, 0);
-                const eventCount = memberEvents.length;
-
-                return {
-                    id: member.id,
-                    name: member.name,
-                    totalPayout: totalPayout,
-                    eventCount: eventCount
-                };
+                eventTypes.forEach(type => {
+                    if (stat[type] > 0) {
+                        eventTotals[type] = (eventTotals[type] || 0) + stat[type];
+                    }
+                });
             });
-
-            // Sortiere nach aktueller Sortierung
-            const sortedMembers = memberStats.sort((a, b) => {
-                if (currentSort === 'payout') {
-                    return b.totalPayout - a.totalPayout;
-                } else {
-                    return b.eventCount - a.eventCount;
-                }
-            }).slice(0, 20); // Top 20
-
+            
+            const eventNames = {
+                'bizwar_win': 'Bizwar Win', 'bizwar_lose': 'Bizwar Lose',
+                '40er_win': '40er Win', '40er_lose': '40er Lose',
+                'giesserei': 'Gießerei', 'waffenfabrik': 'Waffenfabrik',
+                'hafen': 'Hafen', 'cayo': 'Cayo', 
+                'rp_fabrik': 'RP Fabrik', 'ekz': 'EKZ'
+            };
+            
+            eventBreakdown.innerHTML = Object.entries(eventTotals)
+                .sort(([,a], [,b]) => b - a)
+                .map(([eventType, count]) => `
+                    <div class="event-item">
+                        <div class="event-count">${count}</div>
+                        <div class="event-name">${eventNames[eventType]}</div>
+                    </div>
+                `).join('');
+        }
+        
+        function updateTopList(stats) {
             const topList = document.getElementById('topList');
+            const memberStats = {};
+            
+            // Sammle Daten pro Mitglied
+            stats.forEach(stat => {
+                if (!memberStats[stat.memberId]) {
+                    memberStats[stat.memberId] = {
+                        name: stat.memberName,
+                        totalEvents: 0,
+                        totalPaid: 0
+                    };
+                }
+                
+                const eventTypes = ['bizwar_win', 'bizwar_lose', '40er_win', '40er_lose', 
+                                  'giesserei', 'waffenfabrik', 'hafen', 'cayo', 'rp_fabrik', 'ekz'];
+                
+                eventTypes.forEach(type => {
+                    if (stat[type] > 0) {
+                        memberStats[stat.memberId].totalEvents += stat[type];
+                    }
+                });
+                
+                memberStats[stat.memberId].totalPaid += stat.total || 0;
+            });
+            
+            // Sortiere nach aktueller Sortierung
+            const sortedMembers = Object.values(memberStats)
+                .sort((a, b) => {
+                    if (currentSort === 'payout') {
+                        return b.totalPaid - a.totalPaid;
+                    } else {
+                        return b.totalEvents - a.totalEvents;
+                    }
+                })
+                .slice(0, 20); // Top 20
+
             topList.innerHTML = sortedMembers.map((member, index) => `
                 <div class="top-item">
                     <div class="member-info">
@@ -348,26 +430,76 @@
                     </div>
                     <div class="member-stats">
                         <div class="member-amount">
-                            ${currentSort === 'payout' ? formatCurrency(member.totalPayout) : member.eventCount + ' Events'}
+                            ${currentSort === 'payout' ? formatCurrency(member.totalPaid) : member.totalEvents + ' Events'}
                         </div>
                         <div class="member-events">
-                            ${currentSort === 'payout' ? member.eventCount + ' Events' : formatCurrency(member.totalPayout)}
+                            ${currentSort === 'payout' ? member.totalEvents + ' Events' : formatCurrency(member.totalPaid)}
                         </div>
                     </div>
                 </div>
             `).join('');
         }
+        
+        function updateDetailedStats(stats) {
+            const tbody = document.getElementById('statsTableBody');
+            const noData = document.getElementById('noStatsData');
+            
+            if (stats.length === 0) {
+                tbody.innerHTML = '';
+                noData.style.display = 'block';
+                return;
+            }
+            
+            noData.style.display = 'none';
+            const memberTotals = {};
+            
+            stats.forEach(stat => {
+                if (!memberTotals[stat.memberId]) {
+                    memberTotals[stat.memberId] = {
+                        name: stat.memberName,
+                        bizwar_win: 0, bizwar_lose: 0,
+                        '40er_win': 0, '40er_lose': 0,
+                        giesserei: 0, waffenfabrik: 0,
+                        hafen: 0, cayo: 0, rp_fabrik: 0, ekz: 0,
+                        total: 0
+                    };
+                }
+                
+                Object.keys(memberTotals[stat.memberId]).forEach(key => {
+                    if (key !== 'name' && stat[key]) {
+                        memberTotals[stat.memberId][key] += stat[key] || 0;
+                    }
+                });
+            });
+            
+            tbody.innerHTML = Object.values(memberTotals)
+                .sort((a, b) => b.total - a.total)
+                .map(member => `
+                    <tr>
+                        <td><strong>${member.name}</strong></td>
+                        <td>${member.bizwar_win} / ${member.bizwar_lose}</td>
+                        <td>${member['40er_win']} / ${member['40er_lose']}</td>
+                        <td>${member.giesserei}</td>
+                        <td>${member.waffenfabrik}</td>
+                        <td>${member.hafen}</td>
+                        <td>${member.cayo}</td>
+                        <td>${member.rp_fabrik}</td>
+                        <td>${member.ekz}</td>
+                        <td><strong>${formatCurrency(member.total || 0)}</strong></td>
+                    </tr>
+                `).join('');
+        }
 
         function sortByPayout() {
             currentSort = 'payout';
             updateSortButtons();
-            loadTopList();
+            updateStatistics();
         }
 
         function sortByEvents() {
             currentSort = 'events';
             updateSortButtons();
-            loadTopList();
+            updateStatistics();
         }
 
         function updateSortButtons() {
@@ -381,6 +513,18 @@
                 document.querySelector('.sort-btn:nth-child(2)').classList.add('active');
             }
         }
+
+        function showResetConfirm() {
+            if (confirm('⚠️ STATISTIK wirklich zurücksetzen?\n\nDies löscht ALLE historischen Auszahlungsdaten!\n\nDie aktuellen offenen Auszahlungen bleiben erhalten.')) {
+                localStorage.setItem('hexenjaeger_stats', JSON.stringify([]));
+                showNotification('Statistik wurde zurückgesetzt!', 'success');
+                updateStatistics();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStatistics();
+        });
     </script>
 </body>
 </html>
