@@ -61,6 +61,43 @@ class HexenjaegerDB {
         return { success: true };
     }
 
+    // Mitglied bearbeiten
+    updateMember(id, newName) {
+        const members = this.getMembers();
+        const memberIndex = members.findIndex(m => m.id === id);
+        
+        if (memberIndex === -1) {
+            return { error: 'Mitglied nicht gefunden' };
+        }
+        
+        members[memberIndex].name = newName;
+        this.saveMembers(members);
+        return { success: true };
+    }
+
+    // Mitglied löschen
+    deleteMember(id) {
+        const members = this.getMembers();
+        const memberIndex = members.findIndex(m => m.id === id);
+        
+        if (memberIndex === -1) {
+            return { error: 'Mitglied nicht gefunden' };
+        }
+        
+        // Prüfe ob das Mitglied Events hat
+        const events = this.getEvents();
+        const hasEvents = events.some(event => event.memberIds.includes(id));
+        
+        if (hasEvents) {
+            return { error: 'Mitglied kann nicht gelöscht werden, da es Events hat' };
+        }
+        
+        // Lösche Mitglied
+        members.splice(memberIndex, 1);
+        this.saveMembers(members);
+        return { success: true };
+    }
+
     // Auszahlungen Management
     getPayouts() {
         return JSON.parse(localStorage.getItem('hexenjaeger_payouts') || '[]');
@@ -262,7 +299,7 @@ class HexenjaegerDB {
         }
     }
     
-    // Auszahlung abschließen (NEUE VERSION)
+    // Auszahlung abschließen
     completePayout(memberId) {
         const events = this.getEvents();
         const completedPayouts = this.getCompletedPayouts();
