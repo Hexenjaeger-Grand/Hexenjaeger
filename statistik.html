@@ -202,19 +202,19 @@
                 <div class="stat-trend trend-up">
                     +0%
                     <div class="tooltip">?
-                        <span class="tooltiptext">Veränderung gegenüber dem vorherigen Zeitraum</span>
+                        <span class="tooltiptext">Summe aller abgeschlossenen Auszahlungen</span>
                     </div>
                 </div>
             </div>
             
             <div class="stat-card">
-                <div class="stat-icon">👥</div>
-                <div class="stat-number" id="activeMembers">0</div>
-                <div class="stat-label">Aktive Mitglieder</div>
+                <div class="stat-icon">📋</div>
+                <div class="stat-number" id="openPayouts">0</div>
+                <div class="stat-label">Offene Auszahlungen</div>
                 <div class="stat-trend trend-up">
                     +0%
                     <div class="tooltip">?
-                        <span class="tooltiptext">Veränderung der aktiven Mitglieder im Vergleich zum vorherigen Zeitraum</span>
+                        <span class="tooltiptext">Aktuelle Anzahl offener Auszahlungen</span>
                     </div>
                 </div>
             </div>
@@ -226,7 +226,7 @@
                 <div class="stat-trend trend-up">
                     +0%
                     <div class="tooltip">?
-                        <span class="tooltiptext">Veränderung der Event-Teilnahmen im Vergleich zum vorherigen Zeitraum</span>
+                        <span class="tooltiptext">Gesamtanzahl aller erfassten Events</span>
                     </div>
                 </div>
             </div>
@@ -238,7 +238,7 @@
                 <div class="stat-trend trend-up">
                     +0%
                     <div class="tooltip">?
-                        <span class="tooltiptext">Veränderung des Durchschnittsbetrags pro Person im Vergleich zum vorherigen Zeitraum</span>
+                        <span class="tooltiptext">Durchschnittlicher Betrag pro Mitglied</span>
                     </div>
                 </div>
             </div>
@@ -300,15 +300,17 @@
         function updateStatistics() {
             // Verwende direkt die Events aus der Datenbank
             const events = db.getEvents();
-            const stats = calculateStatsFromEvents(events);
+            const completedPayouts = db.getCompletedPayouts();
+            const openPayouts = calculateOpenPayouts(events);
             
-            updateSummaryStats(stats);
-            updateTopList(stats);
-            updateDetailedStats(stats);
+            updateSummaryStats(events, completedPayouts, openPayouts);
+            updateTopList(events);
+            updateDetailedStats(events);
         }
 
-        function calculateStatsFromEvents(events) {
-            const stats = [];
+        function calculateOpenPayouts(events) {
+            const memberPayouts = {};
+            const members = db.getMembers();
             
             events.forEach(event => {
                 const eventType = event.eventType;
@@ -326,60 +328,75 @@
                     calculatedAmount = db.getEventPrice(eventType, amount);
                 }
                 
-                // Erstelle Stat-Einträge für jedes Mitglied
+                // Verteile auf Mitglieder
                 event.memberIds.forEach(memberId => {
-                    const member = db.getMembers().find(m => m.id === memberId);
-                    if (member) {
-                        stats.push({
-                            id: event.id + '_' + memberId,
+                    if (!memberPayouts[memberId]) {
+                        const member = members.find(m => m.id === memberId);
+                        memberPayouts[memberId] = {
                             memberId: memberId,
-                            memberName: member.name,
-                            eventType: eventType,
-                            amount: amount,
-                            total: calculatedAmount,
-                            date: event.date || new Date().toISOString()
-                        });
+                            memberName: member?.name || 'Unbekannt',
+                            total: 0
+                        };
                     }
+                    
+                    memberPayouts[memberId].total += calculatedAmount;
                 });
             });
             
-            return stats;
+            return Object.values(memberPayouts);
         }
         
-        function updateSummaryStats(stats) {
-            // Gesamt ausgezahlt
-            const totalPaid = stats.reduce((sum, stat) => sum + (stat.total || 0), 0);
+        function updateSummaryStats(events, completedPayouts, openPayouts) {
+            // Gesamt ausgezahlt (abgeschlossene Auszahlungen)
+            const totalPaid = completedPayouts.reduce((sum, payout) => sum + payout.total, 0);
             document.getElementById('totalPaid').textContent = formatCurrency(totalPaid);
             
-            // Aktive Mitglieder
-            const activeMembers = new Set(stats.map(stat => stat.memberId)).size;
-            document.getElementById('activeMembers').textContent = activeMembers;
+            // Offene Auszahlungen
+            document.getElementById('openPayouts').textContent = openPayouts.length;
             
             // Gesamt Events
-            const totalEvents = stats.length;
-            document.getElementById('totalEvents').textContent = totalEvents;
+            document.getElementById('totalEvents').textContent = events.length;
             
             // Durchschnitt pro Person
-            const avgPerMember = activeMembers > 0 ? Math.round(totalPaid / activeMembers) : 0;
+            const activeMembers = new Set(events.flatMap(event => event.memberIds)).size;
+            const totalAmount = totalPaid + openPayouts.reduce((sum, payout) => sum + payout.total, 0);
+            const avgPerMember = activeMembers > 0 ? Math.round(totalAmount / activeMembers) : 0;
             document.getElementById('avgPerMember').textContent = formatCurrency(avgPerMember);
         }
         
-        function updateTopList(stats) {
+        function updateTopList(events) {
             const topList = document.getElementById('topList');
             const memberStats = {};
             
             // Sammle Daten pro Mitglied
-            stats.forEach(stat => {
-                if (!memberStats[stat.memberId]) {
-                    memberStats[stat.memberId] = {
-                        name: stat.memberName,
-                        totalEvents: 0,
-                        totalPaid: 0
-                    };
+            events.forEach(event => {
+                const eventType = event.eventType;
+                const amount = event.amount || 1;
+                const totalAmount = event.totalAmount || 0;
+                
+                // Berechne den Betrag für dieses Event
+                let calculatedAmount = 0;
+                
+                if (['cayo', 'rp_fabrik', 'ekz'].includes(eventType)) {
+                    calculatedAmount = totalAmount > 0 ? Math.round(totalAmount / event.memberIds.length) : 0;
+                } else {
+                    calculatedAmount = db.getEventPrice(eventType, amount);
                 }
                 
-                memberStats[stat.memberId].totalEvents += 1;
-                memberStats[stat.memberId].totalPaid += stat.total || 0;
+                // Verteile auf Mitglieder
+                event.memberIds.forEach(memberId => {
+                    if (!memberStats[memberId]) {
+                        const member = db.getMembers().find(m => m.id === memberId);
+                        memberStats[memberId] = {
+                            name: member?.name || 'Unbekannt',
+                            totalEvents: 0,
+                            totalPaid: 0
+                        };
+                    }
+                    
+                    memberStats[memberId].totalEvents += 1;
+                    memberStats[memberId].totalPaid += calculatedAmount;
+                });
             });
             
             // Sortiere nach aktueller Sortierung
@@ -411,11 +428,11 @@
             `).join('');
         }
         
-        function updateDetailedStats(stats) {
+        function updateDetailedStats(events) {
             const tbody = document.getElementById('statsTableBody');
             const noData = document.getElementById('noStatsData');
             
-            if (stats.length === 0) {
+            if (events.length === 0) {
                 tbody.innerHTML = '';
                 noData.style.display = 'block';
                 return;
@@ -425,26 +442,37 @@
             const memberTotals = {};
             
             // Initialisiere für jedes Mitglied
-            stats.forEach(stat => {
-                if (!memberTotals[stat.memberId]) {
-                    memberTotals[stat.memberId] = {
-                        name: stat.memberName,
-                        bizwar_win: 0, bizwar_lose: 0,
-                        '40er_win': 0, '40er_lose': 0,
-                        giesserei: 0, waffenfabrik: 0,
-                        hafen: 0, cayo: 0, rp_fabrik: 0, ekz: 0,
-                        total: 0
-                    };
-                }
+            events.forEach(event => {
+                const eventType = event.eventType;
+                const amount = event.amount || 1;
                 
-                // Addiere Beträge basierend auf Event-Typ
-                const eventType = stat.eventType;
-                if (eventType in memberTotals[stat.memberId]) {
-                    memberTotals[stat.memberId][eventType] += stat.amount || 1;
-                }
-                
-                // Addiere Gesamtbetrag
-                memberTotals[stat.memberId].total += stat.total || 0;
+                event.memberIds.forEach(memberId => {
+                    if (!memberTotals[memberId]) {
+                        const member = db.getMembers().find(m => m.id === memberId);
+                        memberTotals[memberId] = {
+                            name: member?.name || 'Unbekannt',
+                            bizwar_win: 0, bizwar_lose: 0,
+                            '40er_win': 0, '40er_lose': 0,
+                            giesserei: 0, waffenfabrik: 0,
+                            hafen: 0, cayo: 0, rp_fabrik: 0, ekz: 0,
+                            total: 0
+                        };
+                    }
+                    
+                    // Addiere Beträge basierend auf Event-Typ
+                    if (eventType in memberTotals[memberId]) {
+                        memberTotals[memberId][eventType] += amount;
+                    }
+                    
+                    // Addiere Gesamtbetrag
+                    let calculatedAmount = 0;
+                    if (['cayo', 'rp_fabrik', 'ekz'].includes(eventType)) {
+                        calculatedAmount = event.totalAmount > 0 ? Math.round(event.totalAmount / event.memberIds.length) : 0;
+                    } else {
+                        calculatedAmount = db.getEventPrice(eventType, amount);
+                    }
+                    memberTotals[memberId].total += calculatedAmount;
+                });
             });
             
             tbody.innerHTML = Object.values(memberTotals)
@@ -492,7 +520,7 @@
         function showResetConfirm() {
             if (confirm('⚠️ STATISTIK wirklich zurücksetzen?\n\nDies löscht ALLE Events und Auszahlungsdaten!\n\nDiese Aktion kann nicht rückgängig gemacht werden.')) {
                 localStorage.setItem('hexenjaeger_events', JSON.stringify([]));
-                localStorage.setItem('hexenjaeger_stats', JSON.stringify([]));
+                localStorage.setItem('hexenjaeger_completed_payouts', JSON.stringify([]));
                 showNotification('Statistik wurde zurückgesetzt!', 'success');
                 updateStatistics();
             }
