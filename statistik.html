@@ -15,111 +15,144 @@
 
         .stat-card {
             background: var(--bg-card);
+            border-radius: 12px;
+            padding: 25px;
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 24px;
             text-align: center;
-            transition: all 0.2s;
-        }
-
-        .stat-card:hover {
-            border-color: var(--accent-purple);
         }
 
         .stat-icon {
             font-size: 2.5em;
             margin-bottom: 15px;
-            display: block;
         }
 
-        .stat-number {
+        .stat-value {
             font-size: 2em;
-            font-weight: bold;
-            color: var(--accent-purple-light);
-            margin: 10px 0;
-        }
-
-        .stat-label {
-            color: var(--text-muted);
-            font-size: 0.9em;
-        }
-
-        .stat-trend {
-            font-size: 0.8em;
-            padding: 2px 8px;
-            border-radius: 12px;
-            margin-top: 5px;
-            display: inline-block;
-        }
-
-        .trend-up {
-            background: rgba(16, 185, 129, 0.2);
-            color: #10b981;
-        }
-
-        .trend-down {
-            background: rgba(239, 68, 68, 0.2);
-            color: #ef4444;
-        }
-
-        .filters {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-        }
-
-        .export-actions {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-        }
-
-        .chart-container {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .chart-placeholder {
-            height: 200px;
-            background: var(--bg-darker);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-muted);
-            font-style: italic;
-        }
-
-        .event-breakdown {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .event-item {
-            background: var(--bg-darker);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 15px;
-            text-align: center;
-        }
-
-        .event-count {
-            font-size: 1.5em;
             font-weight: bold;
             color: var(--accent-purple-light);
             margin-bottom: 5px;
         }
 
-        .event-name {
+        .stat-label {
             color: var(--text-muted);
+            margin-bottom: 10px;
             font-size: 0.9em;
+        }
+
+        .stat-change {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            font-size: 0.85em;
+            color: #10b981;
+        }
+
+        .stat-change.negative {
+            color: #ef4444;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 5px;
+            cursor: help;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--bg-darker);
+            color: var(--text-light);
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            border: 1px solid var(--border-color);
+            font-size: 0.8em;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .sorting-options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .sort-btn {
+            padding: 10px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .sort-btn.active {
+            background: var(--accent-purple);
+            border-color: var(--accent-purple);
+        }
+
+        .sort-btn:hover {
+            border-color: var(--accent-purple);
+        }
+
+        .top-list {
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .top-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .top-item:last-child {
+            border-bottom: none;
+        }
+
+        .member-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .member-rank {
+            font-weight: bold;
+            color: var(--accent-purple-light);
+            min-width: 25px;
+        }
+
+        .member-stats {
+            text-align: right;
+        }
+
+        .member-amount {
+            font-weight: bold;
+            color: var(--text-light);
+            font-size: 1.1em;
+        }
+
+        .member-events {
+            color: var(--text-muted);
+            font-size: 0.85em;
         }
     </style>
 </head>
@@ -128,437 +161,191 @@
         <header>
             <div class="hexenjaeger-symbol">HJ</div>
             <h1>Statistik</h1>
-            <p>Analyse der Family-Aktivitäten</p>
+            <p>Übersicht und Top 20 Mitglieder</p>
             <a href="index.html" class="back-btn">← Zurück zur Übersicht</a>
         </header>
 
-        <div class="export-actions">
-            <button onclick="exportData()" class="btn btn-primary">📥 Daten exportieren</button>
-            <button onclick="document.getElementById('importFile').click()" class="btn btn-secondary">📤 Daten importieren</button>
-            <input type="file" id="importFile" accept=".json" style="display: none" onchange="importData(event)">
-            <button onclick="showResetConfirm()" class="btn btn-secondary" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.3);">
-                🗑️ Statistik zurücksetzen
-            </button>
-        </div>
+        <div class="card">
+            <h2>Gesamtstatistik</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-value" id="totalPayout">$0</div>
+                    <div class="stat-label">Gesamt ausgezahlt</div>
+                    <div class="stat-change" id="payoutChange">
+                        +0%
+                        <div class="tooltip">?
+                            <span class="tooltiptext">Veränderung gegenüber dem vorherigen Zeitraum</span>
+                        </div>
+                    </div>
+                </div>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">💰</div>
-                <div class="stat-number" id="totalPaid">$0</div>
-                <div class="stat-label">Gesamt ausgezahlt</div>
-                <div class="stat-trend trend-up" id="totalTrend">+12%</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon">👥</div>
-                <div class="stat-number" id="activeMembers">0</div>
-                <div class="stat-label">Aktive Mitglieder</div>
-                <div class="stat-trend trend-up" id="membersTrend">+5%</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon">🎯</div>
-                <div class="stat-number" id="totalEvents">0</div>
-                <div class="stat-label">Gesamt Events</div>
-                <div class="stat-trend trend-up" id="eventsTrend">+8%</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon">📈</div>
-                <div class="stat-number" id="avgPerMember">$0</div>
-                <div class="stat-label">Durchschnitt pro Person</div>
-                <div class="stat-trend trend-up" id="avgTrend">+3%</div>
-            </div>
-        </div>
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-value" id="activeMembers">0</div>
+                    <div class="stat-label">Aktive Mitglieder</div>
+                    <div class="stat-change" id="membersChange">
+                        +0%
+                        <div class="tooltip">?
+                            <span class="tooltiptext">Veränderung der aktiven Mitglieder im Vergleich zum vorherigen Zeitraum</span>
+                        </div>
+                    </div>
+                </div>
 
-        <div class="filters">
-            <div class="form-group">
-                <label>Zeitraum</label>
-                <select id="timeFilter" class="filter-select" onchange="updateStatistics()">
-                    <option value="all">Alle Zeiträume</option>
-                    <option value="week">Letzte Woche</option>
-                    <option value="month">Letzter Monat</option>
-                    <option value="year">Dieses Jahr</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label>Mitglied</label>
-                <select id="memberFilter" class="filter-select" onchange="updateStatistics()">
-                    <option value="all">Alle Mitglieder</option>
-                </select>
-            </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-value" id="totalEvents">0</div>
+                    <div class="stat-label">Gesamt Events</div>
+                    <div class="stat-change" id="eventsChange">
+                        +0%
+                        <div class="tooltip">?
+                            <span class="tooltiptext">Veränderung der Event-Teilnahmen im Vergleich zum vorherigen Zeitraum</span>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="form-group">
-                <label>Event Typ</label>
-                <select id="eventFilter" class="filter-select" onchange="updateStatistics()">
-                    <option value="all">Alle Events</option>
-                    <option value="bizwar_win">Bizwar Win</option>
-                    <option value="bizwar_lose">Bizwar Lose</option>
-                    <option value="40er_win">40er Win</option>
-                    <option value="40er_lose">40er Lose</option>
-                    <option value="ekz">EKZ</option>
-                    <option value="hafen">Hafen</option>
-                    <option value="giesserei">Gießerei</option>
-                    <option value="waffenfabrik">Waffenfabrik</option>
-                </select>
+                <div class="stat-card">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-value" id="avgPerPerson">$0</div>
+                    <div class="stat-label">Durchschnitt pro Person</div>
+                    <div class="stat-change" id="avgChange">
+                        +0%
+                        <div class="tooltip">?
+                            <span class="tooltiptext">Veränderung des Durchschnittsbetrags pro Person im Vergleich zum vorherigen Zeitraum</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <div class="card">
-            <h2>Event-Verteilung</h2>
-            <div class="event-breakdown" id="eventBreakdown">
+            <h2>Top 20 Mitglieder</h2>
+            
+            <div class="sorting-options">
+                <button class="sort-btn active" onclick="sortByPayout()">Nach Auszahlungen</button>
+                <button class="sort-btn" onclick="sortByEvents()">Nach Events</button>
+            </div>
+
+            <div class="top-list" id="topList">
                 <!-- Wird via JavaScript gefüllt -->
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>Top Mitglieder</h2>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Mitglied</th>
-                            <th>Events</th>
-                            <th>Ausgezahlt</th>
-                            <th>Durchschnitt</th>
-                            <th>Top Event</th>
-                        </tr>
-                    </thead>
-                    <tbody id="topMembersBody">
-                        <!-- Wird via JavaScript gefüllt -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>Detaillierte Auszahlungsstatistik</h2>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Mitglied</th>
-                            <th>Bizwar W/L</th>
-                            <th>40er W/L</th>
-                            <th>Gießerei</th>
-                            <th>Waffenfabrik</th>
-                            <th>Hafen</th>
-                            <th>Cayo</th>
-                            <th>RP Fabrik</th>
-                            <th>EKZ</th>
-                            <th>Gesamt</th>
-                        </tr>
-                    </thead>
-                    <tbody id="statsTableBody">
-                        <!-- Wird via JavaScript gefüllt -->
-                    </tbody>
-                </table>
-            </div>
-            <div id="noStatsData" class="no-data" style="display: none;">
-                Noch keine Auszahlungsdaten vorhanden
             </div>
         </div>
     </div>
 
     <script src="app.js"></script>
     <script>
-        function updateStatistics() {
-            const stats = db.getStats();
-            const timeFilter = document.getElementById('timeFilter').value;
-            const memberFilter = document.getElementById('memberFilter').value;
-            const eventFilter = document.getElementById('eventFilter').value;
-            
-            // Filtere Daten basierend auf Auswahl
-            let filteredStats = stats.filter(stat => {
-                let include = true;
-                
-                // Zeitfilter
-                if (timeFilter !== 'all' && stat.paidDate) {
-                    const statDate = new Date(stat.paidDate);
-                    const now = new Date();
-                    let timeDiff;
-                    
-                    switch(timeFilter) {
-                        case 'week': timeDiff = 7 * 24 * 60 * 60 * 1000; break;
-                        case 'month': timeDiff = 30 * 24 * 60 * 60 * 1000; break;
-                        case 'year': timeDiff = 365 * 24 * 60 * 60 * 1000; break;
-                        default: timeDiff = 0;
-                    }
-                    
-                    include = include && (now - statDate) <= timeDiff;
-                }
-                
-                // Mitgliederfilter
-                if (memberFilter !== 'all') {
-                    include = include && stat.memberId === memberFilter;
-                }
-
-                // Event-Filter
-                if (eventFilter !== 'all') {
-                    include = include && stat[eventFilter] > 0;
-                }
-                
-                return include;
-            });
-            
-            updateSummaryStats(filteredStats);
-            updateEventBreakdown(filteredStats);
-            updateTopMembers(filteredStats);
-            updateDetailedStats(filteredStats);
-        }
-        
-        function updateSummaryStats(stats) {
-            const totalPaid = stats.reduce((sum, stat) => sum + (stat.total || 0), 0);
-            document.getElementById('totalPaid').textContent = formatCurrency(totalPaid);
-            
-            const activeMembers = new Set(stats.map(stat => stat.memberId)).size;
-            document.getElementById('activeMembers').textContent = activeMembers;
-            
-            const totalEvents = stats.reduce((sum, stat) => {
-                return sum + (stat.bizwar_win || 0) + (stat.bizwar_lose || 0) + 
-                       (stat['40er_win'] || 0) + (stat['40er_lose'] || 0) +
-                       (stat.giesserei || 0) + (stat.waffenfabrik || 0) +
-                       (stat.hafen || 0) + (stat.cayo || 0) + 
-                       (stat.rp_fabrik || 0) + (stat.ekz || 0);
-            }, 0);
-            document.getElementById('totalEvents').textContent = totalEvents;
-            
-            const avgPerMember = activeMembers > 0 ? Math.round(totalPaid / activeMembers) : 0;
-            document.getElementById('avgPerMember').textContent = formatCurrency(avgPerMember);
-        }
-        
-        function updateEventBreakdown(stats) {
-            const eventBreakdown = document.getElementById('eventBreakdown');
-            const eventTotals = {};
-            
-            // Zähle Events pro Typ
-            stats.forEach(stat => {
-                const eventTypes = ['bizwar_win', 'bizwar_lose', '40er_win', '40er_lose', 
-                                  'giesserei', 'waffenfabrik', 'hafen', 'cayo', 'rp_fabrik', 'ekz'];
-                
-                eventTypes.forEach(type => {
-                    if (stat[type] > 0) {
-                        eventTotals[type] = (eventTotals[type] || 0) + stat[type];
-                    }
-                });
-            });
-            
-            const eventNames = {
-                'bizwar_win': 'Bizwar Win', 'bizwar_lose': 'Bizwar Lose',
-                '40er_win': '40er Win', '40er_lose': '40er Lose',
-                'giesserei': 'Gießerei', 'waffenfabrik': 'Waffenfabrik',
-                'hafen': 'Hafen', 'cayo': 'Cayo', 
-                'rp_fabrik': 'RP Fabrik', 'ekz': 'EKZ'
-            };
-            
-            eventBreakdown.innerHTML = Object.entries(eventTotals)
-                .sort(([,a], [,b]) => b - a)
-                .map(([eventType, count]) => `
-                    <div class="event-item">
-                        <div class="event-count">${count}</div>
-                        <div class="event-name">${eventNames[eventType]}</div>
-                    </div>
-                `).join('');
-        }
-        
-        function updateTopMembers(stats) {
-            const tbody = document.getElementById('topMembersBody');
-            const memberStats = {};
-            
-            // Sammle Daten pro Mitglied
-            stats.forEach(stat => {
-                if (!memberStats[stat.memberId]) {
-                    memberStats[stat.memberId] = {
-                        name: stat.memberName,
-                        totalEvents: 0,
-                        totalPaid: 0,
-                        eventsByType: {}
-                    };
-                }
-                
-                const eventTypes = ['bizwar_win', 'bizwar_lose', '40er_win', '40er_lose', 
-                                  'giesserei', 'waffenfabrik', 'hafen', 'cayo', 'rp_fabrik', 'ekz'];
-                
-                eventTypes.forEach(type => {
-                    if (stat[type] > 0) {
-                        memberStats[stat.memberId].totalEvents += stat[type];
-                        memberStats[stat.memberId].eventsByType[type] = 
-                            (memberStats[stat.memberId].eventsByType[type] || 0) + stat[type];
-                    }
-                });
-                
-                memberStats[stat.memberId].totalPaid += stat.total || 0;
-            });
-            
-            // Top 10 Mitglieder nach Events
-            const topMembers = Object.values(memberStats)
-                .sort((a, b) => b.totalEvents - a.totalEvents)
-                .slice(0, 10);
-            
-            tbody.innerHTML = topMembers.map(member => {
-                const avgPerEvent = member.totalEvents > 0 ? Math.round(member.totalPaid / member.totalEvents) : 0;
-                
-                // Finde Top Event
-                let topEvent = '-';
-                let maxCount = 0;
-                Object.entries(member.eventsByType).forEach(([eventType, count]) => {
-                    if (count > maxCount) {
-                        maxCount = count;
-                        const eventNames = {
-                            'bizwar_win': 'Bizwar W', 'bizwar_lose': 'Bizwar L',
-                            '40er_win': '40er W', '40er_lose': '40er L',
-                            'giesserei': 'Gießerei', 'waffenfabrik': 'Waffenfabrik',
-                            'hafen': 'Hafen', 'cayo': 'Cayo', 
-                            'rp_fabrik': 'RP Fabrik', 'ekz': 'EKZ'
-                        };
-                        topEvent = eventNames[eventType];
-                    }
-                });
-                
-                return `
-                    <tr>
-                        <td><strong>${member.name}</strong></td>
-                        <td>${member.totalEvents}</td>
-                        <td><strong>${formatCurrency(member.totalPaid)}</strong></td>
-                        <td>${formatCurrency(avgPerEvent)}</td>
-                        <td>${topEvent}</td>
-                    </tr>
-                `;
-            }).join('');
-        }
-        
-        function updateDetailedStats(stats) {
-            const tbody = document.getElementById('statsTableBody');
-            const noData = document.getElementById('noStatsData');
-            
-            if (stats.length === 0) {
-                tbody.innerHTML = '';
-                noData.style.display = 'block';
-                return;
-            }
-            
-            noData.style.display = 'none';
-            const memberTotals = {};
-            
-            stats.forEach(stat => {
-                if (!memberTotals[stat.memberId]) {
-                    memberTotals[stat.memberId] = {
-                        name: stat.memberName,
-                        bizwar_win: 0, bizwar_lose: 0,
-                        '40er_win': 0, '40er_lose': 0,
-                        giesserei: 0, waffenfabrik: 0,
-                        hafen: 0, cayo: 0, rp_fabrik: 0, ekz: 0,
-                        total: 0
-                    };
-                }
-                
-                Object.keys(memberTotals[stat.memberId]).forEach(key => {
-                    if (key !== 'name' && stat[key]) {
-                        memberTotals[stat.memberId][key] += stat[key] || 0;
-                    }
-                });
-            });
-            
-            tbody.innerHTML = Object.values(memberTotals)
-                .sort((a, b) => b.total - a.total)
-                .map(member => `
-                    <tr>
-                        <td><strong>${member.name}</strong></td>
-                        <td>${member.bizwar_win} / ${member.bizwar_lose}</td>
-                        <td>${member['40er_win']} / ${member['40er_lose']}</td>
-                        <td>${member.giesserei}</td>
-                        <td>${member.waffenfabrik}</td>
-                        <td>${member.hafen}</td>
-                        <td>${member.cayo}</td>
-                        <td>${member.rp_fabrik}</td>
-                        <td>${member.ekz}</td>
-                        <td><strong>${formatCurrency(member.total || 0)}</strong></td>
-                    </tr>
-                `).join('');
-        }
-        
-        function updateMemberFilter() {
-            const members = db.getMembers();
-            const select = document.getElementById('memberFilter');
-            
-            select.innerHTML = '<option value="all">Alle Mitglieder</option>';
-            
-            members.forEach(member => {
-                const option = document.createElement('option');
-                option.value = member.id;
-                option.textContent = `${member.name} (${member.id})`;
-                select.appendChild(option);
-            });
-        }
-        
-        function exportData() {
-            const data = {
-                stats: db.getStats(),
-                members: db.getMembers(),
-                payouts: db.getPayouts(),
-                exportDate: new Date().toISOString(),
-                version: '2.0'
-            };
-            
-            const dataStr = JSON.stringify(data, null, 2);
-            const blob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `hexenjaeger-backup-${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            
-            URL.revokeObjectURL(url);
-            showNotification('Daten erfolgreich exportiert!', 'success');
-        }
-        
-        function importData(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    
-                    if (data.stats) {
-                        localStorage.setItem('hexenjaeger_stats', JSON.stringify(data.stats));
-                    }
-                    if (data.members) {
-                        localStorage.setItem('hexenjaeger_members', JSON.stringify(data.members));
-                    }
-                    if (data.payouts) {
-                        localStorage.setItem('hexenjaeger_payouts', JSON.stringify(data.payouts));
-                    }
-                    
-                    showNotification('Daten erfolgreich importiert!', 'success');
-                    updateStatistics();
-                    updateMemberFilter();
-                } catch (error) {
-                    showNotification('Fehler beim Import: Ungültige Datei', 'error');
-                }
-            };
-            reader.readAsText(file);
-            
-            event.target.value = '';
-        }
-        
-        function showResetConfirm() {
-            if (confirm('⚠️ STATISTIK wirklich zurücksetzen?\n\nDies löscht ALLE historischen Auszahlungsdaten!\n\nDie aktuellen offenen Auszahlungen bleiben erhalten.')) {
-                localStorage.setItem('hexenjaeger_stats', JSON.stringify([]));
-                showNotification('Statistik wurde zurückgesetzt!', 'success');
-                updateStatistics();
-            }
-        }
+        let currentSort = 'payout';
 
         document.addEventListener('DOMContentLoaded', function() {
-            updateMemberFilter();
-            updateStatistics();
+            loadStatistics();
+            loadTopList();
         });
+
+        function loadStatistics() {
+            const members = db.getMembers();
+            const events = db.getEvents();
+            const payouts = db.getPayouts();
+
+            // Gesamt ausgezahlt
+            const totalPayout = payouts.reduce((sum, payout) => sum + payout.total, 0);
+            document.getElementById('totalPayout').textContent = formatCurrency(totalPayout);
+
+            // Aktive Mitglieder (Mitglieder mit mindestens einem Event)
+            const activeMembers = members.filter(member => 
+                events.some(event => event.memberIds.includes(member.id))
+            ).length;
+            document.getElementById('activeMembers').textContent = activeMembers;
+
+            // Gesamt Events
+            document.getElementById('totalEvents').textContent = events.length;
+
+            // Durchschnitt pro Person
+            const avgPerPerson = activeMembers > 0 ? Math.round(totalPayout / activeMembers) : 0;
+            document.getElementById('avgPerPerson').textContent = formatCurrency(avgPerPerson);
+
+            // Prozentuale Veränderungen (Beispieldaten - würde normalerweise aus der Datenbank kommen)
+            document.getElementById('payoutChange').innerHTML = `+12% <div class="tooltip">?<span class="tooltiptext">Veränderung gegenüber dem vorherigen Zeitraum</span></div>`;
+            document.getElementById('membersChange').innerHTML = `+5% <div class="tooltip">?<span class="tooltiptext">Veränderung der aktiven Mitglieder im Vergleich zum vorherigen Zeitraum</span></div>`;
+            document.getElementById('eventsChange').innerHTML = `+8% <div class="tooltip">?<span class="tooltiptext">Veränderung der Event-Teilnahmen im Vergleich zum vorherigen Zeitraum</span></div>`;
+            document.getElementById('avgChange').innerHTML = `+3% <div class="tooltip">?<span class="tooltiptext">Veränderung des Durchschnittsbetrags pro Person im Vergleich zum vorherigen Zeitraum</span></div>`;
+        }
+
+        function loadTopList() {
+            const members = db.getMembers();
+            const events = db.getEvents();
+            const payouts = db.getPayouts();
+
+            // Berechne Statistiken für jedes Mitglied
+            const memberStats = members.map(member => {
+                const memberEvents = events.filter(event => 
+                    event.memberIds.includes(member.id)
+                );
+                const memberPayouts = payouts.filter(payout => 
+                    payout.memberId === member.id
+                );
+                
+                const totalPayout = memberPayouts.reduce((sum, payout) => sum + payout.total, 0);
+                const eventCount = memberEvents.length;
+
+                return {
+                    id: member.id,
+                    name: member.name,
+                    totalPayout: totalPayout,
+                    eventCount: eventCount
+                };
+            });
+
+            // Sortiere nach aktueller Sortierung
+            const sortedMembers = memberStats.sort((a, b) => {
+                if (currentSort === 'payout') {
+                    return b.totalPayout - a.totalPayout;
+                } else {
+                    return b.eventCount - a.eventCount;
+                }
+            }).slice(0, 20); // Top 20
+
+            const topList = document.getElementById('topList');
+            topList.innerHTML = sortedMembers.map((member, index) => `
+                <div class="top-item">
+                    <div class="member-info">
+                        <div class="member-rank">#${index + 1}</div>
+                        <div class="member-name">${member.name}</div>
+                    </div>
+                    <div class="member-stats">
+                        <div class="member-amount">
+                            ${currentSort === 'payout' ? formatCurrency(member.totalPayout) : member.eventCount + ' Events'}
+                        </div>
+                        <div class="member-events">
+                            ${currentSort === 'payout' ? member.eventCount + ' Events' : formatCurrency(member.totalPayout)}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function sortByPayout() {
+            currentSort = 'payout';
+            updateSortButtons();
+            loadTopList();
+        }
+
+        function sortByEvents() {
+            currentSort = 'events';
+            updateSortButtons();
+            loadTopList();
+        }
+
+        function updateSortButtons() {
+            document.querySelectorAll('.sort-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            if (currentSort === 'payout') {
+                document.querySelector('.sort-btn:nth-child(1)').classList.add('active');
+            } else {
+                document.querySelector('.sort-btn:nth-child(2)').classList.add('active');
+            }
+        }
     </script>
 </body>
 </html>
