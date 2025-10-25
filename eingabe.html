@@ -254,8 +254,17 @@
     <script>
         let selectedMembers = [];
 
-        // Event-Preis Konfiguration
-        const defaultEventPrices = {};
+        // Event-Preis Konfiguration mit Standardwerten (nur für Events mit festen Preisen)
+        const defaultEventPrices = {
+            'bizwar_win': { price: 50000, description: 'Pro Kill (Win)', unit: 'pro Kill' },
+            'bizwar_lose': { price: 25000, description: 'Pro Kill (Lose)', unit: 'pro Kill' },
+            '40er_win': { price: 40000, description: 'Pro Kill (Win)', unit: 'pro Kill' },
+            '40er_lose': { price: 20000, description: 'Pro Kill (Lose)', unit: 'pro Kill' },
+            'giesserei': { price: 30000, description: 'Pro Kill', unit: 'pro Kill' },
+            'waffenfabrik': { price: 35000, description: 'Pro Kill', unit: 'pro Kill' },
+            'hafen': { price: 100000, description: 'Pro Drop', unit: 'pro Drop' },
+            'ekz': { price: 150000, description: 'Pro Win', unit: 'pro Win' }
+        };
 
         // Globale Funktionen
         function updatePreview() {
@@ -414,7 +423,14 @@
 
         // NEUE FUNKTIONEN FÜR EVENT-PREISE
         function loadEventPrices() {
-            const eventPrices = db.getEventPrices();
+            let eventPrices = db.getEventPrices();
+            
+            // Falls keine Preise gesetzt sind, verwende Standard-Preise
+            if (Object.keys(eventPrices).length === 0) {
+                eventPrices = defaultEventPrices;
+                db.saveEventPrices(eventPrices);
+            }
+            
             const grid = document.getElementById('eventPricesGrid');
             
             const eventNames = {
@@ -425,12 +441,12 @@
                 'giesserei': 'Gießerei',
                 'waffenfabrik': 'Waffenfabrik',
                 'hafen': 'Hafen',
-                'ekz': 'EKZ',
-                'rp_fabrik': 'RP Fabrik',
-                'cayo': 'Cayo Perico'
+                'ekz': 'EKZ'
             };
             
-            grid.innerHTML = Object.entries(eventPrices).map(([eventType, config]) => `
+            grid.innerHTML = Object.entries(eventPrices)
+                .filter(([eventType]) => eventType in eventNames) // Nur Events mit festen Preisen anzeigen
+                .map(([eventType, config]) => `
                 <div class="event-price-item">
                     <div class="event-price-info">
                         <div class="event-price-name">${eventNames[eventType]}</div>
@@ -442,11 +458,24 @@
                     </div>
                 </div>
             `).join('');
+
+            // Hinweis für variable Preise hinzufügen
+            grid.innerHTML += `
+                <div class="event-price-item" style="grid-column: 1 / -1; background: var(--bg-darker);">
+                    <div class="event-price-info">
+                        <div class="event-price-name">Cayo Perico & RP Fabrik</div>
+                        <div class="event-price-description">Preise werden pro Event individuell festgelegt</div>
+                    </div>
+                    <div class="event-price-input">
+                        <span class="price-unit" style="color: var(--text-muted);">Variable Preise</span>
+                    </div>
+                </div>
+            `;
         }
 
         function saveEventPrices() {
             const eventPrices = {};
-            const eventTypes = Object.keys(defaultEventPrices);
+            const eventTypes = Object.keys(defaultEventPrices); // Nur Events mit festen Preisen
             
             eventTypes.forEach(eventType => {
                 const input = document.getElementById(`price_${eventType}`);
