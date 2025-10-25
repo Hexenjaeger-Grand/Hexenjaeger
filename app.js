@@ -186,6 +186,76 @@ class HexenjaegerDB {
         }
     }
 
+    // In app.js hinzufügen:
+
+// Events Funktionen
+function getEvents() {
+    return JSON.parse(localStorage.getItem('hexenjaeger_events') || '[]');
+}
+
+function addEvent(eventData) {
+    try {
+        const events = getEvents();
+        const newEvent = {
+            id: Date.now().toString(),
+            ...eventData,
+            date: new Date().toISOString()
+        };
+        
+        events.push(newEvent);
+        localStorage.setItem('hexenjaeger_events', JSON.stringify(events));
+        
+        // Für individuelle Events berechnen wir den Betrag hier
+        let calculatedAmount = 0;
+        if (['cayo', 'rp_fabrik', 'ekz'].includes(eventData.eventType)) {
+            // Shared Events
+            calculatedAmount = eventData.totalAmount || 0;
+        } else {
+            // Individuelle Events
+            calculatedAmount = getEventPrice(eventData.eventType, eventData.amount || 1);
+        }
+        
+        return {
+            success: true,
+            calculatedAmount: calculatedAmount
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+// Event-Preise Funktionen
+function getEventPrices() {
+    const prices = localStorage.getItem('hexenjaeger_event_prices');
+    if (prices) {
+        return JSON.parse(prices);
+    } else {
+        // Leere Preise zurückgeben, da sie in der Event-Eingabe gesetzt werden
+        return {};
+    }
+}
+
+function saveEventPrices(prices) {
+    localStorage.setItem('hexenjaeger_event_prices', JSON.stringify(prices));
+}
+
+function getEventPrice(eventType, amount = 1) {
+    const prices = getEventPrices();
+    const eventPrice = prices[eventType];
+    if (eventPrice && eventPrice.price) {
+        return eventPrice.price * amount;
+    }
+    return 0; // Fallback, falls kein Preis gesetzt ist
+}
+
+// Stats Funktionen (falls benötigt)
+function getStats() {
+    return JSON.parse(localStorage.getItem('hexenjaeger_stats') || '[]');
+}
+    
     // Auszahlung abschließen
     completePayout(memberId) {
         const payouts = this.getPayouts();
