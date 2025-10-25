@@ -172,8 +172,8 @@
                     <div class="stat-icon">💰</div>
                     <div class="stat-value" id="totalPayout">$0</div>
                     <div class="stat-label">Gesamt ausgezahlt</div>
-                    <div class="stat-change">
-                        +12%
+                    <div class="stat-change" id="payoutChange">
+                        +0%
                         <div class="tooltip">?
                             <span class="tooltiptext">Veränderung gegenüber dem vorherigen Zeitraum</span>
                         </div>
@@ -184,8 +184,8 @@
                     <div class="stat-icon">👥</div>
                     <div class="stat-value" id="activeMembers">0</div>
                     <div class="stat-label">Aktive Mitglieder</div>
-                    <div class="stat-change">
-                        +5%
+                    <div class="stat-change" id="membersChange">
+                        +0%
                         <div class="tooltip">?
                             <span class="tooltiptext">Veränderung der aktiven Mitglieder im Vergleich zum vorherigen Zeitraum</span>
                         </div>
@@ -196,8 +196,8 @@
                     <div class="stat-icon">🎯</div>
                     <div class="stat-value" id="totalEvents">0</div>
                     <div class="stat-label">Gesamt Events</div>
-                    <div class="stat-change">
-                        +8%
+                    <div class="stat-change" id="eventsChange">
+                        +0%
                         <div class="tooltip">?
                             <span class="tooltiptext">Veränderung der Event-Teilnahmen im Vergleich zum vorherigen Zeitraum</span>
                         </div>
@@ -208,8 +208,8 @@
                     <div class="stat-icon">📈</div>
                     <div class="stat-value" id="avgPerPerson">$0</div>
                     <div class="stat-label">Durchschnitt pro Person</div>
-                    <div class="stat-change">
-                        +3%
+                    <div class="stat-change" id="avgChange">
+                        +0%
                         <div class="tooltip">?
                             <span class="tooltiptext">Veränderung des Durchschnittsbetrags pro Person im Vergleich zum vorherigen Zeitraum</span>
                         </div>
@@ -242,24 +242,71 @@
         });
 
         function loadStatistics() {
-            // Verwende die gleiche Logik wie in der index.html
             const members = db.getMembers();
             const payouts = db.getPayouts();
             const events = db.getEvents();
             
-            // Gesamt ausgezahlt
-            const totalPayout = payouts.reduce((sum, payout) => sum + payout.total, 0);
-            document.getElementById('totalPayout').textContent = formatCurrency(totalPayout);
+            // Aktuelle Werte
+            const currentTotalPayout = payouts.reduce((sum, payout) => sum + payout.total, 0);
+            const currentActiveMembers = members.length;
+            const currentTotalEvents = events.length;
+            const currentAvgPerPerson = currentActiveMembers > 0 ? Math.round(currentTotalPayout / currentActiveMembers) : 0;
+
+            // Vorherige Werte (letzte 30 Tage)
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+            const previousPayouts = payouts.filter(payout => {
+                const payoutDate = new Date(payout.date);
+                return payoutDate < thirtyDaysAgo;
+            });
+            const previousEvents = events.filter(event => {
+                const eventDate = new Date(event.date);
+                return eventDate < thirtyDaysAgo;
+            });
+
+            const previousTotalPayout = previousPayouts.reduce((sum, payout) => sum + payout.total, 0);
+            const previousTotalEvents = previousEvents.length;
             
-            // Aktive Mitglieder (alle Mitglieder die existieren)
-            document.getElementById('activeMembers').textContent = members.length;
+            // Prozentuale Veränderungen berechnen
+            const payoutChange = previousTotalPayout > 0 ? 
+                Math.round(((currentTotalPayout - previousTotalPayout) / previousTotalPayout) * 100) : 0;
             
-            // Gesamt Events
-            document.getElementById('totalEvents').textContent = events.length;
+            const eventsChange = previousTotalEvents > 0 ? 
+                Math.round(((currentTotalEvents - previousTotalEvents) / previousTotalEvents) * 100) : 0;
+
+            // Für Mitglieder und Durchschnitt verwenden wir einfache Schätzungen
+            const membersChange = 0; // Könnte erweitert werden mit historischen Daten
+            const avgChange = previousTotalPayout > 0 ? 
+                Math.round(((currentAvgPerPerson - (previousTotalPayout / currentActiveMembers)) / (previousTotalPayout / currentActiveMembers)) * 100) : 0;
+
+            // Werte anzeigen
+            document.getElementById('totalPayout').textContent = formatCurrency(currentTotalPayout);
+            document.getElementById('activeMembers').textContent = currentActiveMembers;
+            document.getElementById('totalEvents').textContent = currentTotalEvents;
+            document.getElementById('avgPerPerson').textContent = formatCurrency(currentAvgPerPerson);
+
+            // Prozentwerte anzeigen
+            updatePercentageDisplay('payoutChange', payoutChange);
+            updatePercentageDisplay('membersChange', membersChange);
+            updatePercentageDisplay('eventsChange', eventsChange);
+            updatePercentageDisplay('avgChange', avgChange);
+        }
+
+        function updatePercentageDisplay(elementId, change) {
+            const element = document.getElementById(elementId);
+            const changeElement = element.querySelector('.stat-change');
             
-            // Durchschnitt pro Person
-            const avgPerPerson = members.length > 0 ? Math.round(totalPayout / members.length) : 0;
-            document.getElementById('avgPerPerson').textContent = formatCurrency(avgPerPerson);
+            if (change > 0) {
+                changeElement.innerHTML = `+${change}% <div class="tooltip">?<span class="tooltiptext">Veränderung gegenüber dem vorherigen Zeitraum</span></div>`;
+                changeElement.style.color = '#10b981';
+            } else if (change < 0) {
+                changeElement.innerHTML = `${change}% <div class="tooltip">?<span class="tooltiptext">Veränderung gegenüber dem vorherigen Zeitraum</span></div>`;
+                changeElement.style.color = '#ef4444';
+            } else {
+                changeElement.innerHTML = `${change}% <div class="tooltip">?<span class="tooltiptext">Veränderung gegenüber dem vorherigen Zeitraum</span></div>`;
+                changeElement.style.color = 'var(--text-muted)';
+            }
         }
 
         function loadTopList() {
