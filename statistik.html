@@ -301,12 +301,12 @@
             // Verwende BOTH Events und Completed Payouts für die Statistik
             const events = db.getEvents();
             const completedPayouts = db.getCompletedPayouts();
+            const eventHistory = db.getEventHistory();
             const openPayouts = calculateOpenPayouts(events);
-            const allEvents = [...events]; // Alle Events für die Gesamtstatistik
             
-            updateSummaryStats(allEvents, completedPayouts, openPayouts);
-            updateTopList(allEvents, completedPayouts);
-            updateDetailedStats(allEvents, completedPayouts);
+            updateSummaryStats(events, completedPayouts, eventHistory, openPayouts);
+            updateTopList(events, completedPayouts, eventHistory);
+            updateDetailedStats(events, completedPayouts, eventHistory);
         }
 
         function calculateOpenPayouts(events) {
@@ -347,7 +347,7 @@
             return Object.values(memberPayouts);
         }
         
-        function updateSummaryStats(events, completedPayouts, openPayouts) {
+        function updateSummaryStats(events, completedPayouts, eventHistory, openPayouts) {
             // Gesamt ausgezahlt (abgeschlossene Auszahlungen)
             const totalPaid = completedPayouts.reduce((sum, payout) => sum + payout.total, 0);
             document.getElementById('totalPaid').textContent = formatCurrency(totalPaid);
@@ -355,8 +355,8 @@
             // Offene Auszahlungen
             document.getElementById('openPayouts').textContent = openPayouts.length;
             
-            // Gesamt Events (alle jemals erfassten Events)
-            document.getElementById('totalEvents').textContent = events.length;
+            // Gesamt Events (alle jemals erfassten Events aus der History)
+            document.getElementById('totalEvents').textContent = eventHistory.length;
             
             // Durchschnitt pro Person
             const allMembers = db.getMembers();
@@ -365,7 +365,7 @@
             document.getElementById('avgPerMember').textContent = formatCurrency(avgPerMember);
         }
         
-        function updateTopList(events, completedPayouts) {
+        function updateTopList(events, completedPayouts, eventHistory) {
             const topList = document.getElementById('topList');
             const memberStats = {};
             const members = db.getMembers();
@@ -379,7 +379,15 @@
                 };
             });
             
-            // Addiere Events (offene Auszahlungen)
+            // Addiere Events aus der History (inkl. abgeschlossene)
+            eventHistory.forEach(event => {
+                if (memberStats[event.memberId]) {
+                    memberStats[event.memberId].totalEvents += 1;
+                    memberStats[event.memberId].totalPaid += event.individualAmount;
+                }
+            });
+            
+            // Addiere offene Events (die noch nicht in der History sind)
             events.forEach(event => {
                 const eventType = event.eventType;
                 const amount = event.amount || 1;
@@ -401,14 +409,6 @@
                         memberStats[memberId].totalPaid += calculatedAmount;
                     }
                 });
-            });
-            
-            // Addiere abgeschlossene Auszahlungen
-            completedPayouts.forEach(payout => {
-                if (memberStats[payout.memberId]) {
-                    memberStats[payout.memberId].totalPaid += payout.total;
-                    // Für Events zählen wir hier nicht, da diese bereits in den Events enthalten waren
-                }
             });
             
             // Sortiere nach aktueller Sortierung
@@ -446,7 +446,7 @@
             `).join('');
         }
         
-        function updateDetailedStats(events, completedPayouts) {
+        function updateDetailedStats(events, completedPayouts, eventHistory) {
             const tbody = document.getElementById('statsTableBody');
             const noData = document.getElementById('noStatsData');
             const members = db.getMembers();
@@ -464,7 +464,20 @@
                 };
             });
             
-            // Addiere Events (offene Auszahlungen)
+            // Verarbeite Event History (abgeschlossene Auszahlungen)
+            eventHistory.forEach(event => {
+                if (memberTotals[event.memberId]) {
+                    // Addiere Anzahl
+                    if (event.eventType in memberTotals[event.memberId]) {
+                        memberTotals[event.memberId][event.eventType] += event.amount;
+                    }
+                    
+                    // Addiere Gesamtbetrag
+                    memberTotals[event.memberId].total += event.individualAmount;
+                }
+            });
+            
+            // Verarbeite offene Events
             events.forEach(event => {
                 const eventType = event.eventType;
                 const amount = event.amount || 1;
@@ -488,23 +501,6 @@
                         
                         // Addiere Gesamtbetrag
                         memberTotals[memberId].total += calculatedAmount;
-                    }
-                });
-            });
-            
-            // Addiere abgeschlossene Auszahlungen (hier müssen wir die Event-History verwenden)
-            const eventHistory = db.getEventHistory();
-            completedPayouts.forEach(payout => {
-                const memberEvents = eventHistory.filter(event => event.memberId === payout.memberId);
-                memberEvents.forEach(event => {
-                    if (memberTotals[event.memberId]) {
-                        // Addiere Anzahl
-                        if (event.eventType in memberTotals[event.memberId]) {
-                            memberTotals[event.memberId][event.eventType] += event.amount;
-                        }
-                        
-                        // Addiere Gesamtbetrag
-                        memberTotals[event.memberId].total += event.individualAmount;
                     }
                 });
             });
