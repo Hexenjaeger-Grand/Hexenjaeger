@@ -193,7 +193,7 @@
 
                 <!-- Event Details -->
                 <div id="eventDetails" class="event-details">
-                    <!-- Gemeinsame Eingabe für Cayo, RP Fabrik, EKZ -->
+                    <!-- Gemeinsame Eingabe für Cayo, RP Fabrik -->
                     <div id="sharedAmount" style="display: none;">
                         <div class="form-group">
                             <label for="sharedAmountInput" id="sharedAmountLabel">Anzahl</label>
@@ -205,7 +205,7 @@
                         </div>
                     </div>
 
-                    <!-- Individuelle Eingabe für Kills/Drops -->
+                    <!-- Individuelle Eingabe für Kills/Drops/Wins -->
                     <div id="individualAmounts" style="display: none;">
                         <div class="form-group">
                             <label id="individualAmountLabel">Anzahl pro Mitglied</label>
@@ -281,8 +281,8 @@
             let totalPayout = 0;
             let description = '';
 
-            // Shared Events (Cayo, RP Fabrik, EKZ)
-            if (['cayo', 'rp_fabrik', 'ekz'].includes(eventTypeValue)) {
+            // Shared Events (Cayo, RP Fabrik)
+            if (['cayo', 'rp_fabrik'].includes(eventTypeValue)) {
                 const amount = parseInt(document.getElementById('sharedAmountInput').value) || 1;
                 const totalAmount = parseInt(document.getElementById('sharedTotalAmount').value) || 0;
                 
@@ -292,8 +292,7 @@
                     
                     const eventNames = {
                         'cayo': 'Cayo Perico',
-                        'rp_fabrik': 'RP Fabrik',
-                        'ekz': 'EKZ'
+                        'rp_fabrik': 'RP Fabrik'
                     };
                     
                     const unit = eventTypeValue === 'cayo' ? 'Drops' : 'Wins';
@@ -311,7 +310,7 @@
                     `;
                 }
             } 
-            // Individuelle Events (Bizwar, 40er, Hafen, Gießerei, Waffenfabrik)
+            // Individuelle Events (Bizwar, 40er, Hafen, Gießerei, Waffenfabrik, EKZ)
             else {
                 let individualAmounts = [];
                 selectedMembers.forEach(memberId => {
@@ -328,14 +327,18 @@
                 const eventNames = {
                     'bizwar_win': 'Bizwar Win', 'bizwar_lose': 'Bizwar Lose',
                     '40er_win': '40er Win', '40er_lose': '40er Lose',
-                    'hafen': 'Hafen', 'giesserei': 'Gießerei', 'waffenfabrik': 'Waffenfabrik'
+                    'hafen': 'Hafen', 'giesserei': 'Gießerei', 
+                    'waffenfabrik': 'Waffenfabrik', 'ekz': 'EKZ'
                 };
                 
                 description = eventNames[eventTypeValue];
                 
                 previewContent.innerHTML = individualAmounts.map(item => {
                     const member = db.getMembers().find(m => m.id === item.memberId);
-                    const unit = eventTypeValue.includes('hafen') ? 'Drops' : 'Kills';
+                    let unit = 'Kills';
+                    if (eventTypeValue.includes('hafen')) unit = 'Drops';
+                    if (eventTypeValue === 'ekz') unit = 'Wins';
+                    
                     return `
                         <div class="preview-item">
                             <span>${member.name} (${item.amount} ${unit})</span>
@@ -566,7 +569,7 @@
                         'bizwar_lose': { shared: false, label: 'Kills pro Mitglied' },
                         '40er_win': { shared: false, label: 'Kills pro Mitglied' },
                         '40er_lose': { shared: false, label: 'Kills pro Mitglied' },
-                        'ekz': { shared: true, label: 'Wins' },
+                        'ekz': { shared: false, label: 'Wins pro Mitglied' }, // GEÄNDERT: EKZ ist jetzt individuell
                         'hafen': { shared: false, label: 'Drops pro Mitglied' },
                         'giesserei': { shared: false, label: 'Kills pro Mitglied' },
                         'waffenfabrik': { shared: false, label: 'Kills pro Mitglied' },
@@ -612,8 +615,8 @@
                 const eventTypeValue = eventType.value;
                 let eventData = {};
 
-                // Shared Events (Cayo, RP Fabrik, EKZ)
-                if (['cayo', 'rp_fabrik', 'ekz'].includes(eventTypeValue)) {
+                // Shared Events (Cayo, RP Fabrik)
+                if (['cayo', 'rp_fabrik'].includes(eventTypeValue)) {
                     const amount = parseInt(document.getElementById('sharedAmountInput').value) || 1;
                     const totalAmount = parseInt(document.getElementById('sharedTotalAmount').value) || 0;
 
@@ -637,7 +640,7 @@
                         showStatus('Fehler: ' + result.error, 'error');
                     }
                 } 
-                // Individuelle Events (Bizwar, 40er, Hafen, Gießerei, Waffenfabrik)
+                // Individuelle Events (Bizwar, 40er, Hafen, Gießerei, Waffenfabrik, EKZ)
                 else {
                     // Für individuelle Events müssen wir für jedes Mitglied ein separates Event erstellen
                     let successCount = 0;
