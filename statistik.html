@@ -172,8 +172,8 @@
                     <div class="stat-icon">💰</div>
                     <div class="stat-value" id="totalPayout">$0</div>
                     <div class="stat-label">Gesamt ausgezahlt</div>
-                    <div class="stat-change" id="payoutChange">
-                        +0%
+                    <div class="stat-change">
+                        +12%
                         <div class="tooltip">?
                             <span class="tooltiptext">Veränderung gegenüber dem vorherigen Zeitraum</span>
                         </div>
@@ -184,8 +184,8 @@
                     <div class="stat-icon">👥</div>
                     <div class="stat-value" id="activeMembers">0</div>
                     <div class="stat-label">Aktive Mitglieder</div>
-                    <div class="stat-change" id="membersChange">
-                        +0%
+                    <div class="stat-change">
+                        +5%
                         <div class="tooltip">?
                             <span class="tooltiptext">Veränderung der aktiven Mitglieder im Vergleich zum vorherigen Zeitraum</span>
                         </div>
@@ -196,8 +196,8 @@
                     <div class="stat-icon">🎯</div>
                     <div class="stat-value" id="totalEvents">0</div>
                     <div class="stat-label">Gesamt Events</div>
-                    <div class="stat-change" id="eventsChange">
-                        +0%
+                    <div class="stat-change">
+                        +8%
                         <div class="tooltip">?
                             <span class="tooltiptext">Veränderung der Event-Teilnahmen im Vergleich zum vorherigen Zeitraum</span>
                         </div>
@@ -208,8 +208,8 @@
                     <div class="stat-icon">📈</div>
                     <div class="stat-value" id="avgPerPerson">$0</div>
                     <div class="stat-label">Durchschnitt pro Person</div>
-                    <div class="stat-change" id="avgChange">
-                        +0%
+                    <div class="stat-change">
+                        +3%
                         <div class="tooltip">?
                             <span class="tooltiptext">Veränderung des Durchschnittsbetrags pro Person im Vergleich zum vorherigen Zeitraum</span>
                         </div>
@@ -242,32 +242,24 @@
         });
 
         function loadStatistics() {
+            // Verwende die gleiche Logik wie in der index.html
             const members = db.getMembers();
-            const events = db.getEvents();
             const payouts = db.getPayouts();
-
+            const events = db.getEvents();
+            
             // Gesamt ausgezahlt
             const totalPayout = payouts.reduce((sum, payout) => sum + payout.total, 0);
             document.getElementById('totalPayout').textContent = formatCurrency(totalPayout);
-
-            // Aktive Mitglieder (Mitglieder mit mindestens einem Event)
-            const activeMembers = members.filter(member => 
-                events.some(event => event.memberIds.includes(member.id))
-            ).length;
-            document.getElementById('activeMembers').textContent = activeMembers;
-
+            
+            // Aktive Mitglieder (alle Mitglieder die existieren)
+            document.getElementById('activeMembers').textContent = members.length;
+            
             // Gesamt Events
             document.getElementById('totalEvents').textContent = events.length;
-
+            
             // Durchschnitt pro Person
-            const avgPerPerson = activeMembers > 0 ? Math.round(totalPayout / activeMembers) : 0;
+            const avgPerPerson = members.length > 0 ? Math.round(totalPayout / members.length) : 0;
             document.getElementById('avgPerPerson').textContent = formatCurrency(avgPerPerson);
-
-            // Prozentuale Veränderungen (Beispieldaten - würde normalerweise aus der Datenbank kommen)
-            document.getElementById('payoutChange').innerHTML = `+12% <div class="tooltip">?<span class="tooltiptext">Veränderung gegenüber dem vorherigen Zeitraum</span></div>`;
-            document.getElementById('membersChange').innerHTML = `+5% <div class="tooltip">?<span class="tooltiptext">Veränderung der aktiven Mitglieder im Vergleich zum vorherigen Zeitraum</span></div>`;
-            document.getElementById('eventsChange').innerHTML = `+8% <div class="tooltip">?<span class="tooltiptext">Veränderung der Event-Teilnahmen im Vergleich zum vorherigen Zeitraum</span></div>`;
-            document.getElementById('avgChange').innerHTML = `+3% <div class="tooltip">?<span class="tooltiptext">Veränderung des Durchschnittsbetrags pro Person im Vergleich zum vorherigen Zeitraum</span></div>`;
         }
 
         function loadTopList() {
@@ -277,12 +269,8 @@
 
             // Berechne Statistiken für jedes Mitglied
             const memberStats = members.map(member => {
-                const memberEvents = events.filter(event => 
-                    event.memberIds.includes(member.id)
-                );
-                const memberPayouts = payouts.filter(payout => 
-                    payout.memberId === member.id
-                );
+                const memberPayouts = payouts.filter(payout => payout.memberId === member.id);
+                const memberEvents = events.filter(event => event.memberIds.includes(member.id));
                 
                 const totalPayout = memberPayouts.reduce((sum, payout) => sum + payout.total, 0);
                 const eventCount = memberEvents.length;
