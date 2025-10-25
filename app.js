@@ -146,6 +146,9 @@ class HexenjaegerDB {
             events.push(newEvent);
             this.saveEvents(events);
             
+            // FÜLLE AUCH DIE EVENT HISTORY - WICHTIG FÜR STATISTIK!
+            this.addEventToHistory(eventData);
+            
             // Für individuelle Events berechnen wir den Betrag hier
             let calculatedAmount = 0;
             if (['cayo', 'rp_fabrik', 'ekz'].includes(eventData.eventType)) {
@@ -166,6 +169,44 @@ class HexenjaegerDB {
                 error: error.message
             };
         }
+    }
+
+    // NEUE FUNKTION: Event zur History hinzufügen
+    addEventToHistory(eventData) {
+        const { eventType, memberIds, amount, totalAmount } = eventData;
+        const members = this.getMembers();
+        const eventHistory = this.getEventHistory();
+        const timestamp = new Date().toISOString();
+
+        // Für jedes Mitglied Event zur History hinzufügen
+        memberIds.forEach(memberId => {
+            const member = members.find(m => m.id === memberId);
+            if (!member) return;
+
+            // Berechne Betrag basierend auf Event-Typ
+            let individualAmount = 0;
+            if (eventType === 'cayo' || eventType === 'rp_fabrik' || eventType === 'ekz') {
+                individualAmount = totalAmount > 0 ? Math.round(totalAmount / memberIds.length) : 0;
+            } else {
+                individualAmount = this.getEventPrice(eventType, amount || 1);
+            }
+
+            // Event zur History hinzufügen
+            const eventEntry = {
+                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                memberId: member.id,
+                memberName: member.name,
+                eventType: eventType,
+                amount: parseInt(amount) || 1,
+                totalAmount: totalAmount || 0,
+                individualAmount: individualAmount,
+                timestamp: timestamp,
+                date: new Date().toLocaleDateString('de-DE')
+            };
+            eventHistory.push(eventEntry);
+        });
+
+        this.saveEventHistory(eventHistory);
     }
 
     // Event Preise
@@ -191,77 +232,13 @@ class HexenjaegerDB {
         return 0; // Fallback, falls kein Preis gesetzt ist
     }
 
-    // Event hinzufügen - MIT HISTORY
+    // Event hinzufügen - MIT HISTORY (für Kompatibilität)
     addEventWithHistory(eventData) {
-        const { eventType, memberIds, amount, totalAmount } = eventData;
-        const members = this.getMembers();
-        const payouts = this.getPayouts();
-        const eventHistory = this.getEventHistory();
-        
-        let calculatedAmount = 0;
-        let payoutEntries = [];
-        const timestamp = new Date().toISOString();
-
-        // Für jedes Mitglied erstellen/updaten wir einen Eintrag
-        memberIds.forEach(memberId => {
-            const member = members.find(m => m.id === memberId);
-            if (!member) return;
-
-            let payout = payouts.find(p => p.memberId === memberId);
-            if (!payout) {
-                payout = {
-                    memberId,
-                    memberName: member.name,
-                    bizwar_win: 0, bizwar_lose: 0,
-                    '40er_win': 0, '40er_lose': 0,
-                    giesserei: 0, waffenfabrik: 0,
-                    hafen: 0, cayo: 0, rp_fabrik: 0, ekz: 0,
-                    total: 0
-                };
-                payouts.push(payout);
-            }
-
-            // Berechne Betrag basierend auf Event-Typ
-            let individualAmount = 0;
-            if (eventType === 'cayo' || eventType === 'rp_fabrik') {
-                individualAmount = Math.round(totalAmount / memberIds.length);
-                payout[eventType] += parseInt(amount);
-                payout.total += individualAmount;
-                calculatedAmount += individualAmount;
-            } else {
-                individualAmount = this.getEventPrice(eventType, amount);
-                payout[eventType] += parseInt(amount);
-                payout.total += individualAmount;
-                calculatedAmount += individualAmount;
-            }
-
-            // Event zur History hinzufügen
-            const eventEntry = {
-                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-                memberId: member.id,
-                memberName: member.name,
-                eventType: eventType,
-                amount: parseInt(amount),
-                totalAmount: eventType === 'cayo' || eventType === 'rp_fabrik' ? totalAmount : individualAmount,
-                individualAmount: individualAmount,
-                timestamp: timestamp,
-                date: new Date().toLocaleDateString('de-DE')
-            };
-            eventHistory.push(eventEntry);
-
-            payoutEntries.push({
-                memberId: member.id,
-                memberName: member.name,
-                amount: individualAmount
-            });
-        });
-
-        this.savePayouts(payouts);
-        this.saveEventHistory(eventHistory);
+        const result = this.addEvent(eventData);
         return { 
-            success: true, 
-            calculatedAmount,
-            payoutEntries 
+            success: result.success, 
+            calculatedAmount: result.calculatedAmount,
+            payoutEntries: [] 
         };
     }
 
