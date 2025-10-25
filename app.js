@@ -232,6 +232,41 @@ class HexenjaegerDB {
     }
 }
 
+// Event-Preise Funktionen
+function getEventPrices() {
+    const prices = localStorage.getItem('hexenjaeger_event_prices');
+    if (prices) {
+        return JSON.parse(prices);
+    } else {
+        // Standard-Preise zurückgeben
+        return {
+            'bizwar_win': { price: 50000, description: 'Pro Kill (Win)', unit: 'pro Kill' },
+            'bizwar_lose': { price: 25000, description: 'Pro Kill (Lose)', unit: 'pro Kill' },
+            '40er_win': { price: 40000, description: 'Pro Kill (Win)', unit: 'pro Kill' },
+            '40er_lose': { price: 20000, description: 'Pro Kill (Lose)', unit: 'pro Kill' },
+            'giesserei': { price: 30000, description: 'Pro Kill', unit: 'pro Kill' },
+            'waffenfabrik': { price: 35000, description: 'Pro Kill', unit: 'pro Kill' },
+            'hafen': { price: 100000, description: 'Pro Drop', unit: 'pro Drop' },
+            'ekz': { price: 150000, description: 'Pro Win', unit: 'pro Win' },
+            'rp_fabrik': { price: 200000, description: 'Pro Win', unit: 'pro Win' },
+            'cayo': { price: 250000, description: 'Pro Drop', unit: 'pro Drop' }
+        };
+    }
+}
+
+function saveEventPrices(prices) {
+    localStorage.setItem('hexenjaeger_event_prices', JSON.stringify(prices));
+}
+
+function getEventPrice(eventType, amount = 1) {
+    const prices = getEventPrices();
+    const eventPrice = prices[eventType];
+    if (eventPrice) {
+        return eventPrice.price * amount;
+    }
+    return 0;
+}
+
 // Globale DB Instanz
 const db = new HexenjaegerDB();
 
