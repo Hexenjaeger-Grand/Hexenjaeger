@@ -25,6 +25,9 @@ class HexenjaegerDB {
         if (!localStorage.getItem('hexenjaeger_events')) {
             this.saveEvents([]);
         }
+        if (!localStorage.getItem('hexenjaeger_completed_payouts')) {
+            this.saveCompletedPayouts([]);
+        }
         if (!localStorage.getItem('hexenjaeger_event_prices')) {
             this.saveEventPrices({
                 'bizwar_win': { price: 50000, description: 'Pro Kill (Win)', unit: 'pro Kill' },
@@ -65,6 +68,15 @@ class HexenjaegerDB {
 
     savePayouts(payouts) {
         localStorage.setItem('hexenjaeger_payouts', JSON.stringify(payouts));
+    }
+
+    // Abgeschlossene Auszahlungen
+    getCompletedPayouts() {
+        return JSON.parse(localStorage.getItem('hexenjaeger_completed_payouts') || '[]');
+    }
+
+    saveCompletedPayouts(payouts) {
+        localStorage.setItem('hexenjaeger_completed_payouts', JSON.stringify(payouts));
     }
 
     // Event History für Details
@@ -250,25 +262,50 @@ class HexenjaegerDB {
         }
     }
     
-    // Auszahlung abschließen
+    // Auszahlung abschließen (NEUE VERSION)
     completePayout(memberId) {
-        const payouts = this.getPayouts();
-        const stats = this.getStats();
-        const eventHistory = this.getEventHistory();
+        const events = this.getEvents();
+        const completedPayouts = this.getCompletedPayouts();
         
-        const payoutIndex = payouts.findIndex(p => p.memberId === memberId);
-        if (payoutIndex !== -1) {
-            const completedPayout = payouts[payoutIndex];
-            completedPayout.paidDate = new Date().toISOString();
+        // Berechne den Betrag für dieses Mitglied
+        let totalAmount = 0;
+        const memberEvents = events.filter(event => event.memberIds.includes(memberId));
+        
+        memberEvents.forEach(event => {
+            const eventType = event.eventType;
+            const amount = event.amount || 1;
+            const totalAmountEvent = event.totalAmount || 0;
             
-            stats.push(completedPayout);
-            payouts.splice(payoutIndex, 1);
+            let calculatedAmount = 0;
+            if (['cayo', 'rp_fabrik', 'ekz'].includes(eventType)) {
+                calculatedAmount = totalAmountEvent > 0 ? Math.round(totalAmountEvent / event.memberIds.length) : 0;
+            } else {
+                calculatedAmount = this.getEventPrice(eventType, amount);
+            }
             
-            this.savePayouts(payouts);
-            this.saveStats(stats);
-            return { success: true };
+            totalAmount += calculatedAmount;
+        });
+        
+        // Füge zur completed Liste hinzu
+        const member = this.getMembers().find(m => m.id === memberId);
+        if (member && totalAmount > 0) {
+            completedPayouts.push({
+                memberId: memberId,
+                memberName: member.name,
+                total: totalAmount,
+                completedDate: new Date().toISOString()
+            });
+            
+            this.saveCompletedPayouts(completedPayouts);
+            
+            // Entferne Events für dieses Mitglied
+            const updatedEvents = events.filter(event => !event.memberIds.includes(memberId));
+            this.saveEvents(updatedEvents);
+            
+            return { success: true, amount: totalAmount };
         }
-        return { error: 'Auszahlung nicht gefunden' };
+        
+        return { error: 'Mitglied nicht gefunden oder kein Betrag vorhanden' };
     }
 
     // Bulk Operationen
