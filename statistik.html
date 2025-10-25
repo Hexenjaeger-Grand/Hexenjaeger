@@ -119,33 +119,6 @@
             border-color: var(--accent-purple);
         }
 
-        .event-breakdown {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .event-item {
-            background: var(--bg-darker);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 15px;
-            text-align: center;
-        }
-
-        .event-count {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: var(--accent-purple-light);
-            margin-bottom: 5px;
-        }
-
-        .event-name {
-            color: var(--text-muted);
-            font-size: 0.9em;
-        }
-
         .top-list {
             background: var(--bg-card);
             border-radius: 12px;
@@ -283,13 +256,6 @@
         </div>
 
         <div class="card">
-            <h2>Event-Verteilung</h2>
-            <div class="event-breakdown" id="eventBreakdown">
-                <!-- Wird via JavaScript gefüllt -->
-            </div>
-        </div>
-
-        <div class="card">
             <h2>Detaillierte Auszahlungsstatistik</h2>
             <div class="table-container">
                 <table>
@@ -326,7 +292,6 @@
             const stats = db.getStats();
             
             updateSummaryStats(stats);
-            updateEventBreakdown(stats);
             updateTopList(stats);
             updateDetailedStats(stats);
         }
@@ -338,51 +303,12 @@
             const activeMembers = new Set(stats.map(stat => stat.memberId)).size;
             document.getElementById('activeMembers').textContent = activeMembers;
             
-            const totalEvents = stats.reduce((sum, stat) => {
-                return sum + (stat.bizwar_win || 0) + (stat.bizwar_lose || 0) + 
-                       (stat['40er_win'] || 0) + (stat['40er_lose'] || 0) +
-                       (stat.giesserei || 0) + (stat.waffenfabrik || 0) +
-                       (stat.hafen || 0) + (stat.cayo || 0) + 
-                       (stat.rp_fabrik || 0) + (stat.ekz || 0);
-            }, 0);
+            // Zähle Events korrekt - nur komplette Events, nicht einzelne Kills
+            const totalEvents = stats.length; // Jeder Stat-Eintrag ist ein Event
             document.getElementById('totalEvents').textContent = totalEvents;
             
             const avgPerMember = activeMembers > 0 ? Math.round(totalPaid / activeMembers) : 0;
             document.getElementById('avgPerMember').textContent = formatCurrency(avgPerMember);
-        }
-        
-        function updateEventBreakdown(stats) {
-            const eventBreakdown = document.getElementById('eventBreakdown');
-            const eventTotals = {};
-            
-            // Zähle Events pro Typ
-            stats.forEach(stat => {
-                const eventTypes = ['bizwar_win', 'bizwar_lose', '40er_win', '40er_lose', 
-                                  'giesserei', 'waffenfabrik', 'hafen', 'cayo', 'rp_fabrik', 'ekz'];
-                
-                eventTypes.forEach(type => {
-                    if (stat[type] > 0) {
-                        eventTotals[type] = (eventTotals[type] || 0) + stat[type];
-                    }
-                });
-            });
-            
-            const eventNames = {
-                'bizwar_win': 'Bizwar Win', 'bizwar_lose': 'Bizwar Lose',
-                '40er_win': '40er Win', '40er_lose': '40er Lose',
-                'giesserei': 'Gießerei', 'waffenfabrik': 'Waffenfabrik',
-                'hafen': 'Hafen', 'cayo': 'Cayo', 
-                'rp_fabrik': 'RP Fabrik', 'ekz': 'EKZ'
-            };
-            
-            eventBreakdown.innerHTML = Object.entries(eventTotals)
-                .sort(([,a], [,b]) => b - a)
-                .map(([eventType, count]) => `
-                    <div class="event-item">
-                        <div class="event-count">${count}</div>
-                        <div class="event-name">${eventNames[eventType]}</div>
-                    </div>
-                `).join('');
         }
         
         function updateTopList(stats) {
@@ -399,15 +325,8 @@
                     };
                 }
                 
-                const eventTypes = ['bizwar_win', 'bizwar_lose', '40er_win', '40er_lose', 
-                                  'giesserei', 'waffenfabrik', 'hafen', 'cayo', 'rp_fabrik', 'ekz'];
-                
-                eventTypes.forEach(type => {
-                    if (stat[type] > 0) {
-                        memberStats[stat.memberId].totalEvents += stat[type];
-                    }
-                });
-                
+                // Zähle Events korrekt - nur komplette Events, nicht einzelne Kills
+                memberStats[stat.memberId].totalEvents += 1; // Jeder Stat-Eintrag ist ein Event
                 memberStats[stat.memberId].totalPaid += stat.total || 0;
             });
             
