@@ -342,14 +342,14 @@
         }
 
         function completePayout(memberId) {
-            if (confirm('Auszahlung als erledigt markieren?')) {
-                // Hier müsste die Logik für das Abschließen der Auszahlung implementiert werden
-                // Da wir jetzt Events verwenden, müssen wir überlegen wie wir "erledigte" Auszahlungen markieren
-                
-                // Temporäre Lösung: Events für dieses Mitglied aus der aktuellen Ansicht entfernen
-                // In einer echten Implementierung würden wir die Events in einen "abgeschlossen" Status verschieben
-                showNotification('Auszahlung erfolgreich abgeschlossen! (Demo)');
-                loadPayouts(); // Neu laden um die Änderung zu sehen
+            if (confirm('Auszahlung als erledigt markieren?\n\nDiese Aktion entfernt alle Events für dieses Mitglied.')) {
+                const result = db.completePayout(memberId);
+                if (result.success) {
+                    showNotification(`Auszahlung für ${formatCurrency(result.amount)} erfolgreich abgeschlossen!`, 'success');
+                    loadPayouts(); // Neu laden um die Änderung zu sehen
+                } else {
+                    showNotification('Fehler: ' + result.error, 'error');
+                }
             }
         }
 
