@@ -25,6 +25,18 @@ class HexenjaegerDB {
         if (!localStorage.getItem('hexenjaeger_events')) {
             this.saveEvents([]);
         }
+        if (!localStorage.getItem('hexenjaeger_event_prices')) {
+            this.saveEventPrices({
+                'bizwar_win': { price: 50000, description: 'Pro Kill (Win)', unit: 'pro Kill' },
+                'bizwar_lose': { price: 25000, description: 'Pro Kill (Lose)', unit: 'pro Kill' },
+                '40er_win': { price: 40000, description: 'Pro Kill (Win)', unit: 'pro Kill' },
+                '40er_lose': { price: 20000, description: 'Pro Kill (Lose)', unit: 'pro Kill' },
+                'giesserei': { price: 30000, description: 'Pro Kill', unit: 'pro Kill' },
+                'waffenfabrik': { price: 35000, description: 'Pro Kill', unit: 'pro Kill' },
+                'hafen': { price: 100000, description: 'Pro Drop', unit: 'pro Drop' },
+                'ekz': { price: 150000, description: 'Pro Win', unit: 'pro Win' }
+            });
+        }
     }
 
     // Mitglieder Management
@@ -113,7 +125,6 @@ class HexenjaegerDB {
         if (prices) {
             return JSON.parse(prices);
         } else {
-            // Leere Preise zurückgeben, da sie in der Event-Eingabe gesetzt werden
             return {};
         }
     }
