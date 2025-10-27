@@ -347,8 +347,213 @@ class HexenjaegerDB {
     }
 }
 
+// ==================== AUTH CONFIGURATION ====================
+// Auth Configuration (HIER DEINE SERVER-IP EINTRAGEN!)
+const AUTH_CONFIG = {
+    authUrl: 'http://168.119.73.121:3000/auth/discord',
+    verifyUrl: 'http://168.119.73.121:3000/auth/verify'
+};
+
+// Auth State Management
+class AuthManager {
+    constructor() {
+        this.token = localStorage.getItem('discord_token');
+        this.userInfo = null;
+    }
+
+    async init() {
+        if (this.token) {
+            this.userInfo = await this.verifyToken();
+            if (!this.userInfo) {
+                this.logout();
+            }
+        }
+        this.applyPermissions();
+    }
+
+    async verifyToken() {
+        try {
+            const response = await fetch(AUTH_CONFIG.verifyUrl, {
+                headers: {
+                    'Authorization': `Bearer ${this.token}`
+                }
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Token verification failed:', error);
+            return null;
+        }
+    }
+
+    login() {
+        window.location.href = AUTH_CONFIG.authUrl;
+    }
+
+    logout() {
+        localStorage.removeItem('discord_token');
+        this.token = null;
+        this.userInfo = null;
+        window.location.href = 'index.html';
+    }
+
+    handleCallback() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        
+        if (token) {
+            localStorage.setItem('discord_token', token);
+            this.token = token;
+            // Remove token from URL
+            window.history.replaceState({}, '', window.location.pathname);
+            return true;
+        }
+        return false;
+    }
+
+    applyPermissions() {
+        const hasFullAccess = this.userInfo?.fullAccess;
+        const isAuthenticated = this.userInfo?.authenticated;
+        
+        if (!isAuthenticated) {
+            this.showLoginScreen();
+            return;
+        }
+
+        // Navigation anpassen basierend auf Berechtigungen
+        this.adjustNavigation(hasFullAccess);
+        
+        // Spezifische Elemente anpassen
+        this.admitPageElements(hasFullAccess);
+        
+        // User-Info in Header anzeigen
+        this.showUserInfo();
+    }
+
+    showLoginScreen() {
+        // Zeige Login-Overlay auf allen Seiten
+        const loginOverlay = document.createElement('div');
+        loginOverlay.innerHTML = `
+            <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white;">
+                <h1>Hexenjäger Family</h1>
+                <p style="margin-bottom: 20px;">Bitte mit Discord authentifizieren</p>
+                <button onclick="auth.login()" class="btn btn-primary" style="font-size: 16px; padding: 12px 24px;">
+                    🔐 Mit Discord anmelden
+                </button>
+            </div>
+        `;
+        document.body.appendChild(loginOverlay);
+    }
+
+    adjustNavigation(hasFullAccess) {
+        // Navigationselemente basierend auf Berechtigungen anzeigen/verstecken
+        if (!hasFullAccess) {
+            // Verstecke Tabs für eingeschränkte Benutzer
+            const restrictedTabs = document.querySelectorAll('a[href="eingabe.html"], a[href="mitglieder.html"]');
+            restrictedTabs.forEach(tab => {
+                if (tab.parentElement) {
+                    tab.parentElement.style.display = 'none';
+                } else {
+                    tab.style.display = 'none';
+                }
+            });
+        }
+    }
+
+    admitPageElements(hasFullAccess) {
+        const currentPage = window.location.pathname.split('/').pop();
+        
+        switch(currentPage) {
+            case 'auszahlungen.html':
+                if (!hasFullAccess) {
+                    // Verstecke "Neues Event erfassen" Button
+                    const buttons = document.querySelectorAll('button');
+                    buttons.forEach(btn => {
+                        if (btn.textContent.includes('Neues Event erfassen') || 
+                            btn.onclick && btn.onclick.toString().includes('eingabe.html')) {
+                            btn.style.display = 'none';
+                        }
+                    });
+                    
+                    // Verstecke Aktionen-Spalte
+                    const thElements = document.querySelectorAll('th');
+                    thElements.forEach(th => {
+                        if (th.textContent.includes('Aktionen')) {
+                            th.style.display = 'none';
+                        }
+                    });
+                    
+                    const tdElements = document.querySelectorAll('td');
+                    tdElements.forEach((td, index) => {
+                        // Annahme: Aktionen ist die letzte Spalte
+                        const tr = td.closest('tr');
+                        if (tr) {
+                            const tds = tr.querySelectorAll('td');
+                            if (tds.length > 0 && td === tds[tds.length - 1]) {
+                                td.style.display = 'none';
+                            }
+                        }
+                    });
+                }
+                break;
+                
+            case 'statistik.html':
+                if (!hasFullAccess) {
+                    // Verstecke Reset-Button
+                    const resetBtns = document.querySelectorAll('.reset-btn, button[onclick*="reset"]');
+                    resetBtns.forEach(btn => btn.style.display = 'none');
+                }
+                break;
+                
+            case 'eingabe.html':
+            case 'mitglieder.html':
+                if (!hasFullAccess) {
+                    // Für nicht autorisierte Benutzer: Zurück zur Startseite
+                    window.location.href = 'index.html';
+                }
+                break;
+        }
+    }
+
+    showUserInfo() {
+        // Füge User-Info zum Header hinzu
+        const header = document.querySelector('header');
+        if (header && this.userInfo) {
+            let userInfoElement = header.querySelector('.user-info');
+            if (!userInfoElement) {
+                userInfoElement = document.createElement('div');
+                userInfoElement.className = 'user-info';
+                userInfoElement.style.cssText = `
+                    position: absolute;
+                    top: 20px;
+                    right: 20px;
+                    background: var(--bg-card);
+                    padding: 8px 16px;
+                    border-radius: 6px;
+                    border: 1px solid var(--border-color);
+                    font-size: 14px;
+                `;
+                header.style.position = 'relative';
+                header.appendChild(userInfoElement);
+            }
+            
+            const accessLevel = this.userInfo.fullAccess ? 'Admin' : 'Mitglied';
+            userInfoElement.innerHTML = `
+                <div>👤 ${this.userInfo.user}</div>
+                <div style="font-size: 12px; color: var(--text-muted);">${accessLevel}</div>
+                <button onclick="auth.logout()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 12px; margin-top: 4px;">
+                    Abmelden
+                </button>
+            `;
+        }
+    }
+}
+
+// ==================== GLOBALE INSTANZEN ====================
 // Globale DB Instanz
 const db = new HexenjaegerDB();
+
+// Globale Auth Instanz
+const auth = new AuthManager();
 
 // Hilfsfunktionen
 function escapeHtml(text) {
@@ -382,3 +587,14 @@ function showNotification(message, type = 'info') {
         notification.remove();
     }, 4000);
 }
+
+// ==================== AUTO-INIT FÜR AUTH ====================
+// Auto-Init für Auth
+document.addEventListener('DOMContentLoaded', async function() {
+    // Handle OAuth Callback
+    if (auth.handleCallback()) {
+        await auth.init();
+    } else {
+        await auth.init();
+    }
+});
