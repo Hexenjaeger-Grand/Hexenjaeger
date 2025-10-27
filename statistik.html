@@ -5,571 +5,149 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Statistik - Hexenjäger</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 24px;
-            text-align: center;
-            transition: all 0.2s;
-        }
-
-        .stat-card:hover {
-            border-color: var(--accent-purple);
-        }
-
-        .stat-icon {
-            font-size: 2.5em;
-            margin-bottom: 15px;
-            display: block;
-        }
-
-        .stat-number {
-            font-size: 2em;
-            font-weight: bold;
-            color: var(--accent-purple-light);
-            margin: 10px 0;
-        }
-
-        .stat-label {
-            color: var(--text-muted);
-            font-size: 0.9em;
-        }
-
-        .stat-trend {
-            font-size: 0.8em;
-            padding: 2px 8px;
-            border-radius: 12px;
-            margin-top: 5px;
-            display: inline-block;
-        }
-
-        .trend-up {
-            background: rgba(16, 185, 129, 0.2);
-            color: #10b981;
-        }
-
-        .trend-down {
-            background: rgba(239, 68, 68, 0.2);
-            color: #ef4444;
-        }
-
-        .tooltip {
-            position: relative;
-            display: inline-block;
-            margin-left: 5px;
-            cursor: help;
-        }
-
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            width: 200px;
-            background-color: var(--bg-darker);
-            color: var(--text-light);
-            text-align: center;
-            border-radius: 6px;
-            padding: 8px;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            margin-left: -100px;
-            opacity: 0;
-            transition: opacity 0.3s;
-            border: 1px solid var(--border-color);
-            font-size: 0.8em;
-        }
-
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-            opacity: 1;
-        }
-
-        .sorting-options {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .sort-btn {
-            padding: 10px 20px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            color: var(--text-light);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .sort-btn.active {
-            background: var(--accent-purple);
-            border-color: var(--accent-purple);
-        }
-
-        .sort-btn:hover {
-            border-color: var(--accent-purple);
-        }
-
-        .top-list {
-            background: var(--bg-card);
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            overflow: hidden;
-        }
-
-        .top-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 20px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .top-item:last-child {
-            border-bottom: none;
-        }
-
-        .member-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .member-rank {
-            font-weight: bold;
-            color: var(--accent-purple-light);
-            min-width: 25px;
-        }
-
-        .member-stats {
-            text-align: right;
-        }
-
-        .member-amount {
-            font-weight: bold;
-            color: var(--text-light);
-            font-size: 1.1em;
-        }
-
-        .member-events {
-            color: var(--text-muted);
-            font-size: 0.85em;
-        }
-
-        .reset-btn {
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-            border-color: rgba(239, 68, 68, 0.3);
-            margin-top: 30px;
-        }
-
-        .reset-btn:hover {
-            background: rgba(239, 68, 68, 0.2);
-            border-color: rgba(239, 68, 68, 0.5);
-        }
-
-        .reset-section {
-            text-align: center;
-            margin-top: 40px;
-            padding-top: 30px;
-            border-top: 1px solid var(--border-color);
-        }
-    </style>
 </head>
 <body>
     <div class="container">
         <header>
             <div class="hexenjaeger-symbol"></div>
             <h1>Statistik</h1>
-            <p>Übersicht und Top 20 Mitglieder</p>
+            <p>Übersicht und Auszahlungsstatistik</p>
             <a href="index.html" class="back-btn">← Zurück zur Übersicht</a>
         </header>
 
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon">💰</div>
-                <div class="stat-number" id="totalPaid">$0</div>
-                <div class="stat-label">Gesamt ausgezahlt</div>
-                <div class="stat-trend trend-up">
-                    +0%
-                    <div class="tooltip">?
-                        <span class="tooltiptext">Summe aller abgeschlossenen Auszahlungen</span>
-                    </div>
-                </div>
+                <div class="stat-number" id="totalMembers">0</div>
+                <div class="stat-label">Mitglieder</div>
             </div>
-            
             <div class="stat-card">
-                <div class="stat-icon">📋</div>
                 <div class="stat-number" id="openPayouts">0</div>
                 <div class="stat-label">Offene Auszahlungen</div>
-                <div class="stat-trend trend-up">
-                    +0%
-                    <div class="tooltip">?
-                        <span class="tooltiptext">Aktuelle Anzahl offener Auszahlungen</span>
-                    </div>
-                </div>
             </div>
-            
             <div class="stat-card">
-                <div class="stat-icon">🎯</div>
-                <div class="stat-number" id="totalEvents">0</div>
-                <div class="stat-label">Gesamt Events</div>
-                <div class="stat-trend trend-up">
-                    +0%
-                    <div class="tooltip">?
-                        <span class="tooltiptext">Gesamtanzahl aller erfassten Events</span>
-                    </div>
-                </div>
+                <div class="stat-number" id="totalAmount">$0</div>
+                <div class="stat-label">Ausstehender Betrag</div>
             </div>
-            
             <div class="stat-card">
-                <div class="stat-icon">📈</div>
-                <div class="stat-number" id="avgPerMember">$0</div>
-                <div class="stat-label">Durchschnitt pro Person</div>
-                <div class="stat-trend trend-up">
-                    +0%
-                    <div class="tooltip">?
-                        <span class="tooltiptext">Durchschnittlicher Betrag pro Mitglied</span>
-                    </div>
-                </div>
+                <div class="stat-number" id="completedPayouts">0</div>
+                <div class="stat-label">Abgeschlossene Auszahlungen</div>
             </div>
         </div>
 
         <div class="card">
-            <h2>Top 20 Mitglieder</h2>
-            
-            <div class="sorting-options">
-                <button class="sort-btn active" onclick="sortByPayout()">Nach Auszahlungen</button>
-                <button class="sort-btn" onclick="sortByEvents()">Nach Events</button>
-            </div>
-
-            <div class="top-list" id="topList">
-                <!-- Wird via JavaScript gefüllt -->
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>Detaillierte Auszahlungsstatistik</h2>
+            <h2>Aktuelle Auszahlungen</h2>
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
                             <th>Mitglied</th>
-                            <th>Bizwar W/L</th>
-                            <th>40er W/L</th>
-                            <th>Gießerei</th>
-                            <th>Waffenfabrik</th>
-                            <th>Hafen</th>
-                            <th>Cayo</th>
-                            <th>RP Fabrik</th>
-                            <th>EKZ</th>
-                            <th>Gesamt</th>
+                            <th>Betrag</th>
+                            <th>Events</th>
                         </tr>
                     </thead>
-                    <tbody id="statsTableBody">
-                        <!-- Wird via JavaScript gefüllt -->
+                    <tbody id="currentPayoutsBody">
                     </tbody>
                 </table>
             </div>
-            <div id="noStatsData" class="no-data" style="display: none;">
-                Noch keine Auszahlungsdaten vorhanden
+            <div id="noCurrentPayouts" class="no-data" style="display: none;">
+                Keine offenen Auszahlungen
             </div>
         </div>
 
-        <!-- Reset Button nach unten verschoben -->
-        <div class="reset-section">
-            <button onclick="showResetConfirm()" class="btn btn-secondary reset-btn">
-                🗑️ Statistik zurücksetzen
-            </button>
+        <div class="card">
+            <h2>Abgeschlossene Auszahlungen</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mitglied</th>
+                            <th>Betrag</th>
+                            <th>Datum</th>
+                        </tr>
+                    </thead>
+                    <tbody id="completedPayoutsBody">
+                    </tbody>
+                </table>
+            </div>
+            <div id="noCompletedPayouts" class="no-data" style="display: none;">
+                Keine abgeschlossenen Auszahlungen
+            </div>
         </div>
     </div>
 
     <script src="app.js"></script>
     <script>
-        let currentSort = 'payout';
-
         function updateStatistics() {
-            // Verwende BOTH Events und Completed Payouts für die Statistik
+            const members = db.getMembers();
             const events = db.getEvents();
             const completedPayouts = db.getCompletedPayouts();
-            const eventHistory = db.getEventHistory();
-            const openPayouts = calculateOpenPayouts(events);
-            
-            updateSummaryStats(events, completedPayouts, eventHistory, openPayouts);
-            updateTopList(events, completedPayouts, eventHistory);
-            updateDetailedStats(events, completedPayouts, eventHistory);
-        }
 
-        function calculateOpenPayouts(events) {
-            const memberPayouts = {};
-            const members = db.getMembers();
+            // Summary Statistics
+            document.getElementById('totalMembers').textContent = members.length;
+            document.getElementById('openPayouts').textContent = events.length;
+            document.getElementById('completedPayouts').textContent = completedPayouts.length;
             
-            events.forEach(event => {
-                const eventType = event.eventType;
-                const amount = event.amount || 1;
-                const totalAmount = event.totalAmount || 0;
-                
-                // Berechne den Betrag für dieses Event
-                let calculatedAmount = 0;
-                
-                if (['cayo', 'rp_fabrik', 'ekz'].includes(eventType)) {
-                    // Shared Events - Betrag wird aufgeteilt
-                    calculatedAmount = totalAmount > 0 ? Math.round(totalAmount / event.memberIds.length) : 0;
+            const totalAmount = events.reduce((total, event) => {
+                if (['cayo', 'rp_fabrik', 'ekz'].includes(event.eventType)) {
+                    return total + (event.totalAmount || 0);
                 } else {
-                    // Individuelle Events - verwende den Event-Preis
-                    calculatedAmount = db.getEventPrice(eventType, amount);
+                    return total + db.getEventPrice(event.eventType, event.amount || 1);
                 }
-                
-                // Verteile auf Mitglieder
-                event.memberIds.forEach(memberId => {
-                    if (!memberPayouts[memberId]) {
-                        const member = members.find(m => m.id === memberId);
-                        memberPayouts[memberId] = {
-                            memberId: memberId,
-                            memberName: member?.name || 'Unbekannt',
-                            total: 0
-                        };
-                    }
-                    
-                    memberPayouts[memberId].total += calculatedAmount;
-                });
-            });
-            
-            return Object.values(memberPayouts);
-        }
-        
-        function updateSummaryStats(events, completedPayouts, eventHistory, openPayouts) {
-            // Gesamt ausgezahlt (abgeschlossene Auszahlungen)
-            const totalPaid = completedPayouts.reduce((sum, payout) => sum + payout.total, 0);
-            document.getElementById('totalPaid').textContent = formatCurrency(totalPaid);
-            
-            // Offene Auszahlungen
-            document.getElementById('openPayouts').textContent = openPayouts.length;
-            
-            // Gesamt Events (alle jemals erfassten Events aus der History)
-            document.getElementById('totalEvents').textContent = eventHistory.length;
-            
-            // Durchschnitt pro Person
-            const allMembers = db.getMembers();
-            const totalAmount = totalPaid + openPayouts.reduce((sum, payout) => sum + payout.total, 0);
-            const avgPerMember = allMembers.length > 0 ? Math.round(totalAmount / allMembers.length) : 0;
-            document.getElementById('avgPerMember').textContent = formatCurrency(avgPerMember);
-        }
-        
-        function updateTopList(events, completedPayouts, eventHistory) {
-            const topList = document.getElementById('topList');
-            const memberStats = {};
-            const members = db.getMembers();
-            
-            // Initialisiere alle Mitglieder
-            members.forEach(member => {
-                memberStats[member.id] = {
-                    name: member.name,
-                    totalEvents: 0,
-                    totalPaid: 0
-                };
-            });
-            
-            // Addiere Events aus der History (inkl. abgeschlossene)
-            eventHistory.forEach(event => {
-                if (memberStats[event.memberId]) {
-                    memberStats[event.memberId].totalEvents += 1;
-                    memberStats[event.memberId].totalPaid += event.individualAmount;
-                }
-            });
-            
-            // Addiere offene Events (die noch nicht in der History sind)
-            events.forEach(event => {
-                const eventType = event.eventType;
-                const amount = event.amount || 1;
-                const totalAmount = event.totalAmount || 0;
-                
-                // Berechne den Betrag für dieses Event
-                let calculatedAmount = 0;
-                
-                if (['cayo', 'rp_fabrik', 'ekz'].includes(eventType)) {
-                    calculatedAmount = totalAmount > 0 ? Math.round(totalAmount / event.memberIds.length) : 0;
-                } else {
-                    calculatedAmount = db.getEventPrice(eventType, amount);
-                }
-                
-                // Verteile auf Mitglieder
-                event.memberIds.forEach(memberId => {
-                    if (memberStats[memberId]) {
-                        memberStats[memberId].totalEvents += 1;
-                        memberStats[memberId].totalPaid += calculatedAmount;
-                    }
-                });
-            });
-            
-            // Sortiere nach aktueller Sortierung
-            const sortedMembers = Object.values(memberStats)
-                .filter(member => member.totalPaid > 0 || member.totalEvents > 0)
-                .sort((a, b) => {
-                    if (currentSort === 'payout') {
-                        return b.totalPaid - a.totalPaid;
-                    } else {
-                        return b.totalEvents - a.totalEvents;
-                    }
-                })
-                .slice(0, 20);
+            }, 0);
+            document.getElementById('totalAmount').textContent = formatCurrency(totalAmount);
 
-            if (sortedMembers.length === 0) {
-                topList.innerHTML = '<div class="no-data" style="margin: 20px;">Noch keine Daten vorhanden</div>';
-                return;
-            }
-
-            topList.innerHTML = sortedMembers.map((member, index) => `
-                <div class="top-item">
-                    <div class="member-info">
-                        <div class="member-rank">#${index + 1}</div>
-                        <div class="member-name">${member.name}</div>
-                    </div>
-                    <div class="member-stats">
-                        <div class="member-amount">
-                            ${currentSort === 'payout' ? formatCurrency(member.totalPaid) : member.totalEvents + ' Events'}
-                        </div>
-                        <div class="member-events">
-                            ${currentSort === 'payout' ? member.totalEvents + ' Events' : formatCurrency(member.totalPaid)}
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        function updateDetailedStats(events, completedPayouts, eventHistory) {
-            const tbody = document.getElementById('statsTableBody');
-            const noData = document.getElementById('noStatsData');
-            const members = db.getMembers();
-            const memberTotals = {};
+            // Current Payouts
+            const currentPayoutsBody = document.getElementById('currentPayoutsBody');
+            const noCurrentPayouts = document.getElementById('noCurrentPayouts');
             
-            // Initialisiere für jedes Mitglied
-            members.forEach(member => {
-                memberTotals[member.id] = {
-                    name: member.name,
-                    bizwar_win: 0, bizwar_lose: 0,
-                    '40er_win': 0, '40er_lose': 0,
-                    giesserei: 0, waffenfabrik: 0,
-                    hafen: 0, cayo: 0, rp_fabrik: 0, ekz: 0,
-                    total: 0
-                };
-            });
-            
-            // Verarbeite Event History (abgeschlossene Auszahlungen)
-            eventHistory.forEach(event => {
-                if (memberTotals[event.memberId]) {
-                    // Addiere Anzahl
-                    if (event.eventType in memberTotals[event.memberId]) {
-                        memberTotals[event.memberId][event.eventType] += event.amount;
-                    }
-                    
-                    // Addiere Gesamtbetrag
-                    memberTotals[event.memberId].total += event.individualAmount;
-                }
-            });
-            
-            // Verarbeite offene Events
-            events.forEach(event => {
-                const eventType = event.eventType;
-                const amount = event.amount || 1;
-                const totalAmount = event.totalAmount || 0;
-                
-                // Berechne Betrag für dieses Event
-                let calculatedAmount = 0;
-                if (['cayo', 'rp_fabrik', 'ekz'].includes(eventType)) {
-                    calculatedAmount = totalAmount > 0 ? Math.round(totalAmount / event.memberIds.length) : 0;
-                } else {
-                    calculatedAmount = db.getEventPrice(eventType, amount);
-                }
-                
-                // Verteile auf Mitglieder
-                event.memberIds.forEach(memberId => {
-                    if (memberTotals[memberId]) {
-                        // Addiere Anzahl
-                        if (eventType in memberTotals[memberId]) {
-                            memberTotals[memberId][eventType] += amount;
-                        }
-                        
-                        // Addiere Gesamtbetrag
-                        memberTotals[memberId].total += calculatedAmount;
-                    }
-                });
-            });
-            
-            const membersWithData = Object.values(memberTotals).filter(member => member.total > 0);
-            
-            if (membersWithData.length === 0) {
-                tbody.innerHTML = '';
-                noData.style.display = 'block';
-                return;
-            }
-            
-            noData.style.display = 'none';
-            
-            tbody.innerHTML = membersWithData
-                .sort((a, b) => b.total - a.total)
-                .map(member => `
-                    <tr>
-                        <td><strong>${member.name}</strong></td>
-                        <td>${member.bizwar_win} / ${member.bizwar_lose}</td>
-                        <td>${member['40er_win']} / ${member['40er_lose']}</td>
-                        <td>${member.giesserei}</td>
-                        <td>${member.waffenfabrik}</td>
-                        <td>${member.hafen}</td>
-                        <td>${member.cayo}</td>
-                        <td>${member.rp_fabrik}</td>
-                        <td>${member.ekz}</td>
-                        <td><strong>${formatCurrency(member.total || 0)}</strong></td>
-                    </tr>
-                `).join('');
-        }
-
-        function sortByPayout() {
-            currentSort = 'payout';
-            updateSortButtons();
-            updateStatistics();
-        }
-
-        function sortByEvents() {
-            currentSort = 'events';
-            updateSortButtons();
-            updateStatistics();
-        }
-
-        function updateSortButtons() {
-            document.querySelectorAll('.sort-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            if (currentSort === 'payout') {
-                document.querySelector('.sort-btn:nth-child(1)').classList.add('active');
+            if (events.length === 0) {
+                currentPayoutsBody.innerHTML = '';
+                noCurrentPayouts.style.display = 'block';
             } else {
-                document.querySelector('.sort-btn:nth-child(2)').classList.add('active');
+                noCurrentPayouts.style.display = 'none';
+                currentPayoutsBody.innerHTML = events.map(event => {
+                    const memberNames = event.memberIds.map(id => {
+                        const member = members.find(m => m.id === id);
+                        return member ? member.name : 'Unbekannt';
+                    }).join(', ');
+                    
+                    const amount = ['cayo', 'rp_fabrik', 'ekz'].includes(event.eventType) 
+                        ? formatCurrency(event.totalAmount || 0)
+                        : formatCurrency(db.getEventPrice(event.eventType, event.amount || 1));
+                    
+                    return `
+                        <tr>
+                            <td>${memberNames}</td>
+                            <td>${amount}</td>
+                            <td>${event.eventType}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            // Completed Payouts
+            const completedPayoutsBody = document.getElementById('completedPayoutsBody');
+            const noCompletedPayouts = document.getElementById('noCompletedPayouts');
+            
+            if (completedPayouts.length === 0) {
+                completedPayoutsBody.innerHTML = '';
+                noCompletedPayouts.style.display = 'block';
+            } else {
+                noCompletedPayouts.style.display = 'none';
+                completedPayoutsBody.innerHTML = completedPayouts.map(payout => {
+                    const date = new Date(payout.completedDate).toLocaleDateString('de-DE');
+                    return `
+                        <tr>
+                            <td>${payout.memberName}</td>
+                            <td>${formatCurrency(payout.total)}</td>
+                            <td>${date}</td>
+                        </tr>
+                    `;
+                }).join('');
             }
         }
 
-        function showResetConfirm() {
-            if (confirm('⚠️ STATISTIK wirklich zurücksetzen?\n\nDies löscht ALLE Events und Auszahlungsdaten!\n\nDiese Aktion kann nicht rückgängig gemacht werden.')) {
-                localStorage.setItem('hexenjaeger_events', JSON.stringify([]));
-                localStorage.setItem('hexenjaeger_completed_payouts', JSON.stringify([]));
-                localStorage.setItem('hexenjaeger_event_history', JSON.stringify([]));
-                showNotification('Statistik wurde zurückgesetzt!', 'success');
-                updateStatistics();
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            updateStatistics();
-        });
+        document.addEventListener('DOMContentLoaded', updateStatistics);
     </script>
 </body>
 </html>
