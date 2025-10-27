@@ -323,7 +323,7 @@ const AUTH_CONFIG = {
     verifyUrl: 'http://168.119.73.121:3000/auth/verify'
 };
 
-// Auth State Management - FIXED VERSION
+// Auth State Management
 class AuthManager {
     constructor() {
         this.token = null;
@@ -331,17 +331,14 @@ class AuthManager {
     }
 
     async init() {
-        // Token aus URL holen
         const urlParams = new URLSearchParams(window.location.search);
         const tokenFromURL = urlParams.get('token');
         
         if (tokenFromURL) {
             this.token = tokenFromURL;
             localStorage.setItem('discord_token', this.token);
-            // URL bereinigen
             window.history.replaceState({}, '', window.location.pathname);
         } else {
-            // Token aus localStorage laden
             this.token = localStorage.getItem('discord_token');
         }
 
@@ -357,15 +354,20 @@ class AuthManager {
 
     async verifyAndApplyPermissions() {
         try {
-            const response = await fetch(AUTH_CONFIG.verifyUrl, {
-                headers: {
-                    'Authorization': `Bearer ${this.token}`
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error('Server error');
+            // Fallback: Erst HTTPS versuchen, dann HTTP
+            let response;
+            try {
+                response = await fetch(AUTH_CONFIG.verifyUrl.replace('http:', 'https:'), {
+                    headers: { 'Authorization': `Bearer ${this.token}` }
+                });
+            } catch (httpsError) {
+                // Fallback zu HTTP
+                response = await fetch(AUTH_CONFIG.verifyUrl, {
+                    headers: { 'Authorization': `Bearer ${this.token}` }
+                });
             }
+            
+            if (!response.ok) throw new Error('Server error');
             
             this.userInfo = await response.json();
             
@@ -391,7 +393,6 @@ class AuthManager {
     }
 
     applyPermissions(hasFullAccess) {
-        // Navigation anpassen
         if (!hasFullAccess) {
             const restrictedTabs = document.querySelectorAll('a[href="eingabe.html"], a[href="mitglieder.html"]');
             restrictedTabs.forEach(tab => {
@@ -402,8 +403,6 @@ class AuthManager {
                 }
             });
         }
-
-        // Seiten-spezifische Elemente anpassen
         this.admitPageElements(hasFullAccess);
     }
 
