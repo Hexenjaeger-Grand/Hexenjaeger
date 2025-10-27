@@ -5,7 +5,6 @@ class HexenjaegerDB {
     }
 
     init() {
-        // Initialisiere Standarddaten
         if (!localStorage.getItem('hexenjaeger_members')) {
             this.saveMembers([
                 { id: 'HJ001', name: 'Malachi', joined: new Date().toISOString() },
@@ -42,7 +41,6 @@ class HexenjaegerDB {
         }
     }
 
-    // Mitglieder Management
     getMembers() {
         return JSON.parse(localStorage.getItem('hexenjaeger_members') || '[]');
     }
@@ -61,7 +59,6 @@ class HexenjaegerDB {
         return { success: true };
     }
 
-    // Mitglied bearbeiten
     updateMember(id, newName) {
         const members = this.getMembers();
         const memberIndex = members.findIndex(m => m.id === id);
@@ -75,7 +72,6 @@ class HexenjaegerDB {
         return { success: true };
     }
 
-    // Mitglied löschen
     deleteMember(id) {
         const members = this.getMembers();
         const memberIndex = members.findIndex(m => m.id === id);
@@ -84,7 +80,6 @@ class HexenjaegerDB {
             return { error: 'Mitglied nicht gefunden' };
         }
         
-        // Prüfe ob das Mitglied Events hat
         const events = this.getEvents();
         const hasEvents = events.some(event => event.memberIds.includes(id));
         
@@ -92,13 +87,11 @@ class HexenjaegerDB {
             return { error: 'Mitglied kann nicht gelöscht werden, da es Events hat' };
         }
         
-        // Lösche Mitglied
         members.splice(memberIndex, 1);
         this.saveMembers(members);
         return { success: true };
     }
 
-    // Auszahlungen Management
     getPayouts() {
         return JSON.parse(localStorage.getItem('hexenjaeger_payouts') || '[]');
     }
@@ -107,7 +100,6 @@ class HexenjaegerDB {
         localStorage.setItem('hexenjaeger_payouts', JSON.stringify(payouts));
     }
 
-    // Abgeschlossene Auszahlungen
     getCompletedPayouts() {
         return JSON.parse(localStorage.getItem('hexenjaeger_completed_payouts') || '[]');
     }
@@ -116,7 +108,6 @@ class HexenjaegerDB {
         localStorage.setItem('hexenjaeger_completed_payouts', JSON.stringify(payouts));
     }
 
-    // Event History für Details
     getEventHistory() {
         return JSON.parse(localStorage.getItem('hexenjaeger_event_history') || '[]');
     }
@@ -125,7 +116,6 @@ class HexenjaegerDB {
         localStorage.setItem('hexenjaeger_event_history', JSON.stringify(history));
     }
 
-    // Events Management
     getEvents() {
         return JSON.parse(localStorage.getItem('hexenjaeger_events') || '[]');
     }
@@ -145,17 +135,12 @@ class HexenjaegerDB {
             
             events.push(newEvent);
             this.saveEvents(events);
-            
-            // FÜLLE AUCH DIE EVENT HISTORY - WICHTIG FÜR STATISTIK!
             this.addEventToHistory(eventData);
             
-            // Für individuelle Events berechnen wir den Betrag hier
             let calculatedAmount = 0;
             if (['cayo', 'rp_fabrik', 'ekz'].includes(eventData.eventType)) {
-                // Shared Events
                 calculatedAmount = eventData.totalAmount || 0;
             } else {
-                // Individuelle Events
                 calculatedAmount = this.getEventPrice(eventData.eventType, eventData.amount || 1);
             }
             
@@ -171,19 +156,16 @@ class HexenjaegerDB {
         }
     }
 
-    // NEUE FUNKTION: Event zur History hinzufügen
     addEventToHistory(eventData) {
         const { eventType, memberIds, amount, totalAmount } = eventData;
         const members = this.getMembers();
         const eventHistory = this.getEventHistory();
         const timestamp = new Date().toISOString();
 
-        // Für jedes Mitglied Event zur History hinzufügen
         memberIds.forEach(memberId => {
             const member = members.find(m => m.id === memberId);
             if (!member) return;
 
-            // Berechne Betrag basierend auf Event-Typ
             let individualAmount = 0;
             if (eventType === 'cayo' || eventType === 'rp_fabrik' || eventType === 'ekz') {
                 individualAmount = totalAmount > 0 ? Math.round(totalAmount / memberIds.length) : 0;
@@ -191,7 +173,6 @@ class HexenjaegerDB {
                 individualAmount = this.getEventPrice(eventType, amount || 1);
             }
 
-            // Event zur History hinzufügen
             const eventEntry = {
                 id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
                 memberId: member.id,
@@ -209,7 +190,6 @@ class HexenjaegerDB {
         this.saveEventHistory(eventHistory);
     }
 
-    // Event Preise
     getEventPrices() {
         const prices = localStorage.getItem('hexenjaeger_event_prices');
         if (prices) {
@@ -229,10 +209,9 @@ class HexenjaegerDB {
         if (eventPrice && eventPrice.price) {
             return eventPrice.price * amount;
         }
-        return 0; // Fallback, falls kein Preis gesetzt ist
+        return 0;
     }
 
-    // Event hinzufügen - MIT HISTORY (für Kompatibilität)
     addEventWithHistory(eventData) {
         const result = this.addEvent(eventData);
         return { 
@@ -242,7 +221,6 @@ class HexenjaegerDB {
         };
     }
 
-    // Event History für ein Mitglied abrufen
     getMemberEventHistory(memberId) {
         const history = this.getEventHistory();
         return history
@@ -250,7 +228,6 @@ class HexenjaegerDB {
             .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     }
 
-    // Event Details als Text formatieren
     formatEventDetails(event) {
         const eventNames = {
             'bizwar_win': 'Bizwar (Win)',
@@ -276,12 +253,10 @@ class HexenjaegerDB {
         }
     }
     
-    // Auszahlung abschließen
     completePayout(memberId) {
         const events = this.getEvents();
         const completedPayouts = this.getCompletedPayouts();
         
-        // Berechne den Betrag für dieses Mitglied
         let totalAmount = 0;
         const memberEvents = events.filter(event => event.memberIds.includes(memberId));
         
@@ -300,7 +275,6 @@ class HexenjaegerDB {
             totalAmount += calculatedAmount;
         });
         
-        // Füge zur completed Liste hinzu
         const member = this.getMembers().find(m => m.id === memberId);
         if (member && totalAmount > 0) {
             completedPayouts.push({
@@ -311,8 +285,6 @@ class HexenjaegerDB {
             });
             
             this.saveCompletedPayouts(completedPayouts);
-            
-            // Entferne Events für dieses Mitglied
             const updatedEvents = events.filter(event => !event.memberIds.includes(memberId));
             this.saveEvents(updatedEvents);
             
@@ -322,7 +294,6 @@ class HexenjaegerDB {
         return { error: 'Mitglied nicht gefunden oder kein Betrag vorhanden' };
     }
 
-    // Bulk Operationen
     completeAllPayouts() {
         const payouts = this.getPayouts();
         const stats = this.getStats();
@@ -337,7 +308,6 @@ class HexenjaegerDB {
         return { success: true, completed: payouts.length };
     }
 
-    // Statistik
     getStats() {
         return JSON.parse(localStorage.getItem('hexenjaeger_stats') || '[]');
     }
@@ -347,91 +317,101 @@ class HexenjaegerDB {
     }
 }
 
-// ==================== AUTH CONFIGURATION ====================
-// Auth Configuration (HIER DEINE SERVER-IP EINTRAGEN!)
+// Auth Configuration
 const AUTH_CONFIG = {
     authUrl: 'http://168.119.73.121:3000/auth/discord',
     verifyUrl: 'http://168.119.73.121:3000/auth/verify'
 };
 
-// Auth State Management
+// Auth State Management - FIXED VERSION
 class AuthManager {
     constructor() {
-        this.token = localStorage.getItem('discord_token');
+        this.token = null;
         this.userInfo = null;
     }
 
     async init() {
-        if (this.token) {
-            this.userInfo = await this.verifyToken();
-            if (!this.userInfo) {
-                this.logout();
-            }
+        // Token aus URL holen
+        const urlParams = new URLSearchParams(window.location.search);
+        const tokenFromURL = urlParams.get('token');
+        
+        if (tokenFromURL) {
+            this.token = tokenFromURL;
+            localStorage.setItem('discord_token', this.token);
+            // URL bereinigen
+            window.history.replaceState({}, '', window.location.pathname);
+        } else {
+            // Token aus localStorage laden
+            this.token = localStorage.getItem('discord_token');
         }
-        this.applyPermissions();
+
+        if (this.token) {
+            const success = await this.verifyAndApplyPermissions();
+            if (!success) {
+                this.showLoginScreen();
+            }
+        } else {
+            this.showLoginScreen();
+        }
     }
 
-    async verifyToken() {
+    async verifyAndApplyPermissions() {
         try {
             const response = await fetch(AUTH_CONFIG.verifyUrl, {
                 headers: {
                     'Authorization': `Bearer ${this.token}`
                 }
             });
-            return await response.json();
+            
+            if (!response.ok) {
+                throw new Error('Server error');
+            }
+            
+            this.userInfo = await response.json();
+            
+            if (this.userInfo.authenticated) {
+                this.hideLoginScreen();
+                this.applyPermissions(this.userInfo.fullAccess);
+                this.showUserInfo();
+                return true;
+            } else {
+                this.logout();
+                return false;
+            }
         } catch (error) {
-            console.error('Token verification failed:', error);
-            return null;
+            console.error('Auth verification failed:', error);
+            this.logout();
+            return false;
         }
     }
 
-    login() {
-        window.location.href = AUTH_CONFIG.authUrl;
+    hideLoginScreen() {
+        const loginOverlays = document.querySelectorAll('.login-overlay');
+        loginOverlays.forEach(overlay => overlay.remove());
     }
 
-    logout() {
-        localStorage.removeItem('discord_token');
-        this.token = null;
-        this.userInfo = null;
-        window.location.href = 'index.html';
-    }
-
-    handleCallback() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
-        
-        if (token) {
-            localStorage.setItem('discord_token', token);
-            this.token = token;
-            // Remove token from URL
-            window.history.replaceState({}, '', window.location.pathname);
-            return true;
-        }
-        return false;
-    }
-
-    applyPermissions() {
-        const hasFullAccess = this.userInfo?.fullAccess;
-        const isAuthenticated = this.userInfo?.authenticated;
-        
-        if (!isAuthenticated) {
-            this.showLoginScreen();
-            return;
+    applyPermissions(hasFullAccess) {
+        // Navigation anpassen
+        if (!hasFullAccess) {
+            const restrictedTabs = document.querySelectorAll('a[href="eingabe.html"], a[href="mitglieder.html"]');
+            restrictedTabs.forEach(tab => {
+                if (tab.parentElement) {
+                    tab.parentElement.style.display = 'none';
+                } else {
+                    tab.style.display = 'none';
+                }
+            });
         }
 
-        // Navigation anpassen basierend auf Berechtigungen
-        this.adjustNavigation(hasFullAccess);
-        
-        // Spezifische Elemente anpassen
+        // Seiten-spezifische Elemente anpassen
         this.admitPageElements(hasFullAccess);
-        
-        // User-Info in Header anzeigen
-        this.showUserInfo();
     }
 
     showLoginScreen() {
-        // Zeige Login-Overlay auf allen Seiten
+        this.hideLoginScreen();
+        
         const loginOverlay = document.createElement('div');
+        loginOverlay.className = 'login-overlay';
         loginOverlay.innerHTML = `
             <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white;">
                 <h1>Hexenjäger Family</h1>
@@ -444,19 +424,15 @@ class AuthManager {
         document.body.appendChild(loginOverlay);
     }
 
-    adjustNavigation(hasFullAccess) {
-        // Navigationselemente basierend auf Berechtigungen anzeigen/verstecken
-        if (!hasFullAccess) {
-            // Verstecke Tabs für eingeschränkte Benutzer
-            const restrictedTabs = document.querySelectorAll('a[href="eingabe.html"], a[href="mitglieder.html"]');
-            restrictedTabs.forEach(tab => {
-                if (tab.parentElement) {
-                    tab.parentElement.style.display = 'none';
-                } else {
-                    tab.style.display = 'none';
-                }
-            });
-        }
+    login() {
+        window.location.href = AUTH_CONFIG.authUrl;
+    }
+
+    logout() {
+        localStorage.removeItem('discord_token');
+        this.token = null;
+        this.userInfo = null;
+        this.showLoginScreen();
     }
 
     admitPageElements(hasFullAccess) {
@@ -465,7 +441,6 @@ class AuthManager {
         switch(currentPage) {
             case 'auszahlungen.html':
                 if (!hasFullAccess) {
-                    // Verstecke "Neues Event erfassen" Button
                     const buttons = document.querySelectorAll('button');
                     buttons.forEach(btn => {
                         if (btn.textContent.includes('Neues Event erfassen') || 
@@ -474,7 +449,6 @@ class AuthManager {
                         }
                     });
                     
-                    // Verstecke Aktionen-Spalte
                     const thElements = document.querySelectorAll('th');
                     thElements.forEach(th => {
                         if (th.textContent.includes('Aktionen')) {
@@ -484,7 +458,6 @@ class AuthManager {
                     
                     const tdElements = document.querySelectorAll('td');
                     tdElements.forEach((td, index) => {
-                        // Annahme: Aktionen ist die letzte Spalte
                         const tr = td.closest('tr');
                         if (tr) {
                             const tds = tr.querySelectorAll('td');
@@ -498,7 +471,6 @@ class AuthManager {
                 
             case 'statistik.html':
                 if (!hasFullAccess) {
-                    // Verstecke Reset-Button
                     const resetBtns = document.querySelectorAll('.reset-btn, button[onclick*="reset"]');
                     resetBtns.forEach(btn => btn.style.display = 'none');
                 }
@@ -507,7 +479,6 @@ class AuthManager {
             case 'eingabe.html':
             case 'mitglieder.html':
                 if (!hasFullAccess) {
-                    // Für nicht autorisierte Benutzer: Zurück zur Startseite
                     window.location.href = 'index.html';
                 }
                 break;
@@ -515,7 +486,6 @@ class AuthManager {
     }
 
     showUserInfo() {
-        // Füge User-Info zum Header hinzu
         const header = document.querySelector('header');
         if (header && this.userInfo) {
             let userInfoElement = header.querySelector('.user-info');
@@ -548,7 +518,6 @@ class AuthManager {
     }
 }
 
-// ==================== GLOBALE INSTANZEN ====================
 // Globale DB Instanz
 const db = new HexenjaegerDB();
 
@@ -588,13 +557,7 @@ function showNotification(message, type = 'info') {
     }, 4000);
 }
 
-// ==================== AUTO-INIT FÜR AUTH ====================
 // Auto-Init für Auth
 document.addEventListener('DOMContentLoaded', async function() {
-    // Handle OAuth Callback
-    if (auth.handleCallback()) {
-        await auth.init();
-    } else {
-        await auth.init();
-    }
+    await auth.init();
 });
