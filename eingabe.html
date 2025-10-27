@@ -5,147 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Eingabe - Hexenjäger</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        .event-form {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .form-section {
-            margin-bottom: 30px;
-        }
-
-        .members-selection {
-            margin-top: 15px;
-        }
-
-        .selected-count {
-            color: var(--accent-purple-light);
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .quick-actions {
-            margin-bottom: 20px;
-        }
-
-        .preview-box {
-            background: var(--bg-darker);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-
-        .preview-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .preview-item:last-child {
-            border-bottom: none;
-        }
-
-        .event-details {
-            display: none;
-            background: var(--bg-darker);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 20px;
-            margin-top: 15px;
-        }
-
-        .individual-inputs {
-            margin-top: 15px;
-        }
-
-        .member-input {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px;
-            background: var(--bg-card);
-            border-radius: 6px;
-            margin-bottom: 8px;
-        }
-
-        .member-input label {
-            min-width: 120px;
-            color: var(--text-light);
-        }
-
-        .member-input input {
-            width: 100px;
-            padding: 8px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            background: var(--bg-darker);
-            color: var(--text-light);
-        }
-
-        /* Neue Styles für Event-Preise */
-        .event-prices-container {
-            margin-top: 40px;
-            padding-top: 30px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .event-prices-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .event-price-item {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .event-price-info {
-            flex: 1;
-        }
-
-        .event-price-name {
-            font-weight: 600;
-            color: var(--text-light);
-            margin-bottom: 5px;
-        }
-
-        .event-price-description {
-            color: var(--text-muted);
-            font-size: 0.85em;
-        }
-
-        .event-price-input {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .event-price-input input {
-            width: 120px;
-            padding: 8px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            background: var(--bg-darker);
-            color: var(--text-light);
-            text-align: right;
-        }
-
-        .price-unit {
-            color: var(--text-muted);
-            font-size: 0.9em;
-            min-width: 60px;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -160,8 +19,7 @@
             <h2>Neues Event erfassen</h2>
             
             <div class="event-form">
-                <!-- Event Typ -->
-                <div class="form-section">
+                <div class="form-group">
                     <label for="eventType">Event Typ</label>
                     <select id="eventType">
                         <option value="">-- Event auswählen --</option>
@@ -178,74 +36,31 @@
                     </select>
                 </div>
 
-                <!-- Mitglieder Auswahl -->
-                <div class="form-section">
+                <div class="form-group">
                     <label>Mitglieder auswählen</label>
                     <div class="quick-actions">
                         <button type="button" class="quick-btn" onclick="selectAllMembers()">Alle auswählen</button>
                         <button type="button" class="quick-btn" onclick="deselectAllMembers()">Alle abwählen</button>
                     </div>
-                    <div class="selected-count" id="selectedCount">0 Mitglieder ausgewählt</div>
-                    <div class="members-grid" id="membersGrid">
-                        <!-- Wird via JavaScript gefüllt -->
-                    </div>
+                    <div class="members-grid" id="membersGrid"></div>
                 </div>
 
-                <!-- Event Details -->
-                <div id="eventDetails" class="event-details">
-                    <!-- Gemeinsame Eingabe für Cayo, RP Fabrik -->
-                    <div id="sharedAmount" style="display: none;">
-                        <div class="form-group">
-                            <label for="sharedAmountInput" id="sharedAmountLabel">Anzahl</label>
-                            <input type="number" id="sharedAmountInput" min="1" value="1">
-                        </div>
-                        <div class="form-group">
-                            <label for="sharedTotalAmount">Gesamtbetrag ($)</label>
-                            <input type="number" id="sharedTotalAmount" min="1" placeholder="Gesamtbetrag eingeben">
-                        </div>
-                    </div>
-
-                    <!-- Individuelle Eingabe für Kills/Drops/Wins -->
-                    <div id="individualAmounts" style="display: none;">
-                        <div class="form-group">
-                            <label id="individualAmountLabel">Anzahl pro Mitglied</label>
-                        </div>
-                        <div class="individual-inputs" id="individualInputsContainer">
-                            <!-- Wird via JavaScript gefüllt -->
-                        </div>
-                    </div>
+                <div class="form-group" id="amountSection" style="display: none;">
+                    <label for="amount">Anzahl</label>
+                    <input type="number" id="amount" min="1" value="1">
                 </div>
 
-                <!-- Vorschau -->
-                <div id="previewSection" class="preview-box" style="display: none;">
-                    <h3 style="margin-bottom: 15px; color: var(--accent-purple-light);">Vorschau</h3>
-                    <div id="previewContent"></div>
+                <div class="form-group" id="totalAmountSection" style="display: none;">
+                    <label for="totalAmount">Gesamtbetrag ($)</label>
+                    <input type="number" id="totalAmount" min="1" placeholder="Gesamtbetrag eingeben">
                 </div>
 
-                <!-- Aktionen -->
                 <div style="display: flex; gap: 12px; margin-top: 25px;">
                     <button id="submitEvent" class="btn btn-primary" style="flex: 1;">Event speichern</button>
                     <button type="button" onclick="resetForm()" class="btn btn-secondary">Zurücksetzen</button>
                 </div>
                 
                 <div id="statusMessage" style="margin-top: 15px; text-align: center; display: none;"></div>
-            </div>
-
-            <!-- NEU: Event-Preise Container -->
-            <div class="event-prices-container">
-                <h3>Event-Preise verwalten</h3>
-                <p>Aktuelle Auszahlungsbeträge pro Event-Typ</p>
-                
-                <div class="event-prices-grid" id="eventPricesGrid">
-                    <!-- Wird via JavaScript gefüllt -->
-                </div>
-                
-                <div style="display: flex; gap: 12px; margin-top: 20px;">
-                    <button onclick="saveEventPrices()" class="btn btn-primary">Preise speichern</button>
-                    <button onclick="resetEventPrices()" class="btn btn-secondary">Standard-Preise</button>
-                </div>
-                
-                <div id="pricesStatusMessage" style="margin-top: 15px; text-align: center; display: none;"></div>
             </div>
         </div>
     </div>
@@ -254,134 +69,34 @@
     <script>
         let selectedMembers = [];
 
-        // Event-Preis Konfiguration mit Standardwerten (nur für Events mit festen Preisen)
-        const defaultEventPrices = {
-            'bizwar_win': { price: 50000, description: 'Pro Kill (Win)', unit: 'pro Kill' },
-            'bizwar_lose': { price: 25000, description: 'Pro Kill (Lose)', unit: 'pro Kill' },
-            '40er_win': { price: 40000, description: 'Pro Kill (Win)', unit: 'pro Kill' },
-            '40er_lose': { price: 20000, description: 'Pro Kill (Lose)', unit: 'pro Kill' },
-            'giesserei': { price: 30000, description: 'Pro Kill', unit: 'pro Kill' },
-            'waffenfabrik': { price: 35000, description: 'Pro Kill', unit: 'pro Kill' },
-            'hafen': { price: 100000, description: 'Pro Drop', unit: 'pro Drop' },
-            'ekz': { price: 150000, description: 'Pro Win', unit: 'pro Win' }
-        };
-
-        // Globale Funktionen
-        function updatePreview() {
-            const previewSection = document.getElementById('previewSection');
-            const previewContent = document.getElementById('previewContent');
-            const eventType = document.getElementById('eventType');
+        function loadMembers() {
+            const members = db.getMembers();
+            const membersGrid = document.getElementById('membersGrid');
             
-            if (!eventType.value || selectedMembers.length === 0) {
-                previewSection.style.display = 'none';
-                return;
-            }
+            membersGrid.innerHTML = members.map(member => `
+                <div class="member-tag" data-id="${member.id}">
+                    <input type="checkbox" id="member_${member.id}" style="display: none;">
+                    <span>${member.name}</span>
+                    <small>(${member.id})</small>
+                </div>
+            `).join('');
 
-            const eventTypeValue = eventType.value;
-            let totalPayout = 0;
-            let description = '';
-
-            // Shared Events (Cayo, RP Fabrik)
-            if (['cayo', 'rp_fabrik'].includes(eventTypeValue)) {
-                const amount = parseInt(document.getElementById('sharedAmountInput').value) || 1;
-                const totalAmount = parseInt(document.getElementById('sharedTotalAmount').value) || 0;
-                
-                if (totalAmount > 0) {
-                    const perMember = Math.round(totalAmount / selectedMembers.length);
-                    totalPayout = totalAmount;
+            membersGrid.querySelectorAll('.member-tag').forEach(tag => {
+                tag.addEventListener('click', function() {
+                    const memberId = this.dataset.id;
+                    const checkbox = this.querySelector('input');
                     
-                    const eventNames = {
-                        'cayo': 'Cayo Perico',
-                        'rp_fabrik': 'RP Fabrik'
-                    };
-                    
-                    const unit = eventTypeValue === 'cayo' ? 'Drops' : 'Wins';
-                    description = `${eventNames[eventTypeValue]} - ${amount} ${unit}`;
-                    
-                    previewContent.innerHTML = `
-                        <div class="preview-item">
-                            <span>${selectedMembers.length} Mitglieder</span>
-                            <span>${formatCurrency(perMember)} pro Person</span>
-                        </div>
-                        <div class="preview-item">
-                            <span>Gesamtbetrag</span>
-                            <span><strong>${formatCurrency(totalPayout)}</strong></span>
-                        </div>
-                    `;
-                }
-            } 
-            // Individuelle Events (Bizwar, 40er, Hafen, Gießerei, Waffenfabrik, EKZ)
-            else {
-                let individualAmounts = [];
-                selectedMembers.forEach(memberId => {
-                    const amount = parseInt(document.getElementById(`amount_${memberId}`)?.value) || 1;
-                    const eventPrice = db.getEventPrice(eventTypeValue, amount);
-                    individualAmounts.push({
-                        memberId: memberId,
-                        amount: amount,
-                        amountValue: eventPrice
-                    });
-                    totalPayout += eventPrice;
+                    if (checkbox.checked) {
+                        checkbox.checked = false;
+                        this.classList.remove('selected');
+                        selectedMembers = selectedMembers.filter(id => id !== memberId);
+                    } else {
+                        checkbox.checked = true;
+                        this.classList.add('selected');
+                        selectedMembers.push(memberId);
+                    }
                 });
-
-                const eventNames = {
-                    'bizwar_win': 'Bizwar Win', 'bizwar_lose': 'Bizwar Lose',
-                    '40er_win': '40er Win', '40er_lose': '40er Lose',
-                    'hafen': 'Hafen', 'giesserei': 'Gießerei', 
-                    'waffenfabrik': 'Waffenfabrik', 'ekz': 'EKZ'
-                };
-                
-                description = eventNames[eventTypeValue];
-                
-                previewContent.innerHTML = individualAmounts.map(item => {
-                    const member = db.getMembers().find(m => m.id === item.memberId);
-                    let unit = 'Kills';
-                    if (eventTypeValue.includes('hafen')) unit = 'Drops';
-                    if (eventTypeValue === 'ekz') unit = 'Wins';
-                    
-                    return `
-                        <div class="preview-item">
-                            <span>${member.name} (${item.amount} ${unit})</span>
-                            <span>${formatCurrency(item.amountValue)}</span>
-                        </div>
-                    `;
-                }).join('') + `
-                    <div class="preview-item" style="border-top: 2px solid var(--accent-purple); font-weight: bold; margin-top: 10px;">
-                        <span>Gesamt (${selectedMembers.length} Mitglieder)</span>
-                        <span>${formatCurrency(totalPayout)}</span>
-                    </div>
-                `;
-            }
-
-            if (totalPayout > 0) {
-                previewSection.style.display = 'block';
-            } else {
-                previewSection.style.display = 'none';
-            }
-        }
-
-        function updateIndividualInputs() {
-            const container = document.getElementById('individualInputsContainer');
-            container.innerHTML = '';
-            
-            selectedMembers.forEach(memberId => {
-                const member = db.getMembers().find(m => m.id === memberId);
-                if (member) {
-                    const inputHtml = `
-                        <div class="member-input">
-                            <label>${member.name}:</label>
-                            <input type="number" id="amount_${memberId}" min="1" value="1" oninput="updatePreview()">
-                        </div>
-                    `;
-                    container.innerHTML += inputHtml;
-                }
             });
-            updatePreview(); // Vorschau sofort aktualisieren
-        }
-
-        function updateSelectedCount() {
-            const count = selectedMembers.length;
-            document.getElementById('selectedCount').textContent = `${count} Mitglieder ausgewählt`;
         }
 
         function selectAllMembers() {
@@ -392,10 +107,6 @@
                 tag.classList.add('selected');
                 tag.querySelector('input').checked = true;
             });
-            
-            updateSelectedCount();
-            updateIndividualInputs();
-            updatePreview();
         }
 
         function deselectAllMembers() {
@@ -404,106 +115,19 @@
                 tag.classList.remove('selected');
                 tag.querySelector('input').checked = false;
             });
-            updateSelectedCount();
-            updateIndividualInputs();
-            updatePreview();
         }
 
         function resetForm() {
             document.getElementById('eventType').value = '';
-            selectedMembers = [];
-            document.querySelectorAll('.member-tag').forEach(tag => {
-                tag.classList.remove('selected');
-                tag.querySelector('input').checked = false;
-            });
-            document.getElementById('sharedAmountInput').value = '1';
-            document.getElementById('sharedTotalAmount').value = '';
-            updateSelectedCount();
-            updatePreview();
-            document.getElementById('eventDetails').style.display = 'none';
-            document.getElementById('previewSection').style.display = 'none';
+            document.getElementById('amount').value = '1';
+            document.getElementById('totalAmount').value = '';
+            document.getElementById('amountSection').style.display = 'none';
+            document.getElementById('totalAmountSection').style.display = 'none';
+            deselectAllMembers();
         }
 
-        // NEUE FUNKTIONEN FÜR EVENT-PREISE
-        function loadEventPrices() {
-            let eventPrices = db.getEventPrices();
-            
-            // Falls keine Preise gesetzt sind, verwende Standard-Preise
-            if (Object.keys(eventPrices).length === 0) {
-                eventPrices = defaultEventPrices;
-                db.saveEventPrices(eventPrices);
-            }
-            
-            const grid = document.getElementById('eventPricesGrid');
-            
-            const eventNames = {
-                'bizwar_win': 'Bizwar Win',
-                'bizwar_lose': 'Bizwar Lose',
-                '40er_win': '40er Win',
-                '40er_lose': '40er Lose',
-                'giesserei': 'Gießerei',
-                'waffenfabrik': 'Waffenfabrik',
-                'hafen': 'Hafen',
-                'ekz': 'EKZ'
-            };
-            
-            grid.innerHTML = Object.entries(eventPrices)
-                .filter(([eventType]) => eventType in eventNames) // Nur Events mit festen Preisen anzeigen
-                .map(([eventType, config]) => `
-                <div class="event-price-item">
-                    <div class="event-price-info">
-                        <div class="event-price-name">${eventNames[eventType]}</div>
-                        <div class="event-price-description">${config.description}</div>
-                    </div>
-                    <div class="event-price-input">
-                        <input type="number" id="price_${eventType}" value="${config.price}" min="0" step="1000">
-                        <span class="price-unit">${config.unit}</span>
-                    </div>
-                </div>
-            `).join('');
-
-            // Hinweis für variable Preise hinzufügen
-            grid.innerHTML += `
-                <div class="event-price-item" style="grid-column: 1 / -1; background: var(--bg-darker);">
-                    <div class="event-price-info">
-                        <div class="event-price-name">Cayo Perico & RP Fabrik</div>
-                        <div class="event-price-description">Preise werden pro Event individuell festgelegt</div>
-                    </div>
-                    <div class="event-price-input">
-                        <span class="price-unit" style="color: var(--text-muted);">Variable Preise</span>
-                    </div>
-                </div>
-            `;
-        }
-
-        function saveEventPrices() {
-            const eventPrices = {};
-            const eventTypes = Object.keys(defaultEventPrices); // Nur Events mit festen Preisen
-            
-            eventTypes.forEach(eventType => {
-                const input = document.getElementById(`price_${eventType}`);
-                if (input) {
-                    const price = parseInt(input.value) || 0;
-                    eventPrices[eventType] = {
-                        price: price,
-                        description: defaultEventPrices[eventType].description,
-                        unit: defaultEventPrices[eventType].unit
-                    };
-                }
-            });
-            
-            db.saveEventPrices(eventPrices);
-            showPricesStatus('Event-Preise erfolgreich gespeichert!', 'success');
-        }
-
-        function resetEventPrices() {
-            db.saveEventPrices(defaultEventPrices);
-            loadEventPrices();
-            showPricesStatus('Standard-Preise wiederhergestellt!', 'success');
-        }
-
-        function showPricesStatus(message, type) {
-            const statusElement = document.getElementById('pricesStatusMessage');
+        function showStatus(message, type) {
+            const statusElement = document.getElementById('statusMessage');
             statusElement.textContent = message;
             statusElement.style.color = type === 'success' ? '#10b981' : '#ef4444';
             statusElement.style.display = 'block';
@@ -512,95 +136,28 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             const eventType = document.getElementById('eventType');
-            const membersGrid = document.getElementById('membersGrid');
             const submitBtn = document.getElementById('submitEvent');
-            const statusMessage = document.getElementById('statusMessage');
 
-            // Lade Mitglieder
-            function loadMembers() {
-                const members = db.getMembers();
-                membersGrid.innerHTML = members.map(member => `
-                    <div class="member-tag" data-id="${member.id}" data-name="${member.name}">
-                        <input type="checkbox" id="member_${member.id}" style="display: none;">
-                        <span>${member.name}</span>
-                        <small style="color: var(--text-muted);">(${member.id})</small>
-                    </div>
-                `).join('');
+            loadMembers();
 
-                // Event Listener für Member Tags
-                membersGrid.querySelectorAll('.member-tag').forEach(tag => {
-                    tag.addEventListener('click', function() {
-                        const memberId = this.dataset.id;
-                        const checkbox = this.querySelector('input');
-                        
-                        if (checkbox.checked) {
-                            // Abwählen
-                            checkbox.checked = false;
-                            this.classList.remove('selected');
-                            selectedMembers = selectedMembers.filter(id => id !== memberId);
-                        } else {
-                            // Auswählen
-                            checkbox.checked = true;
-                            this.classList.add('selected');
-                            selectedMembers.push(memberId);
-                        }
-                        
-                        updateSelectedCount();
-                        updateIndividualInputs();
-                        updatePreview();
-                    });
-                });
-            }
-
-            // Event Type Change
             eventType.addEventListener('change', function() {
-                const sharedAmount = document.getElementById('sharedAmount');
-                const individualAmounts = document.getElementById('individualAmounts');
-                const sharedAmountLabel = document.getElementById('sharedAmountLabel');
-                const individualAmountLabel = document.getElementById('individualAmountLabel');
-                const eventDetails = document.getElementById('eventDetails');
+                const amountSection = document.getElementById('amountSection');
+                const totalAmountSection = document.getElementById('totalAmountSection');
                 
                 if (this.value) {
-                    eventDetails.style.display = 'block';
+                    amountSection.style.display = 'block';
                     
-                    // Konfiguriere Labels basierend auf Event-Typ
-                    const eventConfig = {
-                        'bizwar_win': { shared: false, label: 'Kills pro Mitglied' },
-                        'bizwar_lose': { shared: false, label: 'Kills pro Mitglied' },
-                        '40er_win': { shared: false, label: 'Kills pro Mitglied' },
-                        '40er_lose': { shared: false, label: 'Kills pro Mitglied' },
-                        'ekz': { shared: false, label: 'Wins pro Mitglied' }, // GEÄNDERT: EKZ ist jetzt individuell
-                        'hafen': { shared: false, label: 'Drops pro Mitglied' },
-                        'giesserei': { shared: false, label: 'Kills pro Mitglied' },
-                        'waffenfabrik': { shared: false, label: 'Kills pro Mitglied' },
-                        'cayo': { shared: true, label: 'Drops' },
-                        'rp_fabrik': { shared: true, label: 'Wins' }
-                    };
-
-                    const config = eventConfig[this.value];
-                    
-                    if (config.shared) {
-                        sharedAmount.style.display = 'block';
-                        individualAmounts.style.display = 'none';
-                        sharedAmountLabel.textContent = config.label;
+                    if (['cayo', 'rp_fabrik'].includes(this.value)) {
+                        totalAmountSection.style.display = 'block';
                     } else {
-                        sharedAmount.style.display = 'none';
-                        individualAmounts.style.display = 'block';
-                        individualAmountLabel.textContent = config.label;
-                        updateIndividualInputs();
+                        totalAmountSection.style.display = 'none';
                     }
                 } else {
-                    eventDetails.style.display = 'none';
+                    amountSection.style.display = 'none';
+                    totalAmountSection.style.display = 'none';
                 }
-                
-                updatePreview();
             });
 
-            // Input Listener für Live-Vorschau
-            document.getElementById('sharedAmountInput')?.addEventListener('input', updatePreview);
-            document.getElementById('sharedTotalAmount')?.addEventListener('input', updatePreview);
-
-            // Event speichern
             submitBtn.addEventListener('click', function() {
                 if (!eventType.value) {
                     showStatus('Bitte Event-Typ auswählen', 'error');
@@ -613,74 +170,29 @@
                 }
 
                 const eventTypeValue = eventType.value;
-                let eventData = {};
+                const amount = parseInt(document.getElementById('amount').value) || 1;
+                const totalAmount = parseInt(document.getElementById('totalAmount').value) || 0;
 
-                // Shared Events (Cayo, RP Fabrik)
-                if (['cayo', 'rp_fabrik'].includes(eventTypeValue)) {
-                    const amount = parseInt(document.getElementById('sharedAmountInput').value) || 1;
-                    const totalAmount = parseInt(document.getElementById('sharedTotalAmount').value) || 0;
+                if (['cayo', 'rp_fabrik'].includes(eventTypeValue) && totalAmount === 0) {
+                    showStatus('Bitte Gesamtbetrag eingeben', 'error');
+                    return;
+                }
 
-                    if (totalAmount === 0) {
-                        showStatus('Bitte Gesamtbetrag eingeben', 'error');
-                        return;
-                    }
+                const eventData = {
+                    eventType: eventTypeValue,
+                    memberIds: selectedMembers,
+                    amount: amount,
+                    totalAmount: totalAmount
+                };
 
-                    eventData = {
-                        eventType: eventTypeValue,
-                        memberIds: selectedMembers,
-                        amount: amount,
-                        totalAmount: totalAmount
-                    };
-
-                    const result = db.addEvent(eventData);
-                    if (result.success) {
-                        showStatus(`Event für ${selectedMembers.length} Mitglieder gespeichert! Gesamt: ${formatCurrency(result.calculatedAmount)}`, 'success');
-                        resetForm();
-                    } else {
-                        showStatus('Fehler: ' + result.error, 'error');
-                    }
-                } 
-                // Individuelle Events (Bizwar, 40er, Hafen, Gießerei, Waffenfabrik, EKZ)
-                else {
-                    // Für individuelle Events müssen wir für jedes Mitglied ein separates Event erstellen
-                    let successCount = 0;
-                    let totalCalculated = 0;
-
-                    selectedMembers.forEach(memberId => {
-                        const amount = parseInt(document.getElementById(`amount_${memberId}`).value) || 1;
-                        
-                        const singleEventData = {
-                            eventType: eventTypeValue,
-                            memberIds: [memberId], // Nur dieses Mitglied
-                            amount: amount,
-                            totalAmount: 0
-                        };
-
-                        const result = db.addEvent(singleEventData);
-                        if (result.success) {
-                            successCount++;
-                            totalCalculated += result.calculatedAmount;
-                        }
-                    });
-
-                    if (successCount === selectedMembers.length) {
-                        showStatus(`Event für ${successCount} Mitglieder gespeichert! Gesamt: ${formatCurrency(totalCalculated)}`, 'success');
-                        resetForm();
-                    } else {
-                        showStatus(`Event für ${successCount}/${selectedMembers.length} Mitgliedern gespeichert`, 'warning');
-                    }
+                const result = db.addEvent(eventData);
+                if (result.success) {
+                    showStatus(`Event für ${selectedMembers.length} Mitglieder gespeichert!`, 'success');
+                    resetForm();
+                } else {
+                    showStatus('Fehler: ' + result.error, 'error');
                 }
             });
-
-            function showStatus(message, type) {
-                statusMessage.textContent = message;
-                statusMessage.style.color = type === 'success' ? '#10b981' : type === 'warning' ? '#f59e0b' : '#ef4444';
-                statusMessage.style.display = 'block';
-                setTimeout(() => statusMessage.style.display = 'none', 4000);
-            }
-
-            loadMembers();
-            loadEventPrices(); // Event-Preise laden
         });
     </script>
 </body>
